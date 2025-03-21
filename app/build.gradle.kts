@@ -2,6 +2,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp")
+    kotlin("plugin.serialization") version "2.1.10"
+
+
 }
 
 android {
@@ -40,7 +44,23 @@ android {
 }
 
 dependencies {
-
+    implementation("com.exyte:animated-navigation-bar:1.0.0")
+    val nav_version = "2.8.8"
+    implementation("androidx.navigation:navigation-compose:$nav_version")
+    //Serialization for NavArgs
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.7")
+    val compose_version = "1.0.0"
+    implementation("androidx.compose.runtime:runtime-livedata:$compose_version")
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("androidx.room:room-ktx:2.6.1")
+    implementation("androidx.room:room-runtime:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
+    implementation("com.google.android.gms:play-services-location:21.1.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
