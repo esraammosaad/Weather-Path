@@ -4,6 +4,6 @@ data class FivedaysWeatherForecastResponse(
     val city: City,
     val cnt: Int,
     val cod: String,
-    val list: List<Item0>,
+    val list: List<WeatherItem>,
     val message: Int
 )

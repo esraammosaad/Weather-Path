@@ -10,24 +10,17 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.weatherapp.data.remote.WeatherRemoteDataSource
 import com.example.weatherapp.home.view.HomeScreen
 import com.example.weatherapp.landing.view.GetStartedScreen
-import com.example.weatherapp.ui.theme.WeatherAppTheme
 import com.example.weatherapp.utilis.NavigationRoutes
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -35,6 +28,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import okhttp3.Address
 
 
 private const val My_LOCATION_PERMISSION_ID = 5005
@@ -46,8 +40,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-        geocoder = Geocoder(this)
         locationState = mutableStateOf(Location(LocationManager.GPS_PROVIDER))
+        geocoder = Geocoder(this)
         val list =
             geocoder.getFromLocation(locationState.value.latitude, locationState.value.longitude, 1)
 
@@ -71,7 +65,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 composable<NavigationRoutes.HomeScreen> {
-                    HomeScreen()
+                    HomeScreen(latitude = locationState.value.latitude, longitude = locationState.value.longitude)
                 }
             }
 

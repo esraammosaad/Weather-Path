@@ -1,5 +1,8 @@
 package com.example.weatherapp.home.view_model
 
+import android.content.Context
+import android.location.Address
+import android.location.Geocoder
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -20,8 +23,12 @@ class HomeViewModel(private val repository: Repository) : ViewModel() {
     var fiveDaysWeatherForecast: LiveData<FivedaysWeatherForecastResponse> =
         _fiveDaysWeatherForecast
 
+
     private var _message: MutableLiveData<String> = MutableLiveData()
     var message: LiveData<String> = _message
+
+    private var _countryName: MutableLiveData<Address> = MutableLiveData()
+    var countryName: LiveData<Address> = _countryName
 
     fun getCurrentWeather(latitude: Double, longitude: Double) {
 
@@ -76,6 +83,14 @@ class HomeViewModel(private val repository: Repository) : ViewModel() {
         }
 
 
+    }
+
+    fun getCountryName(geocoder: Geocoder, longitude: Double, latitude: Double) {
+        viewModelScope.launch {
+            val list =
+                geocoder.getFromLocation(latitude, longitude, 1)
+            _countryName.postValue(list?.get(0))
+        }
     }
 
 

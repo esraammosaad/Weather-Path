@@ -17,7 +17,7 @@ interface ApiService {
         @Query("appid") apiKey: String= Strings.API_KEY,
         @Query("lon") longitude: Double,
         @Query("lat") latitude: Double,
-        @Query("units") unit:String="standard",
+        @Query("units") unit:String=Strings.CELSIUS,
         @Query("lang") language:String="en"
     ): Response<CurrentWeatherResponse>
 
@@ -28,7 +28,7 @@ interface ApiService {
         @Query("appid") apiKey: String= Strings.API_KEY,
         @Query("lon") longitude: Double,
         @Query("lat") latitude: Double,
-        @Query("units") unit:String="standard",
+        @Query("units") unit:String=Strings.CELSIUS,
         @Query("lang") language:String="en"
     ): Response<FivedaysWeatherForecastResponse>
 

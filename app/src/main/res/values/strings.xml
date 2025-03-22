@@ -2,4 +2,5 @@
     <string name="app_name">Weather App</string>
     <string name="api_key">18a5a0a6e1d672ed8bc80550e06930de</string>
     <string name="sun_icon">Sun Icon</string>
+    <string name="sun_or_moon_icon">Sun Or Moon Icon</string>
 </resources>
