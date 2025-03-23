@@ -2,7 +2,6 @@ package com.example.weatherapp.home.view
 
 
 import android.location.Address
-import android.location.Geocoder
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,8 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,8 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -31,27 +26,21 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.weatherapp.R
-import com.example.weatherapp.data.local.WeatherLocalDataSource
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
-import com.example.weatherapp.data.model.five_days_weather_forecast.FivedaysWeatherForecastResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
-import com.example.weatherapp.data.remote.WeatherRemoteDataSource
-import com.example.weatherapp.data.repository.Repository
-import com.example.weatherapp.home.view_model.HomeViewModel
-import com.example.weatherapp.home.view_model.HomeViewModelFactory
+import com.example.weatherapp.home.view_model.HomeViewModelImpl
 import com.example.weatherapp.ui.theme.OffWhite
 import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.Strings
@@ -59,80 +48,87 @@ import com.example.weatherapp.utilis.Strings.BASE_IMAGE_URL
 import com.example.weatherapp.utilis.convertUnixToTime
 import com.example.weatherapp.utilis.formatTime
 import com.example.weatherapp.utilis.getCurrentDate
-import com.example.weatherapp.utilis.getTheme
+import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.isMorning
+import com.example.weatherapp.utilis.secondFormatDateTime
 
 
 @Composable
-fun HomeScreen(latitude: Double, longitude: Double) {
-
-    val context = LocalContext.current
-    val goeCoder = Geocoder(context)
-
-
-    val viewModel: HomeViewModel = viewModel<HomeViewModel>(
-        factory = HomeViewModelFactory(
-            Repository.getInstance(
-                weatherRemoteDataSource = WeatherRemoteDataSource(),
-                weatherLocalDataSource = WeatherLocalDataSource()
-            )
-        )
-    )
-
-    viewModel.getCurrentWeather(latitude = latitude, longitude = longitude)
-    viewModel.getCountryName(geocoder = goeCoder, longitude = longitude, latitude = latitude)
-    viewModel.getFiveDaysWeatherForecast(latitude = latitude, longitude = longitude)
+fun HomeScreen(viewModel: HomeViewModelImpl) {
 
     val currentWeather = viewModel.currentWeather.observeAsState()
     val fiveDaysWeatherForecast = viewModel.fiveDaysWeatherForecast.observeAsState()
+    val currentDayWeatherForecast = viewModel.currentDayList.observeAsState()
+    val nextDayWeatherForecast = viewModel.nextDayList.observeAsState()
+    val thirdDayWeatherForecast = viewModel.thirdDayList.observeAsState()
+    val fourthDayWeatherForecast = viewModel.fourthDayList.observeAsState()
+    val fifthDayWeatherForecast = viewModel.fifthDayList.observeAsState()
+    val sixthDayWeatherForecast = viewModel.sixthDayList.observeAsState()
     val message = viewModel.message.observeAsState()
     val countryName = viewModel.countryName.observeAsState()
 
-    Scaffold(
+    val listOfDays = listOf(
+        currentDayWeatherForecast.value,
+        nextDayWeatherForecast.value,
+        thirdDayWeatherForecast.value,
+        fourthDayWeatherForecast.value,
+        fifthDayWeatherForecast.value,
+        sixthDayWeatherForecast.value
+    )
 
-        contentWindowInsets = WindowInsets(0.dp),
 
-        ) { innerPadding ->
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .background(
-                    brush =
-                    getTheme()
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush =
+                getWeatherGradient(
+                    currentWeather.value?.weather?.get(
+                        0
+                    )?.icon ?: ""
                 )
-        ) {
+            )
+    ) {
 
-            item {
-                ImageDisplay()
+        item {
+            ImageDisplay()
 
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 50.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
 
-                ) {
+            ) {
 
-                    CustomText(text = "TODAY")
-                    Spacer(modifier = Modifier.height(3.dp))
-                    LocationDisplay(countryName)
-                    Spacer(modifier = Modifier.height(5.dp))
-                    CurrentDateDisplay()
-                    Spacer(modifier = Modifier.height(5.dp))
-                    TemperatureDisplay(currentWeather)
-                    WeatherStatusDisplay(currentWeather)
-                    fiveDaysWeatherForecast.value?.let { WeatherForecastDisplay(it) }
-                    currentWeather.value?.let { MoreDetailsContainer(it) }
+                CustomText(text = "TODAY")
+                Spacer(modifier = Modifier.height(3.dp))
+                LocationDisplay(countryName)
+                Spacer(modifier = Modifier.height(5.dp))
+                CurrentDateDisplay()
+                Spacer(modifier = Modifier.height(5.dp))
+                TemperatureDisplay(currentWeather)
+                WeatherStatusDisplay(currentWeather)
+                fiveDaysWeatherForecast.value?.let {
+                    WeatherForecastDisplay(
+                        it,
+                        currentWeather.value?.weather?.get(0)?.icon ?: ""
+                    )
                 }
+                currentWeather.value?.let { MoreDetailsContainer(it) }
+                FiveDaysWeatherForecastDisplay(
+                    fiveDaysWeatherForecast = listOfDays
+                )
 
             }
-
 
         }
 
 
     }
+
+
 }
 
 @Composable
@@ -150,7 +146,9 @@ fun MoreDetailsContainer(currentWeather: CurrentWeatherResponse) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(vertical = 5.dp).fillMaxWidth()
+                modifier = Modifier
+                    .padding(vertical = 5.dp)
+                    .fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(end = 20.dp)) {
                     MoreDetailsItem(
@@ -175,9 +173,11 @@ fun MoreDetailsContainer(currentWeather: CurrentWeatherResponse) {
                 }
 
                 Spacer(modifier = Modifier.width(20.dp))
-                VerticalDivider(modifier = Modifier
-                    .height(180.dp)
-                    .width(2.dp), color = Color.Gray)
+                VerticalDivider(
+                    modifier = Modifier
+                        .height(180.dp)
+                        .width(2.dp), color = Color.Gray
+                )
                 Spacer(modifier = Modifier.width(20.dp))
                 Column(modifier = Modifier.padding(start = 20.dp)) {
                     MoreDetailsItem(
@@ -198,13 +198,154 @@ fun MoreDetailsContainer(currentWeather: CurrentWeatherResponse) {
                         textTwo = currentWeather.clouds.all.toString() + " %"
                     )
 
+
+                }
+
+
+            }
+        }
+    }
+
+
+}
+
+
+@Composable
+private fun FiveDaysWeatherForecastDisplay(fiveDaysWeatherForecast: List<List<WeatherItem>?>) {
+
+    LazyColumn(
+        modifier = Modifier
+            .padding(end = 12.dp, start = 12.dp, top = 16.dp)
+            .size(450.dp),
+    ) {
+        items(fiveDaysWeatherForecast.size) {
+
+                dayIndex ->
+
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text =
+                        secondFormatDateTime(
+                            fiveDaysWeatherForecast[dayIndex]?.get(0)?.dt_txt ?: ""
+                        ),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        fontFamily = poppinsFontFamily,
+                        color = Color.White,
+
+                        )
+                    WeatherStatusImageDisplay(
+                        fiveDaysWeatherForecast[dayIndex]?.get(0)?.weather?.get(
+                            0
+                        )?.icon ?: ""
+                    )
+                }
+
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+
+                    Text(
+                        text = "${fiveDaysWeatherForecast[dayIndex]?.get(0)?.main?.temp_max?.toInt()}",
+                        fontSize = 20.sp,
+                        color = Color.White,
+                        fontFamily = poppinsFontFamily,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "/",
+                        fontSize = 16.sp,
+                        color = Color.Gray,
+                        fontFamily = poppinsFontFamily,
+                        fontWeight = FontWeight.Medium
+
+                    )
+                    Text(
+                        text = "${fiveDaysWeatherForecast[dayIndex]?.get(0)?.main?.temp_min?.toInt()}${Strings.CELSIUS_SYMBOL}",
+                        fontSize = 16.sp,
+                        color = Color.Gray,
+                        fontFamily = poppinsFontFamily,
+                        fontWeight = FontWeight.Medium
+                    )
+
                 }
 
 
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LazyRow(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 22.dp)
+            ) {
+
+
+                items(fiveDaysWeatherForecast[dayIndex]?.size ?: 0) { index ->
+                    fiveDaysWeatherForecast[dayIndex]?.get(index)?.let { DayWeatherItem(it) }
+                }
+
+            }
+        }
+    }
+
+
+}
+
+@Composable
+private fun DayWeatherItem(weatherItem: WeatherItem) {
+
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(end = 10.dp)
+                .size(60.dp)
+                .border(
+                    width = 1.dp,
+                    brush = Brush.linearGradient(
+                        colors = listOf(Color.Gray, Color.Gray)
+                    ),
+                    shape = RoundedCornerShape(10.dp)
+                )
+                .padding(horizontal = 10.dp, vertical = 5.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            WeatherStatusImageDisplay(
+                weatherItem.weather[0].icon
+            )
+            WeatherForecastItemTemperature(weatherItem)
 
         }
+        Spacer(modifier = Modifier.height(5.dp))
+        Text(
+            text = formatTime(weatherItem.dt_txt),
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            fontFamily = poppinsFontFamily,
+            color = Color.Gray,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(end = 8.dp)
+
+        )
+
     }
 
 
@@ -221,34 +362,29 @@ private fun MoreDetailsItem(icon: Int, textOne: String, textTwo: String) {
         Column(
             verticalArrangement = Arrangement.Center
         ) {
-
             CustomText(textOne)
             CustomText(textTwo)
-
         }
 
     }
 }
 
 @Composable
-private fun WeatherForecastDisplay(fiveDaysWeatherForecast: FivedaysWeatherForecastResponse) {
+private fun WeatherForecastDisplay(
+    fiveDaysWeatherForecast: List<WeatherItem>,
+    icon: String
+) {
 
-
-    LazyRow(modifier = Modifier.padding(horizontal = 8.dp, vertical = 32.dp)) {
-
-
-        items(fiveDaysWeatherForecast.list.size) { index: Int ->
-            WeatherForecastItem(fiveDaysWeatherForecast.list[index])
-
+    LazyRow(modifier = Modifier.padding(horizontal = 12.dp, vertical = 32.dp)) {
+        items(fiveDaysWeatherForecast.size) { index: Int ->
+            WeatherForecastItem(fiveDaysWeatherForecast[index], icon)
         }
-
-
     }
 
 }
 
 @Composable
-private fun WeatherForecastItem(weatherItem: WeatherItem) {
+private fun WeatherForecastItem(weatherItem: WeatherItem, icon: String) {
 
     Column(
         modifier = Modifier
@@ -256,7 +392,7 @@ private fun WeatherForecastItem(weatherItem: WeatherItem) {
             .size(100.dp)
             .border(
                 width = 1.dp,
-                brush = getTheme(),
+                brush = getWeatherGradient(icon),
                 shape = RoundedCornerShape(10.dp)
             )
             .padding(horizontal = 12.dp, vertical = 8.dp),
@@ -268,28 +404,33 @@ private fun WeatherForecastItem(weatherItem: WeatherItem) {
         WeatherStatusImageDisplay(
             weatherItem.weather[0].icon
         )
-        Row {
-            Text(
-                weatherItem.main.temp.toString(),
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp,
-                fontFamily = poppinsFontFamily,
-                color = Color.White
-            )
-            Spacer(modifier = Modifier.width(2.dp))
-            Text(
-                Strings.CELSIUS_SYMBOL,
-                fontWeight = FontWeight.Normal,
-                fontSize = 12.sp,
-                fontFamily = poppinsFontFamily,
-                color = Color.White
-            )
-        }
+        WeatherForecastItemTemperature(weatherItem)
 
 
     }
 
 
+}
+
+@Composable
+private fun WeatherForecastItemTemperature(weatherItem: WeatherItem) {
+    Row {
+        Text(
+            weatherItem.main.temp.toString(),
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 16.sp,
+            fontFamily = poppinsFontFamily,
+            color = Color.White
+        )
+        Spacer(modifier = Modifier.width(2.dp))
+        Text(
+            Strings.CELSIUS_SYMBOL,
+            fontWeight = FontWeight.Normal,
+            fontSize = 12.sp,
+            fontFamily = poppinsFontFamily,
+            color = Color.White
+        )
+    }
 }
 
 @Composable
@@ -307,7 +448,7 @@ private fun CustomText(text: String) {
 @Composable
 private fun CurrentDateDisplay() {
     Text(
-        text = getCurrentDate(),
+        text = getCurrentDate(0),
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
         fontFamily = poppinsFontFamily,
@@ -415,11 +556,10 @@ private fun TemperatureDisplay(currentWeather: State<CurrentWeatherResponse?>) {
 
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
-private fun HomeScreenPreview() {
-
+private fun HomeScreenPreview(
+    homeViewModel: HomeViewModelImpl? = null,
+) {
     HomeScreen(
-        longitude = 0.0, latitude = 0.0,
+        homeViewModel!!
     )
-
-
 }

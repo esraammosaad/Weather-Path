@@ -2,8 +2,11 @@ package com.example.weatherapp.data.repository
 
 import com.example.weatherapp.data.local.WeatherLocalDataSource
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
-import com.example.weatherapp.data.model.five_days_weather_forecast.FivedaysWeatherForecastResponse
+import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
+import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.data.remote.WeatherRemoteDataSource
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import retrofit2.Response
 
 class Repository(
@@ -40,14 +43,11 @@ class Repository(
     suspend fun getFiveDaysWeatherForecast(
         latitude: Double,
         longitude: Double
-    ): Response<FivedaysWeatherForecastResponse> {
-
-
+    ): Flow<WeatherItem> {
         return weatherRemoteDataSource.getFiveDaysWeatherForecast(
             latitude = latitude,
             longitude = longitude
         )
-
 
     }
 
