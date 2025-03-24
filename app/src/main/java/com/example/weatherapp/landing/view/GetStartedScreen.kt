@@ -18,18 +18,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherapp.R
+import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.ui.theme.OffWhite
 import com.example.weatherapp.ui.theme.poppinsFontFamily
 
 @Composable
 fun GetStartedScreen(onClick: () -> Unit) {
+
+    val context = LocalContext.current
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -48,7 +53,7 @@ fun GetStartedScreen(onClick: () -> Unit) {
         ) {
             Spacer(modifier = Modifier.height(190.dp))
             Text(
-                "Weather Path", color = Color.White, fontSize = 33.sp,
+                stringResource(R.string.weather_path), color = Color.White, fontSize = 33.sp,
                 fontFamily = poppinsFontFamily,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -57,7 +62,7 @@ fun GetStartedScreen(onClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(1.dp))
             Text(
-                "Follow the weather wherever",
+                stringResource(R.string.follow_the_weather_wherever),
                 color = OffWhite,
                 fontSize = 14.sp,
                 fontFamily = poppinsFontFamily,
@@ -71,7 +76,7 @@ fun GetStartedScreen(onClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                "Stay ahead with real-time forecasts, interactive maps, and smart alerts—so you’re always prepared for what’s next.",
+                stringResource(R.string.stay_ahead_with_real_time_forecasts_interactive_maps_and_smart_alerts_so_you_re_always_prepared_for_what_s_next),
                 color = Color.Gray,
                 fontSize = 16.sp,
                 fontFamily = poppinsFontFamily,
@@ -81,8 +86,9 @@ fun GetStartedScreen(onClick: () -> Unit) {
 
             )
             Spacer(modifier = Modifier.height(38.dp))
-            CustomButton(text = "Get Started") {
+            CustomButton(text = stringResource(R.string.get_started)) {
                 onClick.invoke()
+                LocalStorageDataSource.getInstance(context).saveGetStartedStateState()
             }
 
         }

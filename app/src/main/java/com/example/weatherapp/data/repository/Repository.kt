@@ -51,5 +51,25 @@ class Repository(
 
     }
 
+    suspend fun insertCurrentWeather(
+        currentWeatherResponse: CurrentWeatherResponse
+    ): Long {
+
+        return weatherLocalDataSource.insertCurrentWeather(
+            currentWeatherResponse
+        )
+
+    }
+
+    suspend fun insertFiveDaysWeather(
+        fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse
+    ): Long {
+
+        return weatherLocalDataSource.insertFiveDaysWeather(
+            fiveDaysWeatherForecastResponse
+        )
+
+    }
+
 
 }

@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
     kotlin("plugin.serialization") version "2.1.10"
-
+    alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin)
 
 }
 
@@ -40,11 +40,25 @@ android {
     }
     buildFeatures {
         compose = true
+        viewBinding = true
     }
 }
 
+secrets {
+
+    propertiesFileName = "secrets.properties"
+    defaultPropertiesFileName = "local.defaults.properties"
+}
+
+
 dependencies {
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    ksp("com.github.bumptech.glide:ksp:4.16.0")
+    implementation("com.google.maps.android:maps-compose:4.3.3")
     implementation("com.exyte:animated-navigation-bar:1.0.0")
+    implementation(libs.play.services.maps)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
     val nav_version = "2.8.8"
     implementation("androidx.navigation:navigation-compose:$nav_version")
     //Serialization for NavArgs

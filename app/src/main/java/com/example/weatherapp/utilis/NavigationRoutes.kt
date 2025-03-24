@@ -17,7 +17,7 @@ sealed class NavigationRoutes(
 
     @Serializable
     object FavoriteScreen :
-        NavigationRoutes(title = "Favorite", icon = R.drawable.baseline_favorite_border_24)
+        NavigationRoutes(title = "Favorite", icon = R.drawable.baseline_map_24)
 
     @Serializable
     object AlarmScreen :
@@ -26,5 +26,9 @@ sealed class NavigationRoutes(
     @Serializable
     object SettingsScreen :
         NavigationRoutes(title = "Preferences", icon = R.drawable.baseline_settings_suggest_24)
+
+    @Serializable
+    object MapScreen :
+        NavigationRoutes(title = "Map", icon = R.drawable.baseline_map_24)
 
 }

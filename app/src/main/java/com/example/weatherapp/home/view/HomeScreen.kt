@@ -176,7 +176,7 @@ fun MoreDetailsContainer(currentWeather: CurrentWeatherResponse) {
                 VerticalDivider(
                     modifier = Modifier
                         .height(180.dp)
-                        .width(2.dp), color = Color.Gray
+                        .width(1.dp), color = Color.Gray.copy(alpha = 0.5f)
                 )
                 Spacer(modifier = Modifier.width(20.dp))
                 Column(modifier = Modifier.padding(start = 20.dp)) {
@@ -222,82 +222,86 @@ private fun FiveDaysWeatherForecastDisplay(fiveDaysWeatherForecast: List<List<We
 
                 dayIndex ->
 
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-
+            if (!fiveDaysWeatherForecast[dayIndex].isNullOrEmpty()) {
                 Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    modifier = Modifier
+                        .fillMaxWidth()
                 ) {
-                    Text(
-                        text =
-                        secondFormatDateTime(
-                            fiveDaysWeatherForecast[dayIndex]?.get(0)?.dt_txt ?: ""
-                        ),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        fontFamily = poppinsFontFamily,
-                        color = Color.White,
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = if (dayIndex == 0) "Today" else
+                                fiveDaysWeatherForecast[dayIndex]?.get(0)?.dt_txt?.let {
+                                    secondFormatDateTime(
+                                        it
+                                    )
+                                } ?: "",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 20.sp,
+                            fontFamily = poppinsFontFamily,
+                            color = Color.White,
+
+                            )
+                        WeatherStatusImageDisplay(
+                            fiveDaysWeatherForecast[dayIndex]?.get(0)?.weather?.get(
+                                0
+                            )?.icon ?: ""
+                        )
+                    }
+
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+
+                        Text(
+                            text = "${fiveDaysWeatherForecast[dayIndex]?.get(0)?.main?.temp_max?.toInt()}",
+                            fontSize = 20.sp,
+                            color = Color.White,
+                            fontFamily = poppinsFontFamily,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = "/",
+                            fontSize = 16.sp,
+                            color = Color.White.copy(alpha = 0.5f),
+                            fontFamily = poppinsFontFamily,
+                            fontWeight = FontWeight.Medium
 
                         )
-                    WeatherStatusImageDisplay(
-                        fiveDaysWeatherForecast[dayIndex]?.get(0)?.weather?.get(
-                            0
-                        )?.icon ?: ""
-                    )
+                        Text(
+                            text = "${fiveDaysWeatherForecast[dayIndex]?.get(0)?.main?.temp_min?.toInt()}${Strings.CELSIUS_SYMBOL}",
+                            fontSize = 16.sp,
+                            color = Color.White.copy(alpha = 0.5f),
+                            fontFamily = poppinsFontFamily,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                    }
+
+
                 }
 
+                Spacer(modifier = Modifier.height(8.dp))
 
-                Row(
+                LazyRow(
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    modifier = Modifier.padding(bottom = 16.dp)
                 ) {
 
-                    Text(
-                        text = "${fiveDaysWeatherForecast[dayIndex]?.get(0)?.main?.temp_max?.toInt()}",
-                        fontSize = 20.sp,
-                        color = Color.White,
-                        fontFamily = poppinsFontFamily,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = "/",
-                        fontSize = 16.sp,
-                        color = Color.Gray,
-                        fontFamily = poppinsFontFamily,
-                        fontWeight = FontWeight.Medium
 
-                    )
-                    Text(
-                        text = "${fiveDaysWeatherForecast[dayIndex]?.get(0)?.main?.temp_min?.toInt()}${Strings.CELSIUS_SYMBOL}",
-                        fontSize = 16.sp,
-                        color = Color.Gray,
-                        fontFamily = poppinsFontFamily,
-                        fontWeight = FontWeight.Medium
-                    )
+                    items(fiveDaysWeatherForecast[dayIndex]?.size ?: 0) { index ->
+                        fiveDaysWeatherForecast[dayIndex]?.get(index)?.let { DayWeatherItem(it) }
+                    }
 
                 }
-
-
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LazyRow(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 22.dp)
-            ) {
-
-
-                items(fiveDaysWeatherForecast[dayIndex]?.size ?: 0) { index ->
-                    fiveDaysWeatherForecast[dayIndex]?.get(index)?.let { DayWeatherItem(it) }
-                }
-
             }
         }
     }
@@ -319,7 +323,10 @@ private fun DayWeatherItem(weatherItem: WeatherItem) {
                 .border(
                     width = 1.dp,
                     brush = Brush.linearGradient(
-                        colors = listOf(Color.Gray, Color.Gray)
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.5f),
+                            Color.White.copy(alpha = 0.5f)
+                        )
                     ),
                     shape = RoundedCornerShape(10.dp)
                 )
@@ -331,18 +338,24 @@ private fun DayWeatherItem(weatherItem: WeatherItem) {
             WeatherStatusImageDisplay(
                 weatherItem.weather[0].icon
             )
-            WeatherForecastItemTemperature(weatherItem)
+            Text(
+                text = "${weatherItem.main.temp_min.toInt()}${Strings.CELSIUS_SYMBOL}",
+                fontSize = 14.sp,
+                color = Color.White,
+                fontFamily = poppinsFontFamily,
+                fontWeight = FontWeight.Medium
+            )
 
         }
         Spacer(modifier = Modifier.height(5.dp))
         Text(
             text = formatTime(weatherItem.dt_txt),
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 15.sp,
             fontFamily = poppinsFontFamily,
-            color = Color.Gray,
+            color = Color.White.copy(alpha = 0.5f),
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(end = 8.dp)
+            modifier = Modifier.padding(end = 9.dp)
 
         )
 

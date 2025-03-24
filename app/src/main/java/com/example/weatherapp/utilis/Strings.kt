@@ -11,6 +11,8 @@ object Strings {
     const val FAHRENHEIT_SYMBOL: String = "\u2109"
     const val KELVIN: String = "default"
     const val KELVIN_SYMBOL: String = "\u212A"
+    const val SHARED_PREF_NAME: String = "SHARED_PREF"
+    const val SEEN_GET_STARTED: String = "SEEN_GET_STARTED"
 
 
 }

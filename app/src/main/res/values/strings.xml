@@ -3,4 +3,10 @@
     <string name="api_key">18a5a0a6e1d672ed8bc80550e06930de</string>
     <string name="sun_icon">Sun Icon</string>
     <string name="sun_or_moon_icon">Sun Or Moon Icon</string>
+    <string name="get_started">Get Started</string>
+    <string name="stay_ahead_with_real_time_forecasts_interactive_maps_and_smart_alerts_so_you_re_always_prepared_for_what_s_next">Stay ahead with real-time forecasts, interactive maps, and smart alerts—so you’re always prepared for what’s next.</string>
+    <string name="follow_the_weather_wherever">Follow the weather wherever</string>
+    <string name="weather_path">Weather Path</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <string name="map_icon">Map Icon</string>
 </resources>
