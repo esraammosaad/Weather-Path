@@ -257,19 +257,19 @@ fun MapScreen(favoriteViewModel: FavoriteViewModelImpl, location: Location) {
     when (currentWeatherUiState) {
 
         is Response.Loading -> {
-//            Column(
-//                modifier = Modifier.fillMaxSize(),
-//                verticalArrangement = Arrangement.Center,
-//                horizontalAlignment = Alignment.CenterHorizontally
-//            ) { CircularProgressIndicator(color = Color.Black) }
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) { CircularProgressIndicator(color = Color.Black) }
         }
 
         is Response.Failure -> {
-//            Column(
-//                modifier = Modifier.fillMaxSize(),
-//                verticalArrangement = Arrangement.Center,
-//                horizontalAlignment = Alignment.CenterHorizontally
-//            ) { Text(currentWeatherUiState.exception) }
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) { Text(currentWeatherUiState.exception) }
         }
 
         is Response.Success<*> -> {

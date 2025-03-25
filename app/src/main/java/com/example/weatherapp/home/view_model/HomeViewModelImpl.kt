@@ -104,7 +104,6 @@ class HomeViewModelImpl(
                 }.toList()))
                 Log.i("TAG", "getSelectedWeather: nnnnnnnnnnnn")
 
-
                 _currentDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(0) }
                     .toList())
                 _nextDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(1) }
