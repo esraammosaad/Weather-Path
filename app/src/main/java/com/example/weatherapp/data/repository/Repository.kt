@@ -6,8 +6,6 @@ import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeat
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.data.remote.WeatherRemoteDataSource
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
-import retrofit2.Response
 
 class Repository(
     private val weatherRemoteDataSource: WeatherRemoteDataSource,
@@ -35,7 +33,7 @@ class Repository(
     suspend fun getCurrentWeather(
         latitude: Double,
         longitude: Double
-    ): Response<CurrentWeatherResponse> {
+    ): CurrentWeatherResponse{
 
         return weatherRemoteDataSource.getCurrentWeather(latitude = latitude, longitude = longitude)
     }
@@ -69,6 +67,42 @@ class Repository(
             fiveDaysWeatherForecastResponse
         )
 
+    }
+
+    suspend fun deleteCurrentWeather(currentWeatherResponse: CurrentWeatherResponse): Int {
+
+        return weatherLocalDataSource.deleteCurrentWeather(currentWeatherResponse)
+    }
+
+    suspend fun deleteFiveDaysWeather(fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse): Int {
+
+        return weatherLocalDataSource.deleteFiveDaysWeather(fiveDaysWeatherForecastResponse)
+    }
+
+    suspend fun selectFiveDaysWeather(
+        longitude: Double,
+        latitude: Double
+    ): FiveDaysWeatherForecastResponse {
+
+        return weatherLocalDataSource.selectFiveDaysWeather(
+            longitude = longitude,
+            latitude = latitude
+        )
+    }
+
+    suspend fun selectAllFavorites(): Flow<List<CurrentWeatherResponse>> {
+
+        return weatherLocalDataSource.selectAllFavorites()
+    }
+
+    suspend fun selectFiveDaysWeatherFromFavorites(): Flow<List<FiveDaysWeatherForecastResponse>> {
+
+        return weatherLocalDataSource.selectFiveDaysWeatherFromFavorites()
+    }
+
+    suspend fun selectDayWeather(longitude : Double , latitude: Double ) : CurrentWeatherResponse{
+
+        return weatherLocalDataSource.selectDayWeather(longitude = longitude,latitude=latitude)
     }
 
 

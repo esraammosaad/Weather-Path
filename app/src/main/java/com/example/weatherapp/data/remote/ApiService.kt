@@ -19,7 +19,7 @@ interface ApiService {
         @Query("lat") latitude: Double,
         @Query("units") unit:String=Strings.CELSIUS,
         @Query("lang") language:String="en"
-    ): Response<CurrentWeatherResponse>
+    ): CurrentWeatherResponse
 
 
 

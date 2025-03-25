@@ -23,7 +23,7 @@ interface WeatherDao {
     fun selectAllFavorites() : Flow<List<CurrentWeatherResponse>>
 
 
-    @Query("SELECT * FROM current_weather_table WHERE longitude= :longitude AND latitude= :latitude")
+    @Query("SELECT * FROM current_weather_table WHERE ROUND(longitude, 2) = ROUND(:longitude, 2) AND ROUND(latitude, 2) = ROUND(:latitude, 2)")
     suspend fun selectDayWeather(longitude : Double , latitude: Double ) : CurrentWeatherResponse
 
 
@@ -37,7 +37,7 @@ interface WeatherDao {
     fun selectFiveDaysWeatherFromFavorites() : Flow<List<FiveDaysWeatherForecastResponse>>
 
 
-    @Query("SELECT * FROM five_days_weather_table WHERE longitude= :longitude AND latitude= :latitude")
+    @Query("SELECT * FROM five_days_weather_table WHERE ROUND(longitude, 2) = ROUND(:longitude, 2) AND ROUND(latitude, 2) = ROUND(:latitude, 2)")
     suspend fun selectFiveDaysWeather(longitude : Double , latitude: Double ) : FiveDaysWeatherForecastResponse
 
 

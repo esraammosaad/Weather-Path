@@ -1,4 +1,4 @@
-package com.example.weatherapp.home.view_model
+package com.example.weatherapp.favorite.view_model
 
 import android.location.Geocoder
 import android.util.Log
@@ -19,18 +19,17 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 
-
-class HomeViewModelImpl(
+class FavoriteViewModelImpl(
     private val repository: Repository,
 ) : ViewModel() {
 
-    private var _currentWeather: MutableStateFlow<Response> = MutableStateFlow(Response.Loading)
-    var currentWeather = _currentWeather.asStateFlow()
+    private var _selectedWeather: MutableStateFlow<Response> = MutableStateFlow(Response.Loading)
+    var selectedWeather = _selectedWeather.asStateFlow()
 
-    private var _fiveDaysWeatherForecast: MutableStateFlow<Response> =
+    private var _selectedFiveDaysWeatherForecast: MutableStateFlow<Response> =
         MutableStateFlow(Response.Loading)
 
-    var fiveDaysWeatherForecast = _fiveDaysWeatherForecast.asStateFlow()
+    var selectedFiveDaysWeatherForecast = _selectedFiveDaysWeatherForecast.asStateFlow()
 
     private var _message: MutableStateFlow<String> = MutableStateFlow("")
     var message = _message.asStateFlow()
@@ -59,15 +58,16 @@ class HomeViewModelImpl(
     var favoriteItems = _favoriteItems.asStateFlow()
 
 
-    fun getCurrentWeather(latitude: Double, longitude: Double) {
+    fun getSelectedWeather(latitude: Double, longitude: Double) {
         viewModelScope.launch {
+            _selectedWeather.emit(Response.Loading)
             try {
                 val result = repository.getCurrentWeather(
                     latitude = latitude,
                     longitude = longitude
                 )
 
-                _currentWeather.emit(Response.Success(result))
+                _selectedWeather.emit(Response.Success(result))
                 _message.emit("Success")
 
                 Log.i("TAG", "getSelectedWeather: nnnnnnnnnnnn")
@@ -76,9 +76,9 @@ class HomeViewModelImpl(
 
             } catch (e: Exception) {
 
-                _currentWeather.emit(Response.Failure(e.message.toString()))
+                _selectedWeather.emit(Response.Failure(e.message.toString()))
                 _message.emit(e.message.toString())
-                Log.i("TAG", "getSelectedWeather: nnnnnnnnnnnn")
+                Log.i("TAG", "getSelectedWeather:ff nnnnnnnnnnnn")
 
 
             }
@@ -88,7 +88,7 @@ class HomeViewModelImpl(
 
     }
 
-    fun getFiveDaysWeatherForecast(latitude: Double, longitude: Double) {
+    fun getSelectedFiveDaysWeatherForecast(latitude: Double, longitude: Double) {
 
         viewModelScope.launch {
             try {
@@ -98,11 +98,11 @@ class HomeViewModelImpl(
                         longitude = longitude
                     )
 
-                _fiveDaysWeatherForecast.emit(Response.Success(result.catch { ex ->
-                    _fiveDaysWeatherForecast.emit(Response.Failure(ex.message.toString()))
+                _selectedFiveDaysWeatherForecast.emit(Response.Success(result.catch { ex ->
+                    _selectedFiveDaysWeatherForecast.emit(Response.Failure(ex.message.toString()))
 
                 }.toList()))
-                Log.i("TAG", "getSelectedWeather: nnnnnnnnnnnn")
+                Log.i("TAG", "getSelectedWeather:nnnnnnnnnnnn")
 
 
                 _currentDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(0) }
@@ -122,7 +122,7 @@ class HomeViewModelImpl(
             } catch (e: Exception) {
 
                 _message.emit(e.message.toString())
-                Log.i("TAG", "getSelectedWeather: nnnnnnnnnnnn")
+                Log.i("TAG", "getSelectedWeather:ff nnnnnnnnnnnn")
 
 
             }
@@ -132,20 +132,31 @@ class HomeViewModelImpl(
 
     }
 
-
-
-
-
-    fun insertCurrentWeather(currentWeatherResponse: CurrentWeatherResponse) {
+    fun insertWeather(
+        currentWeatherResponse: CurrentWeatherResponse,
+        fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse
+    ) {
         viewModelScope.launch {
-            repository.insertCurrentWeather(currentWeatherResponse)
+            insertSelectedWeather(currentWeatherResponse)
+            insertSelectedFiveDaysWeather(fiveDaysWeatherForecastResponse)
+            _message.emit("Added Successfully")
+        }
+
+
+    }
+
+    fun insertSelectedWeather(currentWeatherResponse: CurrentWeatherResponse) {
+        viewModelScope.launch {
+            val res = repository.insertCurrentWeather(currentWeatherResponse)
+
         }
 
     }
 
-    fun insertFiveDaysWeather(fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse) {
+    fun insertSelectedFiveDaysWeather(fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse) {
         viewModelScope.launch {
             repository.insertFiveDaysWeather(fiveDaysWeatherForecastResponse)
+
         }
 
     }
@@ -159,38 +170,20 @@ class HomeViewModelImpl(
         }
     }
 
-    private fun selectDayWeather(longitude: Double, latitude: Double) {
-        viewModelScope.launch {
-            val result = repository.selectDayWeather(longitude = longitude, latitude = latitude)
-            _currentWeather.emit(Response.Success(result))
-
-            Log.i("TAG", "==== selectDayWeather: $result")
-            Log.i("TAG", "selectDayWeather: $latitude , $longitude")
+    fun selectAllFavorites() {
 
 
-        }
-    }
-    private fun selectFiveDaysWeather(longitude: Double, latitude: Double) {
-        viewModelScope.launch {
-            val result = repository.selectFiveDaysWeather(longitude = longitude, latitude = latitude)
-            _fiveDaysWeatherForecast.emit(Response.Success(result.list))
-
-            Log.i("TAG", "==== selectDayWeather: $result")
-            Log.i("TAG", "selectDayWeather: $latitude , $longitude")
-
-
-        }
     }
 
 
 }
 
-class HomeViewModelFactory(
+class FavoriteViewModelFactory(
     private val repository: Repository,
 ) :
     ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return HomeViewModelImpl(repository) as T
+        return FavoriteViewModelImpl(repository) as T
     }
-
 }
+

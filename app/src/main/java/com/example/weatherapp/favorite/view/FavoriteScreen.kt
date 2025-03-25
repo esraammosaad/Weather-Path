@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,7 +20,6 @@ import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,13 +28,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import com.example.weatherapp.R
+import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
-import com.example.weatherapp.home.view_model.HomeViewModelImpl
+import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
 import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.Strings
 import com.example.weatherapp.utilis.Strings.BASE_IMAGE_URL
@@ -44,10 +43,14 @@ import com.example.weatherapp.utilis.getWeatherGradient
 
 
 @Composable
-fun FavoriteScreen(viewModel: HomeViewModelImpl?, onMapClick: () -> Unit) {
+fun FavoriteScreen(
+    favoriteViewModel: FavoriteViewModelImpl,
+    currentWeather: CurrentWeatherResponse,
+    countryName: Address?,
+    onMapClick: () -> Unit
+) {
 
-    val currentWeather = viewModel?.currentWeather?.observeAsState()?.value
-    val countryName = viewModel?.countryName?.observeAsState()?.value
+    val selectedWeather = favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
 
 
     Column(
@@ -55,7 +58,7 @@ fun FavoriteScreen(viewModel: HomeViewModelImpl?, onMapClick: () -> Unit) {
             .fillMaxSize()
             .background(
                 brush = getWeatherGradient(
-                    currentWeather?.weather?.get(0)?.icon ?: ""
+                    currentWeather.weather?.get(0)?.icon ?: ""
                 )
             ),
     ) {
@@ -92,7 +95,7 @@ fun FavoriteScreen(viewModel: HomeViewModelImpl?, onMapClick: () -> Unit) {
         }
 
 
-        FavoriteLazyColumn(currentWeather, countryName)
+        FavoriteLazyColumn(selectedWeather,currentWeather, countryName)
 
 
 //        MapScreen (viewModel)
@@ -102,14 +105,22 @@ fun FavoriteScreen(viewModel: HomeViewModelImpl?, onMapClick: () -> Unit) {
 }
 
 @Composable
-fun FavoriteLazyColumn(currentWeather: CurrentWeatherResponse?, countryName: Address?) {
+fun FavoriteLazyColumn(
+    selectedWeather: Response,
+    currentWeather: CurrentWeatherResponse,
+    countryName: Address?
+) {
 
     LazyColumn(modifier = Modifier.padding(16.dp)) {
 
         item {
-            FavoriteItem(currentWeather, countryName)
+            FavoriteItem(currentWeather,countryName)
 
         }
+//        items(){
+//
+//
+//        }
     }
 
 
@@ -152,8 +163,8 @@ fun FavoriteItem(currentWeather: CurrentWeatherResponse?, countryName: Address?)
                         fontSize = 20.sp
                     )
                     Text(
-                        text = countryName?.locality.toString(),
-                        fontWeight = FontWeight.Medium,
+                        text = countryName?.locality?:"",
+                        fontWeight = FontWeight.Normal,
                         fontFamily = poppinsFontFamily,
                         fontSize = 18.sp
 
@@ -215,13 +226,6 @@ fun FavoriteItem(currentWeather: CurrentWeatherResponse?, countryName: Address?)
 
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun FavoriteScreenPreview() {
 
-    FavoriteScreen(null) {}
-
-
-}
 
 

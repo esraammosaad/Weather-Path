@@ -23,7 +23,7 @@ fun convertUnixToTime(unixTime: Long): String {
 }
 
 
-fun getWeatherGradient(icon: String): Brush {
+fun getWeatherGradient(icon: String = "" ): Brush {
     return when (icon) {
         // ☀️ Clear Sky (Sunny)
         "01d" -> Brush.linearGradient(

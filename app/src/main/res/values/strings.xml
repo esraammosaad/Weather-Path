@@ -9,4 +9,6 @@
     <string name="weather_path">Weather Path</string>
     <string name="title_activity_maps">MapsActivity</string>
     <string name="map_icon">Map Icon</string>
+    <string name="cancel">Cancel</string>
+    <string name="add">Add</string>
 </resources>

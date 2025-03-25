@@ -41,5 +41,11 @@ class WeatherLocalDataSource(private val weatherDao: WeatherDao) {
         return weatherDao.selectFiveDaysWeather(longitude = longitude, latitude = latitude)
     }
 
+    suspend fun selectDayWeather(longitude : Double , latitude: Double ) : CurrentWeatherResponse{
+
+        return weatherDao.selectDayWeather(longitude = longitude,latitude=latitude)
+    }
+
+
 
 }

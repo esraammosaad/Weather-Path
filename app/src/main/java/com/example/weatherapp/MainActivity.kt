@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
@@ -13,19 +14,28 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -35,7 +45,9 @@ import com.example.weatherapp.alarm.view.AlarmScreen
 import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.local.WeatherDatabase
 import com.example.weatherapp.data.local.WeatherLocalDataSource
-import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
+import com.example.weatherapp.data.model.Response
+import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
+import com.example.weatherapp.data.remote.RetrofitFactory
 import com.example.weatherapp.data.remote.WeatherRemoteDataSource
 import com.example.weatherapp.data.repository.Repository
 import com.example.weatherapp.favorite.view.FavoriteScreen
@@ -44,9 +56,13 @@ import com.example.weatherapp.home.view_model.HomeViewModelImpl
 import com.example.weatherapp.home.view_model.HomeViewModelFactory
 import com.example.weatherapp.landing.view.GetStartedScreen
 import com.example.weatherapp.favorite.view.MapScreen
+import com.example.weatherapp.favorite.view_model.FavoriteViewModelFactory
+import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
 import com.example.weatherapp.settings.view.SettingsScreen
+import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.utilis.BottomNavigationBar
 import com.example.weatherapp.utilis.NavigationRoutes
+import com.example.weatherapp.utilis.getWeatherGradient
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -62,7 +78,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     lateinit var geocoder: Geocoder
 
-    private lateinit var viewModel: HomeViewModelImpl
+    private lateinit var homeViewModel: HomeViewModelImpl
     override fun onCreate(savedInstanceState: Bundle?) {
 
         locationState =
@@ -73,45 +89,94 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+
             val navController = rememberNavController()
 
-//            viewModel = viewModel<HomeViewModelImpl>(
+
+//
+//            homeViewModel = viewModel<HomeViewModelImpl>(
 //                factory = HomeViewModelFactory(
 //                    Repository.getInstance(
-//                        weatherRemoteDataSource = WeatherRemoteDataSource(),
-//                        weatherLocalDataSource = WeatherLocalDataSource()
-//                    ), fusedLocationProviderClient, geocoder
+//                        weatherRemoteDataSource = WeatherRemoteDataSource(RetrofitFactory.apiService),
+//                        weatherLocalDataSource = WeatherLocalDataSource(
+//                            WeatherDatabase.getInstance(
+//                                this
+//                            ).getDao()
+//                        )
+//                    )
 //                )
 //            )
 
+
             val navBackStackEntry = navController.currentBackStackEntryAsState()
             val currentDestination = navBackStackEntry.value?.destination
-            val currentWeather = viewModel.currentWeather.observeAsState()
-
-
-            Scaffold(
-                contentWindowInsets = WindowInsets(0.dp),
-                bottomBar = {
-                    if (NavigationRoutes.GetStartedScreen::class.simpleName?.let {
-                            currentDestination?.route?.contains(
-                                it
+            val currentWeather = homeViewModel.currentWeather.collectAsStateWithLifecycle().value
+            val countryName = homeViewModel.countryName.collectAsStateWithLifecycle().value
+            when (currentWeather) {
+                is Response.Loading -> Column (
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxSize().background(brush = getWeatherGradient())
+                    ){
+                   CircularProgressIndicator(color = Color.Black)
+                }
+                is Response.Success<*> -> {
+                    currentWeather as Response.Success<CurrentWeatherResponse>
+                    Scaffold(
+                        contentWindowInsets = WindowInsets(0.dp),
+                        bottomBar = {
+                            if (NavigationRoutes.GetStartedScreen::class.simpleName?.let {
+                                    currentDestination?.route?.contains(
+                                        it
+                                    )
+                                } == true) {
+                                Unit
+                            } else BottomNavigationBar(
+                                navController,
+                                currentWeather.result,
                             )
-                        } == true) {
-                        Unit
-                    } else BottomNavigationBar(
-                        navController,
-                        currentWeather,
-                    )
 
-                },
-                modifier = Modifier
-                    .fillMaxSize()
+                        },
+                        modifier = Modifier
+                            .fillMaxSize(),
 
 
-            ) { innerPadding ->
-                NavHostImpl(navController, innerPadding)
+                        ) { innerPadding ->
+                        currentWeather.result.let {
+
+                            when (countryName) {
+
+                                is Response.Success<*> -> {
+                                    countryName as Response.Success<Address>
+                                    if (it != null) {
+                                        NavHostImpl(
+                                            navController,
+                                            innerPadding,
+                                            it,
+                                            countryName.result
+                                        )
+                                    }
+                                }
+
+                                is Response.Failure -> Text(countryName.exception)
+                                Response.Loading -> CircularProgressIndicator(color = Color.Black)
+                            }
+
+                        }
 
 
+                    }
+
+
+                }
+
+                is Response.Failure -> Column (
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxSize().background(color = PrimaryColor)
+                ){
+                    Text(currentWeather.exception)
+                }
             }
 
 
@@ -121,7 +186,9 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun NavHostImpl(
         navController: NavHostController,
-        innerPadding: PaddingValues
+        innerPadding: PaddingValues,
+        currentWeather: CurrentWeatherResponse,
+        countryName: Address?
     ) {
         NavHost(
             navController = navController,
@@ -137,10 +204,23 @@ class MainActivity : ComponentActivity() {
                 }
             }
             composable<NavigationRoutes.HomeScreen> {
-                HomeScreen(viewModel)
+                HomeScreen(homeViewModel)
             }
             composable<NavigationRoutes.FavoriteScreen> {
-                FavoriteScreen(viewModel, onMapClick = {
+                val context = LocalContext.current
+                val favoriteViewModel = viewModel<FavoriteViewModelImpl>(
+                    factory = FavoriteViewModelFactory(
+                        Repository.getInstance(
+                            weatherRemoteDataSource = WeatherRemoteDataSource(RetrofitFactory.apiService),
+                            weatherLocalDataSource = WeatherLocalDataSource(
+                                WeatherDatabase.getInstance(
+                                    context
+                                ).getDao()
+                            )
+                        )
+                    )
+                )
+                FavoriteScreen(favoriteViewModel, currentWeather, countryName, onMapClick = {
                     navController.navigate(NavigationRoutes.MapScreen)
                 })
             }
@@ -151,15 +231,27 @@ class MainActivity : ComponentActivity() {
                 SettingsScreen()
             }
             composable<NavigationRoutes.MapScreen> {
-                MapScreen(viewModel)
+                val context = LocalContext.current
+                val favoriteViewModel = viewModel<FavoriteViewModelImpl>(
+                    factory = FavoriteViewModelFactory(
+                        Repository.getInstance(
+                            weatherRemoteDataSource = WeatherRemoteDataSource(RetrofitFactory.apiService),
+                            weatherLocalDataSource = WeatherLocalDataSource(
+                                WeatherDatabase.getInstance(
+                                    context
+                                ).getDao()
+                            )
+                        )
+                    )
+                )
+                MapScreen(favoriteViewModel, locationState.value)
             }
         }
     }
 
     override fun onStart() {
         super.onStart()
-
-        viewModel = ViewModelProvider(
+        homeViewModel = ViewModelProvider(
             this, HomeViewModelFactory(
                 Repository.getInstance(
                     weatherRemoteDataSource = WeatherRemoteDataSource(),
@@ -235,9 +327,9 @@ class MainActivity : ComponentActivity() {
 
     @SuppressLint("MissingPermission")
     fun getLocation() {
-        val locationRequest = LocationRequest.Builder(100000).apply {
+        val locationRequest = LocationRequest.Builder(3600000).apply {
             setPriority(Priority.PRIORITY_LOW_POWER)
-            setMinUpdateIntervalMillis(100000)
+            setMinUpdateIntervalMillis(3600000)
         }.build()
 
         val locationCallBack = object : LocationCallback() {
@@ -246,39 +338,21 @@ class MainActivity : ComponentActivity() {
                 locationState.value =
                     locationResult.lastLocation ?: Location(LocationManager.GPS_PROVIDER)
 
-                viewModel.getCurrentWeather(
+                homeViewModel.getCurrentWeather(
                     latitude = locationState.value.latitude,
                     longitude = locationState.value.longitude
                 )
 
 
-                viewModel.getCountryName(
+                homeViewModel.getCountryName(
                     longitude = locationState.value.longitude,
                     latitude = locationState.value.latitude,
                     geocoder = geocoder
                 )
-
-
-                viewModel.getFiveDaysWeatherForecast(
+                homeViewModel.getFiveDaysWeatherForecast(
                     latitude = locationState.value.latitude,
                     longitude = locationState.value.longitude
                 )
-                viewModel.currentWeather.value?.let {
-                    it.latitude = locationState.value.latitude
-                    it.longitude = locationState.value.longitude
-                    it.countryName = viewModel.countryName.value?.countryName ?: ""
-                    it.cityName = viewModel.countryName.value?.locality ?: ""
-
-                    viewModel.insertCurrentWeather(it)
-                }
-                viewModel.fiveDaysWeatherForecast.value?.let {
-                    val fiveDaysWeatherForecastResponse = FiveDaysWeatherForecastResponse(
-                        list = it,
-                        latitude = locationState.value.latitude,
-                        longitude = locationState.value.longitude
-                    )
-                    viewModel.insertFiveDaysWeather(fiveDaysWeatherForecastResponse)
-                }
 
 
             }

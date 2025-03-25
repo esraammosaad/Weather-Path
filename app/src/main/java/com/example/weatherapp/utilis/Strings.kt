@@ -2,7 +2,7 @@ package com.example.weatherapp.utilis
 
 object Strings {
 
-    const val API_KEY: String = "18a5a0a6e1d672ed8bc80550e06930de"
+    const val API_KEY: String = "a7abc38d61ad5b458e8d0b1a3cb6f75a"
     const val BASE_URL: String = "https://api.openweathermap.org/data/2.5/"
     const val BASE_IMAGE_URL: String = "https://openweathermap.org/img/wn/"
     const val CELSIUS: String = "metric"
