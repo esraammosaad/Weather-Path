@@ -25,16 +25,12 @@ class Repository(
                 temp
             }
         }
-
-
     }
-
 
     suspend fun getCurrentWeather(
         latitude: Double,
         longitude: Double
-    ): CurrentWeatherResponse{
-
+    ): CurrentWeatherResponse {
         return weatherRemoteDataSource.getCurrentWeather(latitude = latitude, longitude = longitude)
     }
 
@@ -46,27 +42,38 @@ class Repository(
             latitude = latitude,
             longitude = longitude
         )
-
     }
 
     suspend fun insertCurrentWeather(
         currentWeatherResponse: CurrentWeatherResponse
     ): Long {
-
         return weatherLocalDataSource.insertCurrentWeather(
             currentWeatherResponse
         )
-
     }
 
     suspend fun insertFiveDaysWeather(
         fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse
     ): Long {
-
         return weatherLocalDataSource.insertFiveDaysWeather(
             fiveDaysWeatherForecastResponse
         )
+    }
 
+    suspend fun updateCurrentWeather(
+        currentWeatherResponse: CurrentWeatherResponse
+    ): Int {
+        return weatherLocalDataSource.updateCurrentWeather(
+            currentWeatherResponse
+        )
+    }
+
+    suspend fun updateFiveDaysWeather(
+        fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse
+    ): Int {
+        return weatherLocalDataSource.updateFiveDaysWeather(
+            fiveDaysWeatherForecastResponse
+        )
     }
 
     suspend fun deleteCurrentWeather(currentWeatherResponse: CurrentWeatherResponse): Int {
@@ -79,10 +86,18 @@ class Repository(
         return weatherLocalDataSource.deleteFiveDaysWeather(fiveDaysWeatherForecastResponse)
     }
 
+    suspend fun selectDayWeather(
+        longitude: Double,
+        latitude: Double
+    ): Flow<CurrentWeatherResponse> {
+
+        return weatherLocalDataSource.selectDayWeather(longitude = longitude, latitude = latitude)
+    }
+
     suspend fun selectFiveDaysWeather(
         longitude: Double,
         latitude: Double
-    ): FiveDaysWeatherForecastResponse {
+    ): Flow<FiveDaysWeatherForecastResponse> {
 
         return weatherLocalDataSource.selectFiveDaysWeather(
             longitude = longitude,
@@ -95,15 +110,9 @@ class Repository(
         return weatherLocalDataSource.selectAllFavorites()
     }
 
-    suspend fun selectFiveDaysWeatherFromFavorites(): Flow<List<FiveDaysWeatherForecastResponse>> {
+    suspend fun selectAllFiveDaysWeatherFromFavorites(): Flow<List<FiveDaysWeatherForecastResponse>> {
 
         return weatherLocalDataSource.selectFiveDaysWeatherFromFavorites()
     }
-
-    suspend fun selectDayWeather(longitude : Double , latitude: Double ) : CurrentWeatherResponse{
-
-        return weatherLocalDataSource.selectDayWeather(longitude = longitude,latitude=latitude)
-    }
-
 
 }

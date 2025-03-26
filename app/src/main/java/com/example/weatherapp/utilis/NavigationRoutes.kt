@@ -20,6 +20,10 @@ sealed class NavigationRoutes(
         NavigationRoutes(title = "Favorite", icon = R.drawable.baseline_map_24)
 
     @Serializable
+    data class WeatherDetailsScreen(var longitude : Double , var latitude : Double) :
+        NavigationRoutes(title = "Favorite", icon = R.drawable.baseline_map_24)
+
+    @Serializable
     object AlarmScreen :
         NavigationRoutes(title = "Alarm", icon = R.drawable.baseline_notifications_none_24)
 

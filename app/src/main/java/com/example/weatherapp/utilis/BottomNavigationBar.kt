@@ -1,5 +1,6 @@
 package com.example.weatherapp.utilis
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -13,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
@@ -20,7 +22,7 @@ import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 @Composable
 fun BottomNavigationBar(
     navController: NavHostController,
-    currentWeather: CurrentWeatherResponse?,
+    bottomNavigationBarViewModel: BottomNavigationBarViewModel
 ) {
 
     val screensList = arrayOf(
@@ -32,12 +34,13 @@ fun BottomNavigationBar(
 
     val selectedItem = remember { mutableIntStateOf(0) }
 
+    val dynamicBrush = bottomNavigationBarViewModel.currentWeatherTheme.collectAsStateWithLifecycle().value
+
+
     NavigationBar(
 
         modifier = Modifier.background(
-            brush = getWeatherGradient(
-                currentWeather?.weather?.get(0)?.icon ?: ""
-            ),
+            brush = dynamicBrush,
         ),
         containerColor = Color.Transparent,
         tonalElevation = 0.dp,
@@ -45,9 +48,8 @@ fun BottomNavigationBar(
         ) {
 
         screensList.forEachIndexed { index, item ->
-
             NavigationBarItem(
-                selected = selectedItem.intValue == index,
+                selected = selectedItem.intValue == index ,
                 onClick = {
                     selectedItem.intValue = index
                     navController.navigate(item) {

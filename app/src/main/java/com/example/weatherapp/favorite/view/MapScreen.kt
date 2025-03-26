@@ -9,7 +9,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -48,17 +47,10 @@ import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeat
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
 import com.example.weatherapp.ui.theme.poppinsFontFamily
+import com.example.weatherapp.utilis.BottomNavigationBarViewModel
 import com.example.weatherapp.utilis.Strings
 import com.example.weatherapp.utilis.getWeatherGradient
-import com.example.weatherapp.utilis.view.CurrentDateDisplay
-import com.example.weatherapp.utilis.view.CustomText
-import com.example.weatherapp.utilis.view.FiveDaysWeatherForecastDisplay
-import com.example.weatherapp.utilis.view.ImageDisplay
-import com.example.weatherapp.utilis.view.LocationDisplay
-import com.example.weatherapp.utilis.view.MoreDetailsContainer
-import com.example.weatherapp.utilis.view.TemperatureDisplay
-import com.example.weatherapp.utilis.view.WeatherForecastDisplay
-import com.example.weatherapp.utilis.view.WeatherStatusDisplay
+import com.example.weatherapp.utilis.view.WeatherDetails
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -68,10 +60,14 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.MarkerInfoWindow
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
-import kotlinx.coroutines.joinAll
+import java.math.RoundingMode
 
 @Composable
-fun MapScreen(favoriteViewModel: FavoriteViewModelImpl, location: Location) {
+fun MapScreen(
+    favoriteViewModel: FavoriteViewModelImpl,
+    location: Location,
+    bottomNavigationBarViewModel: BottomNavigationBarViewModel
+) {
     val context = LocalContext.current
     val markerState = rememberMarkerState(position = LatLng(location.latitude, location.longitude))
     val cameraPositionState = rememberCameraPositionState {
@@ -116,7 +112,6 @@ fun MapScreen(favoriteViewModel: FavoriteViewModelImpl, location: Location) {
 
     val selectedWeather: CurrentWeatherResponse?
     val selectedFiveDaysForecast: FiveDaysWeatherForecastResponse?
-    val selectedCountryName: Address?
 
     val listOfDays = listOf(
         currentDayForecast,
@@ -180,7 +175,7 @@ fun MapScreen(favoriteViewModel: FavoriteViewModelImpl, location: Location) {
                 it.hideInfoWindow()
             }
 
-            ) {
+        ) {
             when (currentWeatherUiState) {
                 Response.Loading -> CircularProgressIndicator(
                     modifier = Modifier.size(25.dp),
@@ -191,6 +186,7 @@ fun MapScreen(favoriteViewModel: FavoriteViewModelImpl, location: Location) {
                 is Response.Success<*> -> {
 
                     currentWeatherUiState as Response.Success<CurrentWeatherResponse>
+                    bottomNavigationBarViewModel.setCurrentWeatherTheme(currentWeatherUiState.result?.weather?.firstOrNull()?.icon?:"")
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
@@ -199,7 +195,7 @@ fun MapScreen(favoriteViewModel: FavoriteViewModelImpl, location: Location) {
                                 BorderStroke(
                                     1.dp,
                                     getWeatherGradient(
-                                        currentWeatherUiState.result?.weather?.get(0)?.icon ?: ""
+                                        currentWeatherUiState.result?.weather?.firstOrNull()?.icon ?: ""
                                     )
                                 ),
                                 RoundedCornerShape(50)
@@ -207,7 +203,7 @@ fun MapScreen(favoriteViewModel: FavoriteViewModelImpl, location: Location) {
                             .clip(RoundedCornerShape(10))
                             .background(
                                 getWeatherGradient(
-                                    currentWeatherUiState.result?.weather?.get(0)?.icon ?: ""
+                                    currentWeatherUiState.result?.weather?.firstOrNull()?.icon ?: ""
                                 )
                             )
                             .padding(20.dp)
@@ -276,8 +272,12 @@ fun MapScreen(favoriteViewModel: FavoriteViewModelImpl, location: Location) {
             markerState.showInfoWindow()
             currentWeatherUiState as Response.Success<CurrentWeatherResponse>
             selectedWeather = currentWeatherUiState.result
-            selectedWeather?.latitude = markerState.position.latitude
-            selectedWeather?.longitude = markerState.position.longitude
+            selectedWeather?.latitude =
+                markerState.position.latitude.toBigDecimal().setScale(2, RoundingMode.DOWN)
+                    .toDouble()
+            selectedWeather?.longitude =
+                markerState.position.longitude.toBigDecimal().setScale(2, RoundingMode.DOWN)
+                    .toDouble()
             when (fiveDaysWeatherForecast) {
                 is Response.Loading -> CircularProgressIndicator()
                 is Response.Failure -> Text(fiveDaysWeatherForecast.exception)
@@ -286,8 +286,10 @@ fun MapScreen(favoriteViewModel: FavoriteViewModelImpl, location: Location) {
                     selectedFiveDaysForecast = fiveDaysWeatherForecast.result?.let {
                         FiveDaysWeatherForecastResponse(
                             it,
-                            longitude = markerState.position.longitude,
-                            latitude = markerState.position.latitude
+                            longitude = markerState.position.longitude.toBigDecimal().setScale(2, RoundingMode.DOWN)
+                                .toDouble(),
+                            latitude = markerState.position.latitude.toBigDecimal().setScale(2, RoundingMode.DOWN)
+                                .toDouble()
                         )
                     }
                     when (countryName) {
@@ -295,16 +297,11 @@ fun MapScreen(favoriteViewModel: FavoriteViewModelImpl, location: Location) {
                         is Response.Failure -> Text(countryName.exception)
                         is Response.Success<*> -> {
                             countryName as Response.Success<Address>
-                            selectedCountryName = countryName.result
                             selectedWeather?.countryName = countryName.result?.countryName ?: ""
                             selectedWeather?.cityName = countryName.result?.locality ?: ""
-                            currentWeatherUiState.result?.countryName =
-                                countryName.result?.countryName ?: ""
-                            currentWeatherUiState.result?.cityName =
-                                countryName.result?.locality ?: ""
                             PartialBottomSheet(
                                 showBottomSheet,
-                                currentWeatherUiState.result,
+                                selectedWeather,
                                 countryName.result,
                                 fiveDaysWeatherForecast,
                                 listOfDays,
@@ -362,7 +359,7 @@ fun PartialBottomSheet(
                         .background(
                             brush =
                             getWeatherGradient(
-                                selectedWeatherUiState?.weather?.get(0)?.icon ?: ""
+                                selectedWeatherUiState?.weather?.firstOrNull()?.icon ?: ""
                             )
                         ),
                 ) {
@@ -399,50 +396,15 @@ fun PartialBottomSheet(
 
 
                         }
+                    }
 
-                        ImageDisplay()
-
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-
-                        ) {
-
-                            CustomText(text = "TODAY")
-                            Spacer(modifier = Modifier.height(3.dp))
-
-                            countryNameUiState?.let {
-                                selectedWeatherUiState?.let { it1 ->
-                                    LocationDisplay(
-                                        it,
-                                        it1
-                                    )
-                                }
-                            }
-
-
-                            Spacer(modifier = Modifier.height(5.dp))
-                            CurrentDateDisplay()
-                            Spacer(modifier = Modifier.height(5.dp))
-                            selectedWeatherUiState?.let { TemperatureDisplay(it) }
-                            selectedWeatherUiState?.let { WeatherStatusDisplay(it) }
-                            WeatherForecastDisplay(
-                                fiveDaysWeatherForecastUiState,
-                                selectedWeatherUiState?.weather?.get(0)?.icon
-                                    ?: ""
-                            )
-                            selectedWeatherUiState?.let {
-                                MoreDetailsContainer(
-                                    it
-                                )
-                            }
-
-                            FiveDaysWeatherForecastDisplay(
-                                fiveDaysWeatherForecast = listOfDays
-                            )
-                        }
+                    item {
+                        WeatherDetails(
+                            countryNameUiState,
+                            selectedWeatherUiState,
+                            fiveDaysWeatherForecastUiState,
+                            listOfDays
+                        )
                     }
                 }
 
@@ -454,6 +416,8 @@ fun PartialBottomSheet(
 
     }
 }
+
+
 
 
 //        Marker(

@@ -172,7 +172,11 @@ class HomeViewModelImpl(
     private fun selectFiveDaysWeather(longitude: Double, latitude: Double) {
         viewModelScope.launch {
             val result = repository.selectFiveDaysWeather(longitude = longitude, latitude = latitude)
-            _fiveDaysWeatherForecast.emit(Response.Success(result.list))
+            result.collect{
+
+                _fiveDaysWeatherForecast.emit(Response.Success(it.list))
+
+            }
 
             Log.i("TAG", "==== selectDayWeather: $result")
             Log.i("TAG", "selectDayWeather: $latitude , $longitude")

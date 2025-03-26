@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,9 +38,12 @@ import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
 import com.example.weatherapp.ui.theme.poppinsFontFamily
+import com.example.weatherapp.utilis.BottomNavigationBarViewModel
 import com.example.weatherapp.utilis.Strings
 import com.example.weatherapp.utilis.Strings.BASE_IMAGE_URL
 import com.example.weatherapp.utilis.getWeatherGradient
+import com.example.weatherapp.utilis.view.FailureDisplay
+import com.example.weatherapp.utilis.view.LoadingDisplay
 
 
 @Composable
@@ -47,37 +51,36 @@ fun FavoriteScreen(
     favoriteViewModel: FavoriteViewModelImpl,
     currentWeather: CurrentWeatherResponse,
     countryName: Address?,
-    onMapClick: () -> Unit
+    onMapClick: () -> Unit,
+    onFavoriteCardClicked: (longitude: Double, latitude: Double) -> Unit,
+    bottomNavigationBarViewModel: BottomNavigationBarViewModel
 ) {
-
-    val selectedWeather = favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
-
+    favoriteViewModel.selectFavorites()
+    val weatherFavorites = favoriteViewModel.weatherFavorites.collectAsStateWithLifecycle().value
+    bottomNavigationBarViewModel.setCurrentWeatherTheme(currentWeather.weather.firstOrNull()?.icon ?: "")
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 brush = getWeatherGradient(
-                    currentWeather.weather?.get(0)?.icon ?: ""
+                    currentWeather.weather[0].icon
                 )
             ),
     ) {
-
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .padding(vertical = 50.dp, horizontal = 16.dp)
+                .padding(top = 50.dp, end = 16.dp, start = 16.dp)
                 .fillMaxWidth()
         ) {
-
             Text(
-                "Locations", textAlign = TextAlign.Center,
+                stringResource(R.string.locations), textAlign = TextAlign.Center,
                 fontSize = 26.sp,
                 color = Color.White,
                 fontWeight = FontWeight.SemiBold,
                 fontFamily = poppinsFontFamily
-
             )
             Image(
                 painter = painterResource(R.drawable.baseline_map_24),
@@ -93,137 +96,176 @@ fun FavoriteScreen(
                     }
             )
         }
-
-
-        FavoriteLazyColumn(selectedWeather,currentWeather, countryName)
-
-
-//        MapScreen (viewModel)
-
+        FavoriteLazyColumn(
+            weatherFavorites,
+            currentWeather,
+            countryName?.countryName ?: "",
+            onFavoriteCardClicked
+        )
     }
 
 }
 
 @Composable
 fun FavoriteLazyColumn(
-    selectedWeather: Response,
+    weatherFavorites: Response,
     currentWeather: CurrentWeatherResponse,
-    countryName: Address?
-) {
+    countryName: String,
+    onFavoriteCardClicked: (longitude: Double, latitude: Double) -> Unit,
 
+    ) {
     LazyColumn(modifier = Modifier.padding(16.dp)) {
-
         item {
-            FavoriteItem(currentWeather,countryName)
+            FavoriteItem(currentWeather, countryName, "", onFavoriteCardClicked)
 
         }
-//        items(){
-//
-//
-//        }
+        when (weatherFavorites) {
+            is Response.Failure -> item { FailureDisplay(weatherFavorites.exception) }
+            Response.Loading -> item { LoadingDisplay() }
+            is Response.Success<*> -> {
+                weatherFavorites as Response.Success<List<CurrentWeatherResponse>>
+                val size: Int = weatherFavorites.result?.size ?: 0
+                if (size != 0) {
+                    items(size - 1) { index ->
+                        val item = weatherFavorites.result?.get(index)
+                        val coName =
+                            item?.countryName?.takeIf { it.isNotEmpty() } ?: item?.sys?.country
+                            ?: "N/A"
+                        val ciName =
+                            item?.cityName?.takeIf { it.isNotEmpty() } ?: item?.name ?: "N/A"
+
+                        FavoriteItem(
+                            currentWeather = item,
+                            cityName = ciName,
+                            countryName = coName,
+                            onFavoriteCardClicked = onFavoriteCardClicked
+
+                        )
+
+
+                    }
+                }
+
+            }
+        }
+
+
     }
 
 
 }
 
 @Composable
-fun FavoriteItem(currentWeather: CurrentWeatherResponse?, countryName: Address?) {
+fun FavoriteItem(
+    currentWeather: CurrentWeatherResponse?,
+    countryName: String, cityName: String,
+    onFavoriteCardClicked: (longitude: Double, latitude: Double) -> Unit
+) {
 
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp)
-            .background(
-                brush = getWeatherGradient(currentWeather?.weather?.get(0)?.icon ?: ""),
-                shape = RoundedCornerShape(25.dp)
+    Box(modifier = Modifier
+        .padding(bottom = 12.dp)
+        .clickable {
+            onFavoriteCardClicked.invoke(
+                currentWeather?.longitude ?: 0.0,
+                currentWeather?.latitude ?: 0.0
             )
-            .padding(28.dp),
-        elevation = CardDefaults.cardElevation(),
-        colors = CardColors(
-            containerColor = Color.Transparent,
-            contentColor = Color.White,
-            disabledContainerColor = Color.Transparent,
-            disabledContentColor = Color.White
-        )
-    ) {
-
-        Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.height(200.dp)) {
-
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-
-                Column {
-                    Text(
-                        text = "Current Location",
-                        fontWeight = FontWeight.SemiBold,
-                        fontFamily = poppinsFontFamily,
-                        fontSize = 20.sp
-                    )
-                    Text(
-                        text = countryName?.locality?:"",
-                        fontWeight = FontWeight.Normal,
-                        fontFamily = poppinsFontFamily,
-                        fontSize = 18.sp
-
-                    )
-                }
-                Text(
-                    text = currentWeather?.main?.temp.toString() + Strings.CELSIUS_SYMBOL,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = poppinsFontFamily,
-                    fontSize = 30.sp
-
+        }) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .background(
+                    brush = getWeatherGradient(currentWeather?.weather?.firstOrNull()?.icon ?: ""),
+                    shape = RoundedCornerShape(25.dp)
                 )
-            }
+                .padding(28.dp),
+            elevation = CardDefaults.cardElevation(),
+            colors = CardColors(
+                containerColor = Color.Transparent,
+                contentColor = Color.White,
+                disabledContainerColor = Color.Transparent,
+                disabledContentColor = Color.White
+            )
+        ) {
 
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                verticalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.height(200.dp)
             ) {
+
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
+
+                    Column {
+                        Text(
+                            text = cityName.ifEmpty { stringResource(R.string.current_location) },
+                            fontWeight = FontWeight.SemiBold,
+                            fontFamily = poppinsFontFamily,
+                            fontSize = 20.sp
+                        )
+                        Text(
+                            text = countryName,
+                            fontWeight = FontWeight.Normal,
+                            fontFamily = poppinsFontFamily,
+                            fontSize = 18.sp
+
+                        )
+                    }
                     Text(
-                        text = currentWeather?.weather?.get(0)?.description ?: "",
+                        text = currentWeather?.main?.temp.toString() + Strings.CELSIUS_SYMBOL,
                         fontWeight = FontWeight.Medium,
                         fontFamily = poppinsFontFamily,
-                        fontSize = 18.sp
+                        fontSize = 30.sp
 
-                    )
-                    Image(
-                        painter = rememberAsyncImagePainter(
-                            "$BASE_IMAGE_URL${
-                                currentWeather?.weather?.get(0)?.icon
-                            }.png"
-                        ),
-                        contentDescription = stringResource(R.string.sun_icon),
-                        modifier = Modifier
-                            .height(30.dp)
-                            .width(30.dp)
-                            .padding(top = 3.dp),
-                        contentScale = ContentScale.Crop
                     )
                 }
 
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        Text(
+                            text = currentWeather?.weather?.firstOrNull()?.description ?: "",
+                            fontWeight = FontWeight.Medium,
+                            fontFamily = poppinsFontFamily,
+                            fontSize = 18.sp
 
-                Text(
-                    text = "H:${currentWeather?.main?.temp_max}${Strings.CELSIUS_SYMBOL}  L:${currentWeather?.main?.temp_min}${Strings.CELSIUS_SYMBOL}",
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = poppinsFontFamily,
-                    fontSize = 16.sp
+                        )
+                        Image(
+                            painter = rememberAsyncImagePainter(
+                                "$BASE_IMAGE_URL${
+                                    currentWeather?.weather?.firstOrNull()?.icon
+                                }.png"
+                            ),
+                            contentDescription = stringResource(R.string.sun_icon),
+                            modifier = Modifier
+                                .height(30.dp)
+                                .width(30.dp)
+                                .padding(top = 3.dp),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
 
-                )
 
+                    Text(
+                        text = "H:${currentWeather?.main?.temp_max?.toInt()}${Strings.CELSIUS_SYMBOL}  L:${currentWeather?.main?.temp_min?.toInt()}${Strings.CELSIUS_SYMBOL}",
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = poppinsFontFamily,
+                        fontSize = 16.sp
+
+                    )
+
+                }
             }
+
         }
-
     }
-
-
 }
 
 

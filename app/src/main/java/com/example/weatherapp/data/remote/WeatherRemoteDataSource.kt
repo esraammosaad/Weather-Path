@@ -8,25 +8,23 @@ import kotlinx.coroutines.flow.asFlow
 
 class WeatherRemoteDataSource(private val apiService: ApiService = RetrofitFactory.apiService) {
 
-
     suspend fun getCurrentWeather(
         latitude: Double,
         longitude: Double
     ): CurrentWeatherResponse {
-
-        return apiService.getCurrentWeather(latitude = latitude, longitude = longitude)
-
+        return apiService.getCurrentWeather(
+            latitude = latitude,
+            longitude = longitude
+        )
     }
 
     suspend fun getFiveDaysWeatherForecast(
         latitude: Double,
         longitude: Double
     ): Flow<WeatherItem> {
-
         return apiService.getFiveDaysWeatherForecast(
             latitude = latitude,
             longitude = longitude
         ).list.asFlow()
-
     }
 }

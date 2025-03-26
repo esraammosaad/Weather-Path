@@ -16,6 +16,15 @@ class WeatherLocalDataSource(private val weatherDao: WeatherDao) {
         return weatherDao.insertFiveDaysWeather(fiveDaysWeatherForecastResponse)
     }
 
+    suspend fun updateCurrentWeather(currentWeatherResponse: CurrentWeatherResponse): Int {
+
+        return weatherDao.updateCurrentWeather(currentWeatherResponse)
+    }
+    suspend fun updateFiveDaysWeather(fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse): Int {
+
+        return weatherDao.updateFiveDaysWeather(fiveDaysWeatherForecastResponse)
+    }
+
     suspend fun deleteCurrentWeather(currentWeatherResponse: CurrentWeatherResponse): Int {
 
         return weatherDao.deleteCurrentWeather(currentWeatherResponse)
@@ -36,16 +45,14 @@ class WeatherLocalDataSource(private val weatherDao: WeatherDao) {
         return weatherDao.selectFiveDaysWeatherFromFavorites()
     }
 
-    suspend fun selectFiveDaysWeather(longitude: Double, latitude: Double): FiveDaysWeatherForecastResponse {
+    suspend fun selectFiveDaysWeather(longitude: Double, latitude: Double): Flow<FiveDaysWeatherForecastResponse> {
 
         return weatherDao.selectFiveDaysWeather(longitude = longitude, latitude = latitude)
     }
 
-    suspend fun selectDayWeather(longitude : Double , latitude: Double ) : CurrentWeatherResponse{
+    suspend fun selectDayWeather(longitude : Double , latitude: Double ) : Flow<CurrentWeatherResponse>{
 
         return weatherDao.selectDayWeather(longitude = longitude,latitude=latitude)
     }
-
-
 
 }

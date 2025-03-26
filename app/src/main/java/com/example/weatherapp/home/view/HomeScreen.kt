@@ -16,12 +16,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.motionEventSpy
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.home.view_model.HomeViewModelImpl
+import com.example.weatherapp.utilis.BottomNavigationBarViewModel
 import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.CurrentDateDisplay
 import com.example.weatherapp.utilis.view.CustomText
@@ -35,7 +35,10 @@ import com.example.weatherapp.utilis.view.WeatherStatusDisplay
 
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModelImpl) {
+fun HomeScreen(
+    viewModel: HomeViewModelImpl,
+    bottomNavigationBarViewModel: BottomNavigationBarViewModel
+) {
 
     val currentWeather = viewModel.currentWeather.collectAsStateWithLifecycle().value
     val fiveDaysWeatherForecast =
@@ -79,15 +82,14 @@ fun HomeScreen(viewModel: HomeViewModelImpl) {
 
         is Response.Success<*> -> {
             currentWeather as Response.Success<CurrentWeatherResponse>
+            bottomNavigationBarViewModel.setCurrentWeatherTheme(currentWeather.result?.weather?.get(0)?.icon?:"")
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         brush =
                         getWeatherGradient(
-                            currentWeather.result?.weather?.get(
-                                0
-                            )?.icon ?: ""
+                            currentWeather.result?.weather?.firstOrNull()?.icon ?: ""
                         )
                     )
             ) {
@@ -126,7 +128,7 @@ fun HomeScreen(viewModel: HomeViewModelImpl) {
                         currentWeather.result?.let { WeatherStatusDisplay(it) }
                         WeatherForecastDisplay(
                             fiveDaysWeatherForecast,
-                            currentWeather.result?.weather?.get(0)?.icon ?: ""
+                            currentWeather.result?.weather?.firstOrNull()?.icon ?: ""
                         )
                         currentWeather.result?.let { MoreDetailsContainer(it) }
                         FiveDaysWeatherForecastDisplay(
