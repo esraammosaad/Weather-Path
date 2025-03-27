@@ -13,7 +13,8 @@ val Pink40 = Color(0xFF7D5260)
 
 val OffWhite = Color(0xFFF5F5F4)
 
-val PrimaryColor = Color(0xFF274170)
+val PrimaryColor = Color(0xFF3A5A80)
+//val PrimaryColor = Color(0xFF274170)
 
 val NightColor = Color(0xff26375a)
 

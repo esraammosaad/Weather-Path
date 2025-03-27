@@ -1,6 +1,8 @@
 package com.example.weatherapp.landing.view
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,31 +31,34 @@ import androidx.compose.ui.unit.sp
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.ui.theme.OffWhite
+import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.ui.theme.poppinsFontFamily
+import com.example.weatherapp.utilis.getWeatherGradient
 
 @Composable
-fun GetStartedScreen(onClick: () -> Unit) {
+fun GetStartedScreen(onAllowPermissionClicked: () -> Unit, onGetStartedClicked: () -> Unit) {
 
     val context = LocalContext.current
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(brush = getWeatherGradient())
+            .padding(top = 64.dp),
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Image(
-            painter = painterResource(R.drawable.onboarding),
-            contentDescription = "",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
+        ) {
+        AnimatedPreloader()
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .align(alignment = Alignment.Center)
-                .padding(top = 74.dp, start = 9.dp, end = 9.dp),
+                .padding(horizontal = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height(190.dp))
+            Spacer(modifier = Modifier.height(90.dp))
+
             Text(
-                stringResource(R.string.weather_path), color = Color.White, fontSize = 33.sp,
+                stringResource(R.string.weather_path), color = PrimaryColor, fontSize = 33.sp,
                 fontFamily = poppinsFontFamily,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -63,7 +68,7 @@ fun GetStartedScreen(onClick: () -> Unit) {
             Spacer(modifier = Modifier.height(1.dp))
             Text(
                 stringResource(R.string.follow_the_weather_wherever),
-                color = OffWhite,
+                color = PrimaryColor,
                 fontSize = 14.sp,
                 fontFamily = poppinsFontFamily,
                 fontWeight = FontWeight.Normal,
@@ -71,13 +76,12 @@ fun GetStartedScreen(onClick: () -> Unit) {
                 modifier = Modifier.padding(start = 17.dp)
 
 
-
             )
 
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 stringResource(R.string.stay_ahead_with_real_time_forecasts_interactive_maps_and_smart_alerts_so_you_re_always_prepared_for_what_s_next),
-                color = Color.Gray,
+                color = OffWhite,
                 fontSize = 16.sp,
                 fontFamily = poppinsFontFamily,
                 fontWeight = FontWeight.Normal,
@@ -85,11 +89,21 @@ fun GetStartedScreen(onClick: () -> Unit) {
 
 
             )
-            Spacer(modifier = Modifier.height(38.dp))
-            CustomButton(text = stringResource(R.string.get_started)) {
-                onClick.invoke()
-                LocalStorageDataSource.getInstance(context).saveGetStartedStateState()
+            Spacer(modifier = Modifier.height(32.dp))
+            CustomButton(text = stringResource(R.string.allow_permission)) {
+                onAllowPermissionClicked.invoke()
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "Get Started!",
+                color = Color.White,
+                fontFamily = poppinsFontFamily,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clickable {
+                    onGetStartedClicked.invoke()
+                }
+            )
 
         }
 
@@ -100,9 +114,9 @@ fun GetStartedScreen(onClick: () -> Unit) {
 }
 
 @Composable
-fun CustomButton(text:String,onClick:()->Unit){
+fun CustomButton(text: String, onClick: () -> Unit) {
     Button(
-        onClick = {onClick.invoke()},
+        onClick = { onClick.invoke() },
         modifier = Modifier.fillMaxWidth(0.8f),
         shape = RoundedCornerShape(10.dp),
         colors = ButtonColors(
@@ -115,9 +129,10 @@ fun CustomButton(text:String,onClick:()->Unit){
     ) {
         Text(
             text,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.SemiBold,
-            fontFamily = poppinsFontFamily
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = poppinsFontFamily,
+            color = PrimaryColor
         )
     }
 
@@ -128,6 +143,6 @@ fun CustomButton(text:String,onClick:()->Unit){
 @Composable
 private fun GetStartedScreenPreview() {
 
-    GetStartedScreen {}
+    GetStartedScreen({}, {})
 
 }

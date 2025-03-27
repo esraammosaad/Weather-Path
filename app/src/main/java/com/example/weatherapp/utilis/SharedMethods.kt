@@ -3,8 +3,7 @@ package com.example.weatherapp.utilis
 import android.icu.util.Calendar
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import com.example.weatherapp.ui.theme.DayTheme
-import com.example.weatherapp.ui.theme.NightTheme
+import com.example.weatherapp.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -99,8 +98,50 @@ fun getWeatherGradient(icon: String = "" ): Brush {
 
         // Default Gradient
         else -> Brush.linearGradient(
-            colors = listOf(Color.Gray, Color.LightGray)
+            colors = listOf(Color(0xFF6A85B6), Color(0xFFBAC8E0))
         )
+    }
+}
+fun getWeatherImage(icon: String = "" ): Int {
+    return when (icon) {
+        // ☀️ Clear Sky (Sunny)
+        "01d" -> R.drawable.sunny// Bright Blue & Yellow
+        "01n" -> R.drawable.moon// Deep Dark Blue
+
+        // 🌤️ Few Clouds
+        "02d" ->R.drawable.partlycloudy // Soft Blue with Sunlight
+        "02n" -> R.drawable.cloudy_night // Cloudy Night Blue
+
+        // ☁️ Scattered Clouds
+        "03d" -> R.drawable.scatterd// Grayish-Blue Cloudy Sky
+        "03n" -> R.drawable.scatterd// Darker Cloudy Night
+
+        // ☁️ Broken Clouds
+        "04d" -> R.drawable.scatterd// Heavy Grayish Clouds
+        "04n" ->R.drawable.scatterd // Dark Broken Clouds
+
+        // 🌧️ Shower Rain
+        "09d" -> R.drawable.rainy_bold// Grayish Rainy Day
+        "09n" -> R.drawable.rainy_bold // Dark Rainy Night
+
+        // 🌦️ Rain
+        "10d" -> R.drawable.rainy_bold // Light Blue Rain
+        "10n" -> R.drawable.rainy_bold // Midnight Rain
+
+        // ⚡ Thunderstorm
+        "11d" -> R.drawable.rainthunder// Stormy Gray
+        "11n" -> R.drawable.rainthunder_bold // Dark Storm Night
+
+        // ❄️ Snow
+        "13d" -> R.drawable.snow // White & Ice Blue
+        "13n" -> R.drawable.snow // Cool Gray Night
+
+        // 🌫️ Mist/Fog
+        "50d" -> R.drawable.scatterd// Light Gray Mist
+        "50n" -> R.drawable.scatterd// Dark Mist
+
+        // Default Gradient
+        else -> R.drawable.cloud
     }
 }
 

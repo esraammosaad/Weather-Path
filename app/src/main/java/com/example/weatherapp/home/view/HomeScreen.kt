@@ -11,13 +11,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.weatherapp.R
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.home.view_model.HomeViewModelImpl
@@ -37,9 +41,9 @@ import com.example.weatherapp.utilis.view.WeatherStatusDisplay
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModelImpl,
-    bottomNavigationBarViewModel: BottomNavigationBarViewModel
+    bottomNavigationBarViewModel: BottomNavigationBarViewModel,
+    snackBarHostState: SnackbarHostState
 ) {
-
     val currentWeather = viewModel.currentWeather.collectAsStateWithLifecycle().value
     val fiveDaysWeatherForecast =
         viewModel.fiveDaysWeatherForecast.collectAsStateWithLifecycle().value
@@ -49,7 +53,7 @@ fun HomeScreen(
     val fourthDayWeatherForecast = viewModel.fourthDayList.collectAsStateWithLifecycle()
     val fifthDayWeatherForecast = viewModel.fifthDayList.collectAsStateWithLifecycle()
     val sixthDayWeatherForecast = viewModel.sixthDayList.collectAsStateWithLifecycle()
-    val message = viewModel.message.collectAsStateWithLifecycle().value
+    val message = viewModel.message.observeAsState().value
     val countryName = viewModel.countryName.collectAsStateWithLifecycle().value
 
     val listOfDays = listOf(
@@ -60,8 +64,6 @@ fun HomeScreen(
         fifthDayWeatherForecast.value,
         sixthDayWeatherForecast.value
     )
-
-
 
     when (currentWeather) {
         is Response.Failure -> Column(
@@ -95,7 +97,7 @@ fun HomeScreen(
             ) {
 
                 item {
-                    ImageDisplay()
+                    currentWeather.result?.let { ImageDisplay(it) }
                     Column(
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -104,7 +106,7 @@ fun HomeScreen(
 
                     ) {
 
-                        CustomText(text = "TODAY")
+                        CustomText(text = stringResource(R.string.today))
                         Spacer(modifier = Modifier.height(3.dp))
                         when (countryName) {
                             is Response.Failure -> Text(countryName.exception)

@@ -33,9 +33,7 @@ fun BottomNavigationBar(
     )
 
     val selectedItem = remember { mutableIntStateOf(0) }
-
     val dynamicBrush = bottomNavigationBarViewModel.currentWeatherTheme.collectAsStateWithLifecycle().value
-
 
     NavigationBar(
 

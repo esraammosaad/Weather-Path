@@ -2,7 +2,6 @@ package com.example.weatherapp
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Address
@@ -15,62 +14,66 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
-import com.example.weatherapp.alarm.view.AlarmScreen
 import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.local.WeatherDatabase
 import com.example.weatherapp.data.local.WeatherLocalDataSource
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
-import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.data.remote.RetrofitFactory
 import com.example.weatherapp.data.remote.WeatherRemoteDataSource
 import com.example.weatherapp.data.repository.Repository
-import com.example.weatherapp.favorite.view.FavoriteScreen
-import com.example.weatherapp.home.view.HomeScreen
 import com.example.weatherapp.home.view_model.HomeViewModelImpl
 import com.example.weatherapp.home.view_model.HomeViewModelFactory
 import com.example.weatherapp.landing.view.GetStartedScreen
-import com.example.weatherapp.favorite.view.MapScreen
-import com.example.weatherapp.favorite.view.WeatherDetailsScreen
-import com.example.weatherapp.favorite.view_model.FavoriteViewModelFactory
-import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
-import com.example.weatherapp.settings.view.SettingsScreen
+import com.example.weatherapp.landing.view.SplashScreen
+import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.utilis.BottomNavigationBar
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
-import com.example.weatherapp.utilis.NavigationRoutes
 import com.example.weatherapp.utilis.view.FailureDisplay
 import com.example.weatherapp.utilis.view.LoadingDisplay
+import com.example.weatherapp.utilis.NavHostImpl
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
-import java.math.RoundingMode
 
 
 private const val My_LOCATION_PERMISSION_ID = 5005
@@ -78,254 +81,250 @@ private const val My_LOCATION_PERMISSION_ID = 5005
 class MainActivity : ComponentActivity() {
     lateinit var locationState: MutableState<Location>
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-    lateinit var geocoder: Geocoder
     private lateinit var bottomNavigationBarViewModel: BottomNavigationBarViewModel
-
     private lateinit var homeViewModel: HomeViewModelImpl
     override fun onCreate(savedInstanceState: Bundle?) {
         locationState =
             mutableStateOf(Location(LocationManager.GPS_PROVIDER))
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-        geocoder = Geocoder(this)
-
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            homeViewModel = viewModel<HomeViewModelImpl>(
-                factory = HomeViewModelFactory(
-                    Repository.getInstance(
-                        weatherRemoteDataSource = WeatherRemoteDataSource(RetrofitFactory.apiService),
-                        weatherLocalDataSource = WeatherLocalDataSource(
-                            WeatherDatabase.getInstance(
-                                this
-                            ).getDao()
-                        )
+        homeViewModel = ViewModelProvider(
+            this,
+            HomeViewModelFactory(
+                Repository.getInstance(
+                    weatherRemoteDataSource = WeatherRemoteDataSource(RetrofitFactory.apiService),
+                    weatherLocalDataSource = WeatherLocalDataSource(
+                        WeatherDatabase.getInstance(
+                            this
+                        ).getDao()
                     )
                 )
             )
+        )[HomeViewModelImpl::class]
+        enableEdgeToEdge()
+        setContent {
+            val isSeenGetStartedScreen =
+                remember { mutableStateOf(LocalStorageDataSource.getInstance(this).getStartedState) }
+            val isSplash = remember { mutableStateOf(true) }
             bottomNavigationBarViewModel = BottomNavigationBarViewModel()
             val navController = rememberNavController()
-            val navBackStackEntry = navController.currentBackStackEntryAsState()
-            val currentDestination = navBackStackEntry.value?.destination
-            val currentWeather = homeViewModel.currentWeather.collectAsStateWithLifecycle().value
-            val fiveDaysWeatherForecast =
-                homeViewModel.fiveDaysWeatherForecast.collectAsStateWithLifecycle().value
-            val countryName = homeViewModel.countryName.collectAsStateWithLifecycle().value
+            val currentWeather by homeViewModel.currentWeather.collectAsStateWithLifecycle()
+            val fiveDaysWeatherForecast by
+            homeViewModel.fiveDaysWeatherForecast.collectAsStateWithLifecycle()
+            val countryName by homeViewModel.countryName.collectAsStateWithLifecycle()
+            val openAlertDialog = remember { mutableStateOf(false) }
+            val dialogTitle = remember { mutableStateOf("") }
+            val dialogText = remember { mutableStateOf("") }
+            val onConfirmation = remember { mutableStateOf({}) }
+            val showRadioButton = remember { mutableStateOf(false) }
+            val option = remember { mutableStateOf("") }
 
-            when (currentWeather) {
-                is Response.Loading -> LoadingDisplay()
-                is Response.Success<*> -> {
-                    currentWeather as Response.Success<CurrentWeatherResponse>
-                    bottomNavigationBarViewModel.setCurrentWeatherTheme(
-                        currentWeather.result?.weather?.get(
-                            0
-                        )?.icon ?: ""
-                    )
+            if (openAlertDialog.value) {
+                AlertDialogExample(
+                    onConfirmation = onConfirmation.value,
+                    dialogText = dialogText.value,
+                    dialogTitle = dialogTitle.value,
+                    onDismiss = {
+                        openAlertDialog.value = false
+                    },
+                    showRadioButton = showRadioButton.value,
+                    onOptionClicked = { text ->
+                        option.value = text
+                    }
+                )
+            }
 
-                    Scaffold(
-                        contentWindowInsets = WindowInsets(0.dp),
-                        bottomBar = {
-                            if (NavigationRoutes.GetStartedScreen::class.simpleName?.let {
-                                    currentDestination?.route?.contains(
-                                        it
-                                    )
-                                } == true) {
-                                Unit
-                            } else BottomNavigationBar(
-                                navController,
-                                bottomNavigationBarViewModel
-                            )
-
-                        },
-                        modifier = Modifier
-                            .fillMaxSize(),
-                    ) { innerPadding ->
-                        currentWeather.result.let {
-                            when (countryName) {
-                                is Response.Success<*> -> {
-                                    countryName as Response.Success<Address>
-                                    when (fiveDaysWeatherForecast) {
-                                        is Response.Failure -> {}
-                                        Response.Loading -> {}
-                                        is Response.Success<*> -> {
-                                            fiveDaysWeatherForecast as Response.Success<List<WeatherItem>>
-                                            insertCurrentWeather(
-                                                currentWeather.result,
-                                                countryName.result
-                                            )
-                                            insertFiveDaysForecast(fiveDaysWeatherForecast.result)
-                                        }
-                                    }
-                                    if (it != null) {
-                                        NavHostImpl(
-                                            navController,
-                                            it,
-                                            countryName.result,
-                                            innerPadding,
-
-                                            )
+            if (isSplash.value) {
+                SplashScreen {
+                    isSplash.value = false
+                }
+            } else {
+                if (!isSeenGetStartedScreen.value) {
+                    GetStartedScreen(
+                        onAllowPermissionClicked = {
+                            showRadioButton.value = false
+                            if (checkLocationPermission()) {
+                                openAlertDialog.value = true
+                                if (isLocationEnabled()) {
+                                    dialogTitle.value = getString(R.string.confirmation)
+                                    dialogText.value =
+                                        getString(R.string.your_location_already_enabled_let_s_get_started)
+                                    onConfirmation.value = { openAlertDialog.value = false }
+                                } else {
+                                    dialogTitle.value = getString(R.string.warning)
+                                    dialogText.value =
+                                        getString(R.string.you_need_enable_your_location_go_to_the_settings)
+                                    onConfirmation.value = {
+                                        enableLocationServices()
+                                        openAlertDialog.value = false
                                     }
                                 }
+                            } else {
+                                requestPermission()
+                            }
+                        },
+                        onGetStartedClicked = {
+                            showRadioButton.value = false
+                            openAlertDialog.value = true
+                            if (checkLocationPermission()) {
+                                if (isLocationEnabled()) {
+                                    dialogTitle.value = "Choose"
+                                    dialogText.value =
+                                        "You can choose any location from map or allow GPS to get your current location weather, you can change it later from settings!"
+                                    showRadioButton.value = true
+                                    onConfirmation.value = {
+                                        if (option.value == "GPS") {
+                                            getLocation()
 
-                                is Response.Failure -> FailureDisplay(countryName.exception)
-                                Response.Loading -> LoadingDisplay()
+                                        } else {
+                                            //map
+
+                                        }
+                                        LocalStorageDataSource.getInstance(this@MainActivity)
+                                            .saveLocationState(option.value)
+                                        isSeenGetStartedScreen.value = true
+                                        LocalStorageDataSource.getInstance(this@MainActivity)
+                                            .saveGetStartedStateState()
+                                        openAlertDialog.value = false
+                                    }
+                                } else {
+                                    allowPermissionDialog(
+                                        dialogTitle,
+                                        dialogText,
+                                        onConfirmation,
+                                        openAlertDialog,
+
+                                        )
+                                }
+                            } else {
+                                allowPermissionDialog(
+                                    dialogTitle,
+                                    dialogText,
+                                    onConfirmation,
+                                    openAlertDialog,
+                                )
                             }
                         }
+
+                    )
+
+                } else {
+                    when (currentWeather) {
+                        is Response.Loading -> LoadingDisplay()
+                        is Response.Success<*> -> {
+                            currentWeather as Response.Success<CurrentWeatherResponse>
+                            bottomNavigationBarViewModel.setCurrentWeatherTheme(
+                                (currentWeather as Response.Success<CurrentWeatherResponse>).result?.weather?.get(
+                                    0
+                                )?.icon ?: ""
+                            )
+                            val snackBarHostState = remember { SnackbarHostState() }
+                            MainScreen(
+                                snackBarHostState,
+                                navController,
+                                currentWeather,
+                                countryName,
+                                fiveDaysWeatherForecast
+                            )
+                        }
+
+                        is Response.Failure -> FailureDisplay((currentWeather as Response.Failure).exception)
+
                     }
                 }
 
-                is Response.Failure -> FailureDisplay(currentWeather.exception)
+
             }
 
 
         }
     }
 
-    private fun insertFiveDaysForecast(fiveDaysWeatherForecast: List<WeatherItem>?) {
-        fiveDaysWeatherForecast?.let { it1 ->
-            FiveDaysWeatherForecastResponse(
-                list = it1,
-                latitude = locationState.value.latitude.toBigDecimal()
-                    .setScale(2, RoundingMode.DOWN).toDouble(),
-                longitude = locationState.value.longitude.toBigDecimal()
-                    .setScale(2, RoundingMode.DOWN).toDouble()
-            )
-        }?.let { it2 ->
-            homeViewModel.insertFiveDaysWeather(
-                it2
-
-            )
-        }
-    }
-
-    private fun insertCurrentWeather(
-        currentWeather: CurrentWeatherResponse?,
-        countryName: Address?
+    private fun allowPermissionDialog(
+        dialogTitle: MutableState<String>,
+        dialogText: MutableState<String>,
+        onConfirmation: MutableState<() -> Unit>,
+        openAlertDialog: MutableState<Boolean>,
     ) {
-        currentWeather?.let { currentWeather ->
-            currentWeather.latitude =
-                locationState.value.latitude.toBigDecimal().setScale(2, RoundingMode.DOWN)
-                    .toDouble()
-            currentWeather.longitude =
-                locationState.value.longitude.toBigDecimal().setScale(2, RoundingMode.DOWN)
-                    .toDouble()
-            currentWeather.countryName = countryName?.countryName ?: ""
-            currentWeather.cityName = countryName?.locality ?: ""
-            homeViewModel.insertCurrentWeather(
-                currentWeather
-            )
+        dialogTitle.value = getString(R.string.warning)
+        dialogText.value =
+            "Please allow permission first"
+        onConfirmation.value = {
+            openAlertDialog.value = false
         }
+
     }
 
     @Composable
-    private fun NavHostImpl(
+    private fun MainScreen(
+        snackBarHostState: SnackbarHostState,
         navController: NavHostController,
-        currentWeatherResponse: CurrentWeatherResponse,
-        countryName: Address?,
-        innerPadding: PaddingValues
+        currentWeather: Response,
+        countryName: Response,
+        fiveDaysWeatherForecast: Response
     ) {
-        NavHost(
-            navController = navController,
-            modifier = Modifier.padding(innerPadding),
-            startDestination = if (LocalStorageDataSource.getInstance(this)
-                    .getStartedState
-            ) NavigationRoutes.HomeScreen
-            else NavigationRoutes.GetStartedScreen,
-        ) {
-            composable<NavigationRoutes.GetStartedScreen> {
-                GetStartedScreen {
-                    navController.navigate(NavigationRoutes.HomeScreen)
-                }
-            }
-            composable<NavigationRoutes.HomeScreen> {
-                HomeScreen(homeViewModel,bottomNavigationBarViewModel)
-            }
-            composable<NavigationRoutes.FavoriteScreen> { backStackEntry ->
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry(NavigationRoutes.FavoriteScreen)
-                }
-                val context = LocalContext.current
-                val favoriteViewModel = getFavoriteViewModel(parentEntry, context)
-                FavoriteScreen(
-                    favoriteViewModel,
-                    currentWeatherResponse,
-                    countryName,
-                    onMapClick = {
-                        navController.navigate(NavigationRoutes.MapScreen)
-                    },
-                    onFavoriteCardClicked = { longitude, latitude ->
-                        navController.navigate(
-                            NavigationRoutes.WeatherDetailsScreen(
-                                longitude,
-                                latitude
-                            )
-
-
-                        )
-                    },bottomNavigationBarViewModel)
-            }
-            composable<NavigationRoutes.AlarmScreen> {
-                AlarmScreen()
-            }
-
-            composable<NavigationRoutes.WeatherDetailsScreen> { backStackEntry ->
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry(NavigationRoutes.FavoriteScreen)
-                }
-                val context = LocalContext.current
-                val favoriteViewModel = getFavoriteViewModel(parentEntry, context)
-                val weatherDetailsScreen =
-                    backStackEntry.toRoute<NavigationRoutes.WeatherDetailsScreen>()
-                WeatherDetailsScreen(
-                    weatherDetailsScreen.longitude,
-                    weatherDetailsScreen.latitude,
-                    favoriteViewModel,
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackBarHostState) },
+            contentWindowInsets = WindowInsets(0.dp),
+            bottomBar = {
+                BottomNavigationBar(
+                    navController,
                     bottomNavigationBarViewModel
                 )
-            }
-            composable<NavigationRoutes.SettingsScreen> {
-                SettingsScreen()
-            }
-            composable<NavigationRoutes.MapScreen> { backStackEntry ->
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry(NavigationRoutes.FavoriteScreen)
+
+            },
+            modifier = Modifier
+                .fillMaxSize(),
+        ) { innerPadding ->
+            (currentWeather as Response.Success<CurrentWeatherResponse>).result.let {
+                when (countryName) {
+                    is Response.Success<*> -> {
+                        countryName as Response.Success<Address>
+                        when (fiveDaysWeatherForecast) {
+                            is Response.Failure -> {}
+                            Response.Loading -> {}
+                            is Response.Success<*> -> {
+                                fiveDaysWeatherForecast as Response.Success<List<WeatherItem>>
+                                homeViewModel.insertCurrentWeather(
+                                    currentWeather.result,
+                                    countryName.result,
+                                    locationState.value
+                                )
+                                homeViewModel.insertFiveDaysForecast(
+                                    fiveDaysWeatherForecast.result,
+                                    locationState.value
+                                )
+                            }
+                        }
+                        if (it != null) {
+                            NavHostImpl(
+                                navController,
+                                it,
+                                countryName.result,
+                                innerPadding,
+                                snackBarHostState,
+                                homeViewModel,
+                                bottomNavigationBarViewModel,
+                                locationState
+
+                            )
+                        }
+                    }
+
+                    is Response.Failure -> FailureDisplay(countryName.exception)
+                    Response.Loading -> LoadingDisplay()
                 }
-                val context = LocalContext.current
-                val favoriteViewModel = getFavoriteViewModel(parentEntry, context)
-                MapScreen(favoriteViewModel, locationState.value,bottomNavigationBarViewModel)
             }
         }
     }
-
-    @Composable
-    private fun getFavoriteViewModel(
-        parentEntry: NavBackStackEntry,
-        context: Context
-    ) = ViewModelProvider(
-        parentEntry, FavoriteViewModelFactory(
-            Repository.getInstance(
-                weatherRemoteDataSource = WeatherRemoteDataSource(RetrofitFactory.apiService),
-                weatherLocalDataSource = WeatherLocalDataSource(
-                    WeatherDatabase.getInstance(
-                        context
-                    ).getDao()
-                )
-            )
-        )
-    )[FavoriteViewModelImpl::class.java]
 
     override fun onStart() {
         super.onStart()
-        if (checkLocationPermission()) {
-            if (isLocationEnabled()) {
-                getLocation()
-            } else {
-                enableLocationServices()
-            }
-        } else {
-            requestPermission()
+        if (LocalStorageDataSource.getInstance(this).getLocationState == "GPS") {
+            getLocation()
         }
     }
+
 
     private fun enableLocationServices() {
         val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
@@ -349,10 +348,8 @@ class MainActivity : ComponentActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults, deviceId)
         if (requestCode == My_LOCATION_PERMISSION_ID) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.getOrNull(0) == PackageManager.PERMISSION_GRANTED) {
                 getLocation()
-            } else {
-                requestPermission()
             }
         }
     }
@@ -390,29 +387,104 @@ class MainActivity : ComponentActivity() {
                 super.onLocationResult(locationResult)
                 locationState.value =
                     locationResult.lastLocation ?: Location(LocationManager.GPS_PROVIDER)
-                homeViewModel.getCurrentWeather(
-                    latitude = locationState.value.latitude,
-                    longitude = locationState.value.longitude
-                )
-                homeViewModel.getCountryName(
-                    longitude = locationState.value.longitude,
-                    latitude = locationState.value.latitude,
-                    geocoder = geocoder
-                )
-                homeViewModel.getFiveDaysWeatherForecast(
-                    latitude = locationState.value.latitude,
-                    longitude = locationState.value.longitude
-                )
+                homeViewModel.getWeatherFromApi(locationState.value, Geocoder(this@MainActivity))
 
             }
-
         }
-
         fusedLocationProviderClient.requestLocationUpdates(
             locationRequest,
             locationCallBack,
             Looper.myLooper()
         )
     }
+
 }
 
+@Composable
+fun AlertDialogExample(
+    onConfirmation: () -> Unit,
+    onDismiss: () -> Unit,
+    dialogTitle: String,
+    dialogText: String,
+    showRadioButton: Boolean,
+    onOptionClicked: (String) -> Unit
+) {
+    AlertDialog(
+        icon = {
+            Icon(
+                painterResource(R.drawable.baseline_location_pin_24),
+                contentDescription = "Confirmation Icon",
+                tint = PrimaryColor
+            )
+        },
+        title = {
+            Text(text = dialogTitle, textAlign = TextAlign.Center)
+        },
+        text = {
+            Column {
+                Text(text = dialogText, textAlign = TextAlign.Center)
+                if (showRadioButton) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    RadioButtonSingleSelection(onOptionClicked)
+                }
+            }
+        },
+        onDismissRequest = {
+            onDismiss()
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onConfirmation()
+                }
+            ) {
+                Text("Confirm", color = PrimaryColor)
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    onDismiss()
+                }
+            ) {
+                Text("Dismiss", color = PrimaryColor)
+            }
+        }
+
+    )
+}
+
+@Composable
+fun RadioButtonSingleSelection(onOptionClicked: (String) -> Unit) {
+    val radioOptions = listOf("Map", "GPS")
+    val (selectedOption, optionClicked) = remember { mutableStateOf(radioOptions[0]) }
+    Column(Modifier.selectableGroup()) {
+        radioOptions.forEach { text ->
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .selectable(
+                        selected = (text == selectedOption),
+                        onClick = {
+                            optionClicked(text)
+                            onOptionClicked(text)
+                        },
+                        role = Role.RadioButton
+                    )
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                RadioButton(
+                    selected = (text == selectedOption),
+                    onClick = null
+                )
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            }
+        }
+    }
+}

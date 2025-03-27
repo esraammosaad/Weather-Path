@@ -1,13 +1,17 @@
 package com.example.weatherapp.favorite.view
 
+import android.app.Activity
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,9 +23,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -30,6 +39,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,27 +56,37 @@ import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
+import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
 import com.example.weatherapp.utilis.Strings
 import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.WeatherDetails
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.Autocomplete
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.MarkerInfoWindow
+import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
+import kotlinx.coroutines.launch
 import java.math.RoundingMode
 
 @Composable
 fun MapScreen(
     favoriteViewModel: FavoriteViewModelImpl,
     location: Location,
-    bottomNavigationBarViewModel: BottomNavigationBarViewModel
+    bottomNavigationBarViewModel: BottomNavigationBarViewModel,
+    snackBarHostState: SnackbarHostState
 ) {
     val context = LocalContext.current
     val markerState = rememberMarkerState(position = LatLng(location.latitude, location.longitude))
@@ -81,7 +101,6 @@ fun MapScreen(
     }
 
     val geocoder = Geocoder(context)
-    val textFieldValue = remember { mutableStateOf("") }
 
     val currentWeatherUiState =
         favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
@@ -107,7 +126,6 @@ fun MapScreen(
     val fiveDaysWeatherForecast =
         favoriteViewModel.selectedFiveDaysWeatherForecast.collectAsStateWithLifecycle().value
     val countryName = favoriteViewModel.countryName.collectAsStateWithLifecycle().value
-    val message = favoriteViewModel.message.collectAsStateWithLifecycle().value
     val showBottomSheet = remember { mutableStateOf(false) }
 
     val selectedWeather: CurrentWeatherResponse?
@@ -122,8 +140,7 @@ fun MapScreen(
         sixthDayForecast
     )
 
-
-    LaunchedEffect(Unit) {
+    LaunchedEffect(markerState.position) {
         favoriteViewModel.getSelectedWeather(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude
@@ -139,8 +156,6 @@ fun MapScreen(
         )
     }
 
-
-
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         properties = properties,
@@ -148,26 +163,12 @@ fun MapScreen(
         uiSettings = uiSettings,
         onMapClick = {
             markerState.position = it
-            favoriteViewModel.getSelectedWeather(
-                longitude = markerState.position.longitude,
-                latitude = markerState.position.latitude
-            )
-            favoriteViewModel.getSelectedFiveDaysWeatherForecast(
-                longitude = markerState.position.longitude,
-                latitude = markerState.position.latitude
-            )
-            favoriteViewModel.getCountryName(
-                longitude = markerState.position.longitude,
-                latitude = markerState.position.latitude,
-                geocoder
-            )
             showBottomSheet.value = true
         },
         onMapLoaded = {
             markerState.showInfoWindow()
-        }
+        },
     ) {
-
         MarkerInfoWindow(
             state = markerState,
             draggable = true,
@@ -184,9 +185,10 @@ fun MapScreen(
 
                 is Response.Failure -> Text(currentWeatherUiState.exception)
                 is Response.Success<*> -> {
-
                     currentWeatherUiState as Response.Success<CurrentWeatherResponse>
-                    bottomNavigationBarViewModel.setCurrentWeatherTheme(currentWeatherUiState.result?.weather?.firstOrNull()?.icon?:"")
+                    bottomNavigationBarViewModel.setCurrentWeatherTheme(
+                        currentWeatherUiState.result?.weather?.firstOrNull()?.icon ?: ""
+                    )
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
@@ -195,7 +197,8 @@ fun MapScreen(
                                 BorderStroke(
                                     1.dp,
                                     getWeatherGradient(
-                                        currentWeatherUiState.result?.weather?.firstOrNull()?.icon ?: ""
+                                        currentWeatherUiState.result?.weather?.firstOrNull()?.icon
+                                            ?: ""
                                     )
                                 ),
                                 RoundedCornerShape(50)
@@ -208,8 +211,6 @@ fun MapScreen(
                             )
                             .padding(20.dp)
                     ) {
-
-
                         when (countryName) {
                             is Response.Failure -> {}
                             Response.Loading -> {}
@@ -248,7 +249,9 @@ fun MapScreen(
 
         }
 
+
     }
+    SearchableMapScreen(cameraPositionState, markerState, showBottomSheet)
 
     when (currentWeatherUiState) {
 
@@ -286,9 +289,11 @@ fun MapScreen(
                     selectedFiveDaysForecast = fiveDaysWeatherForecast.result?.let {
                         FiveDaysWeatherForecastResponse(
                             it,
-                            longitude = markerState.position.longitude.toBigDecimal().setScale(2, RoundingMode.DOWN)
+                            longitude = markerState.position.longitude.toBigDecimal()
+                                .setScale(2, RoundingMode.DOWN)
                                 .toDouble(),
-                            latitude = markerState.position.latitude.toBigDecimal().setScale(2, RoundingMode.DOWN)
+                            latitude = markerState.position.latitude.toBigDecimal()
+                                .setScale(2, RoundingMode.DOWN)
                                 .toDouble()
                         )
                     }
@@ -305,6 +310,8 @@ fun MapScreen(
                                 countryName.result,
                                 fiveDaysWeatherForecast,
                                 listOfDays,
+                                favoriteViewModel,
+                                snackBarHostState
                             ) {
                                 if (selectedWeather != null && selectedFiveDaysForecast != null)
                                     favoriteViewModel.insertWeather(
@@ -333,11 +340,14 @@ fun PartialBottomSheet(
     countryNameUiState: Address?,
     fiveDaysWeatherForecastUiState: Response,
     listOfDays: List<List<WeatherItem>>,
+    favoriteViewModel: FavoriteViewModelImpl,
+    snackBarHostState: SnackbarHostState,
     onAddClick: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = false,
     )
+    val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxWidth(),
@@ -390,6 +400,11 @@ fun PartialBottomSheet(
                                 color = Color.White,
                                 modifier = Modifier.clickable {
                                     onAddClick.invoke()
+                                    coroutineScope.launch {
+                                        favoriteViewModel.message.collect {
+                                            snackBarHostState.showSnackbar(it)
+                                        }
+                                    }
                                 }
 
                             )
@@ -417,32 +432,53 @@ fun PartialBottomSheet(
     }
 }
 
-
-
-
-//        Marker(
-//            state = markerState,
-//            title = "One Marker",
-//            snippet = "come",
-//            draggable = true,
-//        )
-
-
-//        MarkerComposable(
-//            state = MarkerState(position = locationMap),
-//        ) {
-//            Image(
-//                painter = painterResource(id = R.drawable.cloud_sketched),
-//                contentDescription = "",
-//            )
-//        }
-
-
-
-
-
-
-
+@Composable
+fun SearchableMapScreen(
+    cameraPositionState: CameraPositionState,
+    markerState: MarkerState,
+    showBottomSheet: MutableState<Boolean>
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        if (!Places.isInitialized()) {
+            Places.initialize(context, Strings.GOOGLE_API_KEY)
+        }
+    }
+    val fields = listOf(Place.Field.NAME, Place.Field.LAT_LNG)
+    val intent = Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields).build(context)
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val place = result.data?.let { Autocomplete.getPlaceFromIntent(it) }
+                val latLng = place?.latLng
+                scope.launch {
+                    latLng?.let { CameraUpdateFactory.newLatLngZoom(it, 12f) }
+                        ?.let { cameraPositionState.animate(it, 500) }
+                }
+                if (latLng != null) {
+                    markerState.position = latLng
+                    showBottomSheet.value = true
+                }
+            }
+        }
+    Box(modifier = Modifier.fillMaxWidth()) {
+        FloatingActionButton(
+            modifier = Modifier
+                .align(alignment = Alignment.TopEnd)
+                .padding(vertical = 42.dp, horizontal = 12.dp),
+            onClick = { launcher.launch(intent) },
+            containerColor = PrimaryColor,
+            contentColor = Color.White,
+            shape = RoundedCornerShape(100.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = stringResource(R.string.search)
+            )
+        }
+    }
+}
 
 
 

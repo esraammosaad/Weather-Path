@@ -8,14 +8,6 @@ class LocalStorageDataSource private constructor(context: Context) {
         context.getSharedPreferences(Strings.SHARED_PREF_NAME, Context.MODE_PRIVATE)
     private var editor = prefs.edit()
 
-    fun saveGetStartedStateState() {
-        editor.putBoolean(Strings.SEEN_GET_STARTED, true)
-        editor.apply()
-    }
-
-    val getStartedState: Boolean
-        get() = prefs.getBoolean(Strings.SEEN_GET_STARTED, false)
-
     companion object {
         @Volatile
         private var instance: LocalStorageDataSource? = null
@@ -28,4 +20,22 @@ class LocalStorageDataSource private constructor(context: Context) {
 
         }
     }
+
+    fun saveGetStartedStateState() {
+        editor.putBoolean(Strings.SEEN_GET_STARTED, true)
+        editor.apply()
+    }
+
+    val getStartedState: Boolean
+        get() = prefs.getBoolean(Strings.SEEN_GET_STARTED, false)
+
+    fun saveLocationState(locationState: String) {
+        editor.putString(Strings.LOCATION_STATE, locationState)
+        editor.apply()
+    }
+
+    val getLocationState: String
+        get() = prefs.getString(Strings.LOCATION_STATE, "GPS") ?: ""
+
+
 }

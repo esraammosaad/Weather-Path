@@ -9,14 +9,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.weatherapp.R
+import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
+import com.example.weatherapp.utilis.getWeatherImage
 import com.example.weatherapp.utilis.isMorning
 
 @Composable
-fun ImageDisplay() {
+fun ImageDisplay(currentWeatherResponse: CurrentWeatherResponse) {
     Image(
         painter = painterResource(
-            if (isMorning()) R.drawable.sun
-            else R.drawable.moon
+
+            getWeatherImage(currentWeatherResponse.weather.firstOrNull()?.icon?:"")
+
         ),
         contentDescription = stringResource(R.string.sun_or_moon_icon),
         modifier = Modifier
@@ -24,3 +27,6 @@ fun ImageDisplay() {
             .padding(top = 36.dp, end = 16.dp)
     )
 }
+
+//if (isMorning()) R.drawable.sun
+//            else R.drawable.moon

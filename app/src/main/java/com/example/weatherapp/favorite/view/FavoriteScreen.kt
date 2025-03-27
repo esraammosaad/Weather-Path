@@ -19,8 +19,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -36,6 +40,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.weatherapp.R
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
+import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
 import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
@@ -44,20 +49,26 @@ import com.example.weatherapp.utilis.Strings.BASE_IMAGE_URL
 import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.FailureDisplay
 import com.example.weatherapp.utilis.view.LoadingDisplay
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 
 @Composable
 fun FavoriteScreen(
     favoriteViewModel: FavoriteViewModelImpl,
     currentWeather: CurrentWeatherResponse,
-    countryName: Address?,
+    countryName: Address,
     onMapClick: () -> Unit,
     onFavoriteCardClicked: (longitude: Double, latitude: Double) -> Unit,
-    bottomNavigationBarViewModel: BottomNavigationBarViewModel
+    bottomNavigationBarViewModel: BottomNavigationBarViewModel,
+    snackBarHostState: SnackbarHostState,
 ) {
     favoriteViewModel.selectFavorites()
     val weatherFavorites = favoriteViewModel.weatherFavorites.collectAsStateWithLifecycle().value
-    bottomNavigationBarViewModel.setCurrentWeatherTheme(currentWeather.weather.firstOrNull()?.icon ?: "")
+    bottomNavigationBarViewModel.setCurrentWeatherTheme(
+        currentWeather.weather.firstOrNull()?.icon ?: ""
+    )
+
 
     Column(
         modifier = Modifier
@@ -99,8 +110,10 @@ fun FavoriteScreen(
         FavoriteLazyColumn(
             weatherFavorites,
             currentWeather,
-            countryName?.countryName ?: "",
-            onFavoriteCardClicked
+            countryName.countryName ?: "",
+            favoriteViewModel,
+            onFavoriteCardClicked,
+            snackBarHostState
         )
     }
 
@@ -109,14 +122,20 @@ fun FavoriteScreen(
 @Composable
 fun FavoriteLazyColumn(
     weatherFavorites: Response,
-    currentWeather: CurrentWeatherResponse,
+    currentWeatherResponse: CurrentWeatherResponse,
     countryName: String,
+    favoriteViewModel: FavoriteViewModelImpl,
     onFavoriteCardClicked: (longitude: Double, latitude: Double) -> Unit,
+    snackBarHostState: SnackbarHostState,
 
     ) {
+    val fiveDaysForecastFavorites =
+        favoriteViewModel.fiveDaysForecastFavorites.collectAsStateWithLifecycle().value
+    val coroutineScope = rememberCoroutineScope()
+
     LazyColumn(modifier = Modifier.padding(16.dp)) {
         item {
-            FavoriteItem(currentWeather, countryName, "", onFavoriteCardClicked)
+            FavoriteItem(currentWeatherResponse, countryName, "", onFavoriteCardClicked)
 
         }
         when (weatherFavorites) {
@@ -126,56 +145,121 @@ fun FavoriteLazyColumn(
                 weatherFavorites as Response.Success<List<CurrentWeatherResponse>>
                 val size: Int = weatherFavorites.result?.size ?: 0
                 if (size != 0) {
-                    items(size - 1) { index ->
-                        val item = weatherFavorites.result?.get(index)
-                        val coName =
-                            item?.countryName?.takeIf { it.isNotEmpty() } ?: item?.sys?.country
-                            ?: "N/A"
-                        val ciName =
-                            item?.cityName?.takeIf { it.isNotEmpty() } ?: item?.name ?: "N/A"
+                    items(size) { index ->
 
-                        FavoriteItem(
-                            currentWeather = item,
-                            cityName = ciName,
-                            countryName = coName,
-                            onFavoriteCardClicked = onFavoriteCardClicked
+                        if (index != 0) {
+                            val item = weatherFavorites.result?.get(index)
+                            val coName =
+                                item?.countryName?.takeIf { it.isNotEmpty() } ?: item?.sys?.country
+                                ?: "N/A"
+                            val ciName =
+                                item?.cityName?.takeIf { it.isNotEmpty() } ?: item?.name
+                                ?: stringResource(
+                                    R.string.n_a
+                                )
 
-                        )
+
+                            when (fiveDaysForecastFavorites) {
+                                is Response.Failure -> {}
+                                Response.Loading -> {}
+                                is Response.Success<*> -> {
+                                    fiveDaysForecastFavorites as Response.Success<List<FiveDaysWeatherForecastResponse>>
+                                    Box {
+                                        FavoriteItem(
+                                            selectedWeather = item,
+                                            cityName = ciName,
+                                            countryName = coName,
+                                            onFavoriteCardClicked = onFavoriteCardClicked,
+                                        )
+                                        Icon(
+                                            painter = painterResource(R.drawable.baseline_remove_24),
+                                            contentDescription = stringResource(R.string.delete_icon),
+                                            tint = Color.White,
+                                            modifier = Modifier
+                                                .align(alignment = Alignment.TopEnd)
+                                                .padding(top = 10.dp, end = 14.dp)
+                                                .size(22.dp)
+                                                .clickable {
+                                                    deleteFavoriteItem(
+                                                        item,
+                                                        fiveDaysForecastFavorites,
+                                                        index,
+                                                        favoriteViewModel,
+                                                        coroutineScope,
+                                                        snackBarHostState,
+                                                    )
+
+                                                }
+                                        )
+                                    }
+
+                                }
+                            }
+                        }
 
 
                     }
+
+
                 }
-
             }
+
         }
-
-
     }
 
 
 }
 
+private fun deleteFavoriteItem(
+    item: CurrentWeatherResponse?,
+    fiveDaysForecastFavorites: Response.Success<List<FiveDaysWeatherForecastResponse>>,
+    index: Int,
+    favoriteViewModel: FavoriteViewModelImpl,
+    scope: CoroutineScope,
+    snackBarHostState: SnackbarHostState,
+) {
+    if (item != null) {
+        fiveDaysForecastFavorites.result?.getOrNull(
+            index
+        )
+            ?.let {
+                favoriteViewModel.deleteWeather(
+                    fiveDaysWeatherForecastResponse = it,
+                    currentWeatherResponse = item
+                )
+                scope.launch {
+                    favoriteViewModel.message.collect { msg ->
+                        snackBarHostState.showSnackbar(message = msg)
+                    }
+                }
+            }
+    }
+}
+
+
 @Composable
 fun FavoriteItem(
-    currentWeather: CurrentWeatherResponse?,
+    selectedWeather: CurrentWeatherResponse?,
     countryName: String, cityName: String,
-    onFavoriteCardClicked: (longitude: Double, latitude: Double) -> Unit
+    onFavoriteCardClicked: (longitude: Double, latitude: Double) -> Unit,
 ) {
 
     Box(modifier = Modifier
         .padding(bottom = 12.dp)
         .clickable {
             onFavoriteCardClicked.invoke(
-                currentWeather?.longitude ?: 0.0,
-                currentWeather?.latitude ?: 0.0
+                selectedWeather?.longitude ?: 0.0,
+                selectedWeather?.latitude ?: 0.0
             )
-        }) {
+        }
+
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
                 .background(
-                    brush = getWeatherGradient(currentWeather?.weather?.firstOrNull()?.icon ?: ""),
+                    brush = getWeatherGradient(selectedWeather?.weather?.firstOrNull()?.icon ?: ""),
                     shape = RoundedCornerShape(25.dp)
                 )
                 .padding(28.dp),
@@ -203,7 +287,10 @@ fun FavoriteItem(
                             text = cityName.ifEmpty { stringResource(R.string.current_location) },
                             fontWeight = FontWeight.SemiBold,
                             fontFamily = poppinsFontFamily,
-                            fontSize = 20.sp
+                            fontSize = 20.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth(0.6f)
                         )
                         Text(
                             text = countryName,
@@ -214,7 +301,7 @@ fun FavoriteItem(
                         )
                     }
                     Text(
-                        text = currentWeather?.main?.temp.toString() + Strings.CELSIUS_SYMBOL,
+                        text = selectedWeather?.main?.temp.toString() + Strings.CELSIUS_SYMBOL,
                         fontWeight = FontWeight.Medium,
                         fontFamily = poppinsFontFamily,
                         fontSize = 30.sp
@@ -224,6 +311,7 @@ fun FavoriteItem(
 
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -231,7 +319,7 @@ fun FavoriteItem(
                         horizontalArrangement = Arrangement.Center,
                     ) {
                         Text(
-                            text = currentWeather?.weather?.firstOrNull()?.description ?: "",
+                            text = selectedWeather?.weather?.firstOrNull()?.description ?: "",
                             fontWeight = FontWeight.Medium,
                             fontFamily = poppinsFontFamily,
                             fontSize = 18.sp
@@ -240,7 +328,7 @@ fun FavoriteItem(
                         Image(
                             painter = rememberAsyncImagePainter(
                                 "$BASE_IMAGE_URL${
-                                    currentWeather?.weather?.firstOrNull()?.icon
+                                    selectedWeather?.weather?.firstOrNull()?.icon
                                 }.png"
                             ),
                             contentDescription = stringResource(R.string.sun_icon),
@@ -252,9 +340,8 @@ fun FavoriteItem(
                         )
                     }
 
-
                     Text(
-                        text = "H:${currentWeather?.main?.temp_max?.toInt()}${Strings.CELSIUS_SYMBOL}  L:${currentWeather?.main?.temp_min?.toInt()}${Strings.CELSIUS_SYMBOL}",
+                        text = "H:${selectedWeather?.main?.temp_max?.toInt()}${Strings.CELSIUS_SYMBOL}  L:${selectedWeather?.main?.temp_min?.toInt()}${Strings.CELSIUS_SYMBOL}",
                         fontWeight = FontWeight.Medium,
                         fontFamily = poppinsFontFamily,
                         fontSize = 16.sp
@@ -268,6 +355,59 @@ fun FavoriteItem(
     }
 }
 
+
+//    val swipeToDismissState = rememberSwipeToDismissBoxState(
+//       confirmValueChange = { state ->
+//     if (state == SwipeToDismissBoxValue.EndToStart) {
+//    scope.launch {
+//     delay(500)
+//     deleteFavoriteItem(
+//     item,
+//    fiveDaysForecastFavorites,
+//    index,
+//   favoriteViewModel,
+//   coroutineScope,
+// snackBarHostState,
+//  )
+//   }
+//   true
+//   } else {
+//    false
+//   }
+//  }
+//   )
+
+
+// SwipeToDismissBox(
+//    state = swipeToDismissState,
+//     backgroundContent = {
+//       SwipeToDismissBackGround()
+//         },
+//  modifier = Modifier.animateItemPlacement()
+//   ) {}
+
+
+//@Composable
+//private fun SwipeToDismissBackGround() {
+//    Box(
+//        modifier = Modifier
+//            .padding(bottom = 12.dp)
+//            .fillMaxWidth()
+//            .height(200.dp)
+//            .background(
+//                color = animateColorAsState(targetValue = Color.Red).value,
+//                shape = RoundedCornerShape(25.dp)
+//            )
+//            .padding(28.dp),
+//        contentAlignment = Alignment.CenterEnd
+//    ) {
+//        Icon(
+//            Icons.Default.Delete,
+//            contentDescription = stringResource(R.string.delete_icon),
+//            tint = Color.White
+//        )
+//    }
+//}
 
 
 

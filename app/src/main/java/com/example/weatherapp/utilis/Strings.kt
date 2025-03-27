@@ -13,6 +13,8 @@ object Strings {
     const val KELVIN_SYMBOL: String = "\u212A"
     const val SHARED_PREF_NAME: String = "SHARED_PREF"
     const val SEEN_GET_STARTED: String = "SEEN_GET_STARTED"
+    const val LOCATION_STATE: String = "LOCATION_STATE"
+    const val GOOGLE_API_KEY: String = "AIzaSyDCe9_Jl18IXC42sQe5RWY5ZwCnD_qKGfk"
 
 
 }

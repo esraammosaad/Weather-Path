@@ -1,6 +1,7 @@
 package com.example.weatherapp.favorite.view_model
 
 import android.location.Geocoder
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -12,7 +13,9 @@ import com.example.weatherapp.data.repository.Repository
 import com.example.weatherapp.utilis.formatDateTime
 import com.example.weatherapp.utilis.getCurrentDate
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
@@ -31,8 +34,8 @@ class FavoriteViewModelImpl(
 
     var selectedFiveDaysWeatherForecast = _selectedFiveDaysWeatherForecast.asStateFlow()
 
-    private var _message: MutableStateFlow<String> = MutableStateFlow("")
-    var message = _message.asStateFlow()
+    private var _message: MutableSharedFlow<String> = MutableSharedFlow(replay = 0)
+    var message  = _message.asSharedFlow()
 
     private var _countryName: MutableStateFlow<Response> = MutableStateFlow(Response.Loading)
     var countryName = _countryName.asStateFlow()
@@ -63,6 +66,9 @@ class FavoriteViewModelImpl(
     var fiveDaysForecastFavorites = _fiveDaysForecastFavorites.asStateFlow()
 
 
+
+
+
     fun getSelectedWeather(latitude: Double, longitude: Double) {
         viewModelScope.launch {
             try {
@@ -70,7 +76,6 @@ class FavoriteViewModelImpl(
                     latitude = latitude, longitude = longitude
                 )
                 _selectedWeather.emit(Response.Success(result))
-                _message.emit("Success")
             } catch (e: Exception) {
                 _selectedWeather.emit(Response.Failure(e.message.toString()))
                 _message.emit(e.message.toString())
@@ -127,24 +132,21 @@ class FavoriteViewModelImpl(
 
     private fun insertSelectedWeather(currentWeatherResponse: CurrentWeatherResponse) {
         viewModelScope.launch {
-            val result = repository.insertCurrentWeather(currentWeatherResponse)
-            if (result == 1L) {
+           val result = repository.insertCurrentWeather(currentWeatherResponse)
+            if (result > 0L) {
                 _message.emit("Added Successfully")
+
             } else {
                 _message.emit("Something wrong happened!!")
             }
+
         }
+
     }
 
     private fun insertSelectedFiveDaysWeather(fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse) {
         viewModelScope.launch {
-            val result = repository.insertFiveDaysWeather(fiveDaysWeatherForecastResponse)
-            if (result == 1L) {
-                _message.emit("Added Successfully")
-
-            } else {
-                _message.emit("Something wrong happened!!")
-            }
+           repository.insertFiveDaysWeather(fiveDaysWeatherForecastResponse)
         }
     }
 
@@ -160,7 +162,7 @@ class FavoriteViewModelImpl(
     private fun updateSelectedWeather(currentWeatherResponse: CurrentWeatherResponse) {
         viewModelScope.launch {
             val result = repository.updateCurrentWeather(currentWeatherResponse)
-            if (result == 1) {
+            if (result > 0) {
                 _message.emit("Updated Successfully")
             } else {
                 _message.emit("Something wrong happened!!")
@@ -170,13 +172,7 @@ class FavoriteViewModelImpl(
 
     private fun updateSelectedFiveDaysWeather(fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse) {
         viewModelScope.launch {
-            val result = repository.updateFiveDaysWeather(fiveDaysWeatherForecastResponse)
-            if (result == 1) {
-                _message.emit("Updated Successfully")
-
-            } else {
-                _message.emit("Something wrong happened!!")
-            }
+             repository.updateFiveDaysWeather(fiveDaysWeatherForecastResponse)
         }
     }
 
@@ -197,10 +193,11 @@ class FavoriteViewModelImpl(
         }
     }
 
-    private fun deleteCurrentWeather(currentWeatherResponse: CurrentWeatherResponse) {
+     private fun deleteCurrentWeather(currentWeatherResponse: CurrentWeatherResponse) {
         viewModelScope.launch {
             val result = repository.deleteCurrentWeather(currentWeatherResponse)
-            if (result == 0) {
+            Log.i("TAG", "deleteCurrentWeather: $result")
+            if (result > 0) {
                 _message.emit("Deleted Successfully")
             } else {
                 _message.emit("Something wrong happened!!")
@@ -211,13 +208,8 @@ class FavoriteViewModelImpl(
 
     private fun deleteFiveDaysWeather(fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse) {
         viewModelScope.launch {
-            val result = repository.deleteFiveDaysWeather(fiveDaysWeatherForecastResponse)
-            if (result == 0) {
-                _message.emit("Deleted Successfully")
-            } else {
-                _message.emit("Something wrong happened!!")
+            repository.deleteFiveDaysWeather(fiveDaysWeatherForecastResponse)
 
-            }
         }
     }
 

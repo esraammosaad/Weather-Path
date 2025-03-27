@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
@@ -21,7 +22,8 @@ fun LocationDisplay(countryName: Address, currentWeather: CurrentWeatherResponse
         fontWeight = FontWeight.Bold,
         fontSize = 28.sp,
         fontFamily = poppinsFontFamily,
-        color = Color.White
+        color = Color.White,
+        textAlign = TextAlign.Center
 
     )
     Spacer(modifier = Modifier.height(3.dp))
@@ -30,7 +32,8 @@ fun LocationDisplay(countryName: Address, currentWeather: CurrentWeatherResponse
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         fontFamily = poppinsFontFamily,
-        color = OffWhite
+        color = OffWhite,
+        textAlign = TextAlign.Center
 
     )
 

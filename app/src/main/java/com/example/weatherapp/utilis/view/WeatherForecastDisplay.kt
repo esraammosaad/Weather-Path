@@ -39,10 +39,7 @@ fun WeatherForecastDisplay(
 
             Response.Loading -> {
                 item {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(80.dp),
-                            color = Color.White
-                        )
+
                 }
 
             }

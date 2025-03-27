@@ -42,16 +42,23 @@ android {
         compose = true
         viewBinding = true
     }
+    buildFeatures{
+        viewBinding = true
+    }
 }
 
 secrets {
-
     propertiesFileName = "secrets.properties"
     defaultPropertiesFileName = "local.defaults.properties"
 }
 
 
 dependencies {
+
+    implementation ("nl.dionsegijn:konfetti-compose:2.0.2")
+    implementation("com.airbnb.android:lottie-compose:6.6.3")
+    implementation("com.google.android.libraries.places:places:3.1.0")
+    implementation ("me.saket.swipe:swipe:1.3.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     ksp("com.github.bumptech.glide:ksp:4.16.0")
     implementation("com.google.maps.android:maps-compose:4.3.3")

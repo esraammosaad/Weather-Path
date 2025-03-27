@@ -21,7 +21,9 @@ fun WeatherDetails(
     fiveDaysWeatherForecastUiState: Response,
     listOfDays: List<List<WeatherItem>>
 ) {
-    ImageDisplay()
+    if (selectedWeather != null) {
+        ImageDisplay(selectedWeather)
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth(),

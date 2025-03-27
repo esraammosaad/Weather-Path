@@ -1,5 +1,6 @@
 package com.example.weatherapp.utilis.view
 
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,3 +22,4 @@ fun LoadingDisplay() {
         CircularProgressIndicator(color = Color.Black)
     }
 }
+

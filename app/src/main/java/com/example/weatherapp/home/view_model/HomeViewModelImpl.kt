@@ -1,7 +1,11 @@
 package com.example.weatherapp.home.view_model
 
+import android.location.Address
 import android.location.Geocoder
+import android.location.Location
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -18,6 +22,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import java.math.RoundingMode
 
 
 class HomeViewModelImpl(
@@ -32,8 +37,8 @@ class HomeViewModelImpl(
 
     var fiveDaysWeatherForecast = _fiveDaysWeatherForecast.asStateFlow()
 
-    private var _message: MutableStateFlow<String> = MutableStateFlow("")
-    var message = _message.asStateFlow()
+    private var _message: MutableLiveData<String> = MutableLiveData()
+    var message  : LiveData<String> = _message
 
     private var _countryName: MutableStateFlow<Response> = MutableStateFlow(Response.Loading)
     var countryName = _countryName.asStateFlow()
@@ -68,7 +73,7 @@ class HomeViewModelImpl(
                 )
 
                 _currentWeather.emit(Response.Success(result))
-                _message.emit("Success")
+                _message.postValue("Success")
 
                 Log.i("TAG", "getSelectedWeather: nnnnnnnnnnnn")
 
@@ -77,7 +82,7 @@ class HomeViewModelImpl(
             } catch (e: Exception) {
 
                 _currentWeather.emit(Response.Failure(e.message.toString()))
-                _message.emit(e.message.toString())
+                _message.postValue(e.message.toString())
                 Log.i("TAG", "getSelectedWeather: nnnnnnnnnnnn")
 
 
@@ -102,7 +107,6 @@ class HomeViewModelImpl(
                     _fiveDaysWeatherForecast.emit(Response.Failure(ex.message.toString()))
 
                 }.toList()))
-                Log.i("TAG", "getSelectedWeather: nnnnnnnnnnnn")
 
                 _currentDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(0) }
                     .toList())
@@ -119,9 +123,7 @@ class HomeViewModelImpl(
 
 
             } catch (e: Exception) {
-
-                _message.emit(e.message.toString())
-                Log.i("TAG", "getSelectedWeather: nnnnnnnnnnnn")
+                _message.postValue(e.message.toString())
 
 
             }
@@ -182,6 +184,59 @@ class HomeViewModelImpl(
             Log.i("TAG", "selectDayWeather: $latitude , $longitude")
 
 
+        }
+    }
+    fun getWeatherFromApi(locationState: Location, geocoder: Geocoder) {
+        Log.i("TAG", "getWeatherFromApi: ---------------")
+        getCurrentWeather(
+            latitude = locationState.latitude,
+            longitude = locationState.longitude
+        )
+        getCountryName(
+            longitude = locationState.longitude,
+            latitude = locationState.latitude,
+            geocoder = geocoder
+        )
+        getFiveDaysWeatherForecast(
+            latitude = locationState.latitude,
+            longitude = locationState.longitude
+        )
+    }
+    fun insertFiveDaysForecast(fiveDaysWeatherForecast: List<WeatherItem>?,locationState: Location) {
+        fiveDaysWeatherForecast?.let { it1 ->
+            FiveDaysWeatherForecastResponse(
+                list = it1,
+                latitude = locationState.latitude.toBigDecimal()
+                    .setScale(2, RoundingMode.DOWN).toDouble(),
+                longitude = locationState.longitude.toBigDecimal()
+                    .setScale(2, RoundingMode.DOWN).toDouble()
+            )
+        }?.let { it2 ->
+            insertFiveDaysWeather(
+                it2
+
+            )
+        }
+    }
+
+    fun insertCurrentWeather(
+        currentWeather: CurrentWeatherResponse?,
+        countryName: Address?,
+        locationState: Location
+
+    ) {
+        currentWeather?.let { currentWeather ->
+            currentWeather.latitude =
+                locationState.latitude.toBigDecimal().setScale(2, RoundingMode.DOWN)
+                    .toDouble()
+            currentWeather.longitude =
+                locationState.longitude.toBigDecimal().setScale(2, RoundingMode.DOWN)
+                    .toDouble()
+            currentWeather.countryName = countryName?.countryName ?: ""
+            currentWeather.cityName = countryName?.locality ?: ""
+            insertCurrentWeather(
+                currentWeather
+            )
         }
     }
 
