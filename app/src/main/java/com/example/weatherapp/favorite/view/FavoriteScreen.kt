@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import com.example.weatherapp.R
+import com.example.weatherapp.alarm.view.WeatherAlarmManager
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
@@ -243,10 +245,20 @@ fun FavoriteItem(
     countryName: String, cityName: String,
     onFavoriteCardClicked: (longitude: Double, latitude: Double) -> Unit,
 ) {
+    val context = LocalContext.current
+    val myAlarmManager = WeatherAlarmManager(context)
+
 
     Box(modifier = Modifier
         .padding(bottom = 12.dp)
         .clickable {
+            selectedWeather?.id?.let {
+                myAlarmManager.schedule(
+                    "${selectedWeather.longitude}, ${selectedWeather.latitude}-------------------",
+                    it
+                )
+            }
+
             onFavoriteCardClicked.invoke(
                 selectedWeather?.longitude ?: 0.0,
                 selectedWeather?.latitude ?: 0.0

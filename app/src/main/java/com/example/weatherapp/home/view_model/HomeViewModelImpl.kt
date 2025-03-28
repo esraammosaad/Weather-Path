@@ -16,13 +16,17 @@ import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.data.repository.Repository
 import com.example.weatherapp.utilis.formatDateTime
 import com.example.weatherapp.utilis.getCurrentDate
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import java.math.RoundingMode
+import java.util.Locale
+import kotlin.math.log
 
 
 class HomeViewModelImpl(
@@ -38,7 +42,7 @@ class HomeViewModelImpl(
     var fiveDaysWeatherForecast = _fiveDaysWeatherForecast.asStateFlow()
 
     private var _message: MutableLiveData<String> = MutableLiveData()
-    var message  : LiveData<String> = _message
+    var message: LiveData<String> = _message
 
     private var _countryName: MutableStateFlow<Response> = MutableStateFlow(Response.Loading)
     var countryName = _countryName.asStateFlow()
@@ -64,67 +68,32 @@ class HomeViewModelImpl(
     var favoriteItems = _favoriteItems.asStateFlow()
 
 
-    fun getCurrentWeather(latitude: Double, longitude: Double) {
+    private fun getCurrentWeather(latitude: Double, longitude: Double, isConnected: Boolean) {
+
+        Log.i("TAG", "getCurrentWeather: ${isConnected}")
         viewModelScope.launch {
-            try {
-                val result = repository.getCurrentWeather(
-                    latitude = latitude,
-                    longitude = longitude
-                )
 
-                _currentWeather.emit(Response.Success(result))
-                _message.postValue("Success")
-
-                Log.i("TAG", "getSelectedWeather: nnnnnnnnnnnn")
-
-//                    _message.postValue("something wrong happen please try again!!")
-
-            } catch (e: Exception) {
-
-                _currentWeather.emit(Response.Failure(e.message.toString()))
-                _message.postValue(e.message.toString())
-                Log.i("TAG", "getSelectedWeather: nnnnnnnnnnnn")
-
-
-            }
-
-        }
-
-
-    }
-
-    fun getFiveDaysWeatherForecast(latitude: Double, longitude: Double) {
-
-        viewModelScope.launch {
-            try {
-                val result =
-                    repository.getFiveDaysWeatherForecast(
+            if (isConnected) {
+                try {
+                    val result = repository.getCurrentWeather(
                         latitude = latitude,
                         longitude = longitude
                     )
+                    _currentWeather.emit(Response.Success(result))
+                    _message.postValue("Success")
+                    Log.i("TAG", "getSelectedWeather: nnnnnnnnnnnn")
 
-                _fiveDaysWeatherForecast.emit(Response.Success(result.catch { ex ->
-                    _fiveDaysWeatherForecast.emit(Response.Failure(ex.message.toString()))
+//                    _message.postValue("something wrong happen please try again!!")
 
-                }.toList()))
+                } catch (e: Exception) {
+                    _message.postValue(e.message.toString())
+                    selectDayWeather(longitude = longitude, latitude = latitude)
+                    Log.i("TAG", "getSelectedWeather: nnnnnnnnnnnn")
+                }
+            } else {
 
-                _currentDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(0) }
-                    .toList())
-                _nextDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(1) }
-                    .toList())
-                _thirdDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(2) }
-                    .toList())
-                _fourthDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(3) }
-                    .toList())
-                _fifthDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(4) }
-                    .toList())
-                _sixthDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(5) }
-                    .toList())
-
-
-            } catch (e: Exception) {
-                _message.postValue(e.message.toString())
-
+                Log.i("TAG", "getCurrentWeather: false")
+                selectDayWeather(longitude = longitude, latitude = latitude)
 
             }
 
@@ -133,76 +102,157 @@ class HomeViewModelImpl(
 
     }
 
+    private fun getFiveDaysWeatherForecast(
+        latitude: Double,
+        longitude: Double,
+        isConnected: Boolean
+    ) {
+        viewModelScope.launch {
+            if (isConnected) {
+                try {
+                    val result =
+                        repository.getFiveDaysWeatherForecast(
+                            latitude = latitude,
+                            longitude = longitude
+                        )
+
+                    _fiveDaysWeatherForecast.emit(Response.Success(result.catch {ex->
+                        _message.postValue(ex.message.toString())
+                        selectFiveDaysWeather(longitude = longitude, latitude = latitude)
+
+                    }.toList()))
+
+                    filterDaysList(result)
 
 
+                } catch (e: Exception) {
+                    _message.postValue(e.message.toString())
+                    selectFiveDaysWeather(longitude = longitude, latitude = latitude)
 
 
-    fun insertCurrentWeather(currentWeatherResponse: CurrentWeatherResponse) {
+                }
+            } else {
+                selectFiveDaysWeather(longitude = longitude, latitude = latitude)
+            }
+
+        }
+
+
+    }
+
+    private suspend fun filterDaysList(result: Flow<WeatherItem>) {
+        _currentDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(0) }
+            .toList())
+        _nextDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(1) }
+            .toList())
+        _thirdDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(2) }
+            .toList())
+        _fourthDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(3) }
+            .toList())
+        _fifthDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(4) }
+            .toList())
+        _sixthDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(5) }
+            .toList())
+    }
+
+
+    private fun insertCurrentWeather(currentWeatherResponse: CurrentWeatherResponse) {
         viewModelScope.launch {
             repository.insertCurrentWeather(currentWeatherResponse)
         }
 
     }
 
-    fun insertFiveDaysWeather(fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse) {
+    private fun insertFiveDaysWeather(fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse) {
         viewModelScope.launch {
             repository.insertFiveDaysWeather(fiveDaysWeatherForecastResponse)
         }
 
     }
 
-    fun getCountryName(longitude: Double, latitude: Double, geocoder: Geocoder) {
+    private fun getCountryName(
+        longitude: Double,
+        latitude: Double,
+        geocoder: Geocoder,
+        isConnected: Boolean
+    ) {
         viewModelScope.launch {
-            val list =
-                geocoder.getFromLocation(latitude, longitude, 1)
-            if (!list.isNullOrEmpty())
-                _countryName.emit(Response.Success(list[0]))
+
+            if (isConnected) {
+                val list =
+                    geocoder.getFromLocation(latitude, longitude, 1)
+                if (!list.isNullOrEmpty())
+                    _countryName.emit(Response.Success(list[0]))
+            } else {
+
+                _countryName.emit(Response.Success(Address(Locale("ar"))))
+
+            }
         }
     }
 
     private fun selectDayWeather(longitude: Double, latitude: Double) {
-        viewModelScope.launch {
-            val result = repository.selectDayWeather(longitude = longitude, latitude = latitude)
-            _currentWeather.emit(Response.Success(result))
 
+        Log.i("TAG", "selectDayWeather: hii $longitude")
+        viewModelScope.launch {
+            Log.i("TAG", "selectDayWeather: heeeeeee")
+            val result = repository.selectDayWeather(
+                longitude = longitude.toBigDecimal()
+                    .setScale(2, RoundingMode.DOWN).toDouble(), latitude = latitude.toBigDecimal()
+                    .setScale(2, RoundingMode.DOWN).toDouble()
+            )
+            Log.i("TAG", "selectDayWeather:jjjjj $result")
+            result.collect {
+                _currentWeather.emit(Response.Success(it))
+                Log.i("TAG", "selectDayWeather: $it")
+            }
             Log.i("TAG", "==== selectDayWeather: $result")
             Log.i("TAG", "selectDayWeather: $latitude , $longitude")
-
-
         }
     }
+
     private fun selectFiveDaysWeather(longitude: Double, latitude: Double) {
         viewModelScope.launch {
-            val result = repository.selectFiveDaysWeather(longitude = longitude, latitude = latitude)
-            result.collect{
-
+            val result =
+                repository.selectFiveDaysWeather(
+                    longitude = longitude.toBigDecimal()
+                        .setScale(2, RoundingMode.DOWN).toDouble(),
+                    latitude = latitude.toBigDecimal()
+                        .setScale(2, RoundingMode.DOWN).toDouble()
+                )
+            result.collect {
                 _fiveDaysWeatherForecast.emit(Response.Success(it.list))
-
+                filterDaysList(it.list.asFlow())
             }
-
             Log.i("TAG", "==== selectDayWeather: $result")
             Log.i("TAG", "selectDayWeather: $latitude , $longitude")
-
-
         }
     }
-    fun getWeatherFromApi(locationState: Location, geocoder: Geocoder) {
+
+    fun getWeatherFromApi(locationState: Location, geocoder: Geocoder, isConnected: Boolean) {
         Log.i("TAG", "getWeatherFromApi: ---------------")
         getCurrentWeather(
             latitude = locationState.latitude,
-            longitude = locationState.longitude
+            longitude = locationState.longitude,
+            isConnected
         )
         getCountryName(
             longitude = locationState.longitude,
             latitude = locationState.latitude,
-            geocoder = geocoder
+            geocoder = geocoder,
+            isConnected
         )
         getFiveDaysWeatherForecast(
             latitude = locationState.latitude,
-            longitude = locationState.longitude
+            longitude = locationState.longitude,
+            isConnected
         )
     }
-    fun insertFiveDaysForecast(fiveDaysWeatherForecast: List<WeatherItem>?,locationState: Location) {
+
+    fun insertFiveDaysForecast(
+        fiveDaysWeatherForecast: List<WeatherItem>?,
+        locationState: Location
+    ) {
         fiveDaysWeatherForecast?.let { it1 ->
             FiveDaysWeatherForecastResponse(
                 list = it1,

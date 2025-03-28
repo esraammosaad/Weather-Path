@@ -78,7 +78,9 @@ import com.google.maps.android.compose.MarkerInfoWindow
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.math.RoundingMode
 
 @Composable
@@ -454,12 +456,13 @@ fun SearchableMapScreen(
                 val latLng = place?.latLng
                 scope.launch {
                     latLng?.let { CameraUpdateFactory.newLatLngZoom(it, 12f) }
-                        ?.let { cameraPositionState.animate(it, 500) }
+                        ?.let { cameraPositionState.animate(it, 2000) }
+                    if (latLng != null) {
+                        markerState.position = latLng
+                        showBottomSheet.value = true
+                    }
                 }
-                if (latLng != null) {
-                    markerState.position = latLng
-                    showBottomSheet.value = true
-                }
+
             }
         }
     Box(modifier = Modifier.fillMaxWidth()) {

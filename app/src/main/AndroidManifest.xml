@@ -5,6 +5,12 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+
 
     <application
         android:allowBackup="true"
@@ -16,7 +22,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WeatherApp"
         tools:targetApi="31">
-
+        <receiver
+            android:name=".utilis.AlarmReceiver"
+            android:enabled="true"
+            android:exported="true" />
         <!--
              TODO: Before you run your application, you need a Google Maps API key.
 
@@ -32,9 +41,6 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
 
-
-
-
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -46,6 +52,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".alarm.DialogActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:launchMode="singleInstance"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+
     </application>
 
 </manifest>

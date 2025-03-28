@@ -22,4 +22,7 @@
     <string name="warning">Warning</string>
     <string name="you_need_enable_your_location_go_to_the_settings">You need enable your location go to the settings?</string>
     <string name="today">TODAY</string>
+    <string name="title_activity_dialog">DialogActivity</string>
+    <string name="choose">Choose</string>
+    <string name="chooseMapOrGPS">You can choose any location from map or allow GPS to get your current location weather, you can change it later from settings!</string>
 </resources>
