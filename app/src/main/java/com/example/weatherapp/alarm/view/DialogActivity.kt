@@ -1,9 +1,8 @@
-package com.example.weatherapp.alarm
+package com.example.weatherapp.alarm.view
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
@@ -13,10 +12,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
-import com.example.weatherapp.AlertDialogExample
-import com.example.weatherapp.MainActivity
+import com.example.weatherapp.ConfirmationDialog
 import com.example.weatherapp.R
-import com.example.weatherapp.utilis.CHANNEL_ID
+import com.example.weatherapp.data.managers.CHANNEL_ID
+import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
+import com.example.weatherapp.utilis.Strings
+import com.google.gson.Gson
 
 
 class DialogActivity : ComponentActivity() {
@@ -27,28 +28,17 @@ class DialogActivity : ComponentActivity() {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
-
-
-//        val alertDialog: AlertDialog = AlertDialog.Builder(this).create()
-//        alertDialog.setTitle(" ")
-//        alertDialog.setMessage("")
-//        alertDialog.setIcon(R.drawable.ic_dialog_alert)
-//        alertDialog.setButton("Accept"
-//        ) { dialog, which ->
-//            finish()
-//         }
-//        alertDialog.setButton2("Deny"
-//        ) { dialog, which -> finish() }
-//        alertDialog.show()
+        val result = intent.getStringExtra(Strings.RESULT_CONST)
+        val gson = Gson()
+        val response = gson.fromJson(result , CurrentWeatherResponse::class.java)
         setContent {
-            AlertDialogExample(
+            ConfirmationDialog(
                 onConfirmation = {
                     finishAffinity()
-
                 },
                 onDismiss = { finishAffinity() },
-                dialogTitle = "hello",
-                dialogText = "everything is okay",
+                dialogTitle = response.name,
+                dialogText = response.sys.country,
                 showRadioButton = false,
                 onOptionClicked = {}
             )
@@ -77,7 +67,6 @@ class DialogActivity : ComponentActivity() {
     }
 
     private fun createNotification(context: Context): NotificationCompat.Builder {
-
         if (VERSION.SDK_INT >= VERSION_CODES.O) {
             val name = "channel name"
             val desc = "channel desc"

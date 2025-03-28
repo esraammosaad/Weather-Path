@@ -188,3 +188,20 @@ fun getCurrentDate(amount:Int): String {
     val dateFormat = SimpleDateFormat("EEEE dd MMM yyyy", Locale.getDefault())
     return dateFormat.format(calendar.time)
 }
+
+fun calculateDelay(targetYear: Int, targetMonth: Int, targetDay: Int, targetHour: Int, targetMinute: Int): Long {
+    val now = java.util.Calendar.getInstance()
+
+    val targetTime = java.util.Calendar.getInstance().apply {
+        set(java.util.Calendar.YEAR, targetYear)
+        set(java.util.Calendar.MONTH, targetMonth - 1)
+        set(java.util.Calendar.DAY_OF_MONTH, targetDay)
+        set(java.util.Calendar.HOUR_OF_DAY, targetHour)
+        set(java.util.Calendar.MINUTE, targetMinute)
+        set(java.util.Calendar.SECOND, 0)
+    }
+
+    val delay = targetTime.timeInMillis - now.timeInMillis
+
+    return if (delay > 0) delay else 0L
+}

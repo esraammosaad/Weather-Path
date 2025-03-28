@@ -1,4 +1,4 @@
-package com.example.weatherapp.internet
+package com.example.weatherapp.utilis.internet
 
 import kotlinx.coroutines.flow.Flow
 

@@ -25,4 +25,9 @@
     <string name="title_activity_dialog">DialogActivity</string>
     <string name="choose">Choose</string>
     <string name="chooseMapOrGPS">You can choose any location from map or allow GPS to get your current location weather, you can change it later from settings!</string>
+    <string name="please_allow_permission_first">Please allow permission first</string>
+    <string name="gps">GPS</string>
+    <string name="confirm">Confirm</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="confirmation_icon">Confirmation Icon</string>
 </resources>

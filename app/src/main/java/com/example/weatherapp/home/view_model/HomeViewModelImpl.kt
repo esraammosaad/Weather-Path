@@ -69,8 +69,6 @@ class HomeViewModelImpl(
 
 
     private fun getCurrentWeather(latitude: Double, longitude: Double, isConnected: Boolean) {
-
-        Log.i("TAG", "getCurrentWeather: ${isConnected}")
         viewModelScope.launch {
 
             if (isConnected) {
@@ -81,18 +79,14 @@ class HomeViewModelImpl(
                     )
                     _currentWeather.emit(Response.Success(result))
                     _message.postValue("Success")
-                    Log.i("TAG", "getSelectedWeather: nnnnnnnnnnnn")
-
 //                    _message.postValue("something wrong happen please try again!!")
 
                 } catch (e: Exception) {
                     _message.postValue(e.message.toString())
                     selectDayWeather(longitude = longitude, latitude = latitude)
-                    Log.i("TAG", "getSelectedWeather: nnnnnnnnnnnn")
                 }
             } else {
 
-                Log.i("TAG", "getCurrentWeather: false")
                 selectDayWeather(longitude = longitude, latitude = latitude)
 
             }
@@ -193,21 +187,15 @@ class HomeViewModelImpl(
 
     private fun selectDayWeather(longitude: Double, latitude: Double) {
 
-        Log.i("TAG", "selectDayWeather: hii $longitude")
         viewModelScope.launch {
-            Log.i("TAG", "selectDayWeather: heeeeeee")
             val result = repository.selectDayWeather(
                 longitude = longitude.toBigDecimal()
                     .setScale(2, RoundingMode.DOWN).toDouble(), latitude = latitude.toBigDecimal()
                     .setScale(2, RoundingMode.DOWN).toDouble()
             )
-            Log.i("TAG", "selectDayWeather:jjjjj $result")
             result.collect {
                 _currentWeather.emit(Response.Success(it))
-                Log.i("TAG", "selectDayWeather: $it")
             }
-            Log.i("TAG", "==== selectDayWeather: $result")
-            Log.i("TAG", "selectDayWeather: $latitude , $longitude")
         }
     }
 
@@ -224,13 +212,10 @@ class HomeViewModelImpl(
                 _fiveDaysWeatherForecast.emit(Response.Success(it.list))
                 filterDaysList(it.list.asFlow())
             }
-            Log.i("TAG", "==== selectDayWeather: $result")
-            Log.i("TAG", "selectDayWeather: $latitude , $longitude")
         }
     }
 
     fun getWeatherFromApi(locationState: Location, geocoder: Geocoder, isConnected: Boolean) {
-        Log.i("TAG", "getWeatherFromApi: ---------------")
         getCurrentWeather(
             latitude = locationState.latitude,
             longitude = locationState.longitude,

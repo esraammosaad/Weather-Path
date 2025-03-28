@@ -145,16 +145,19 @@ fun MapScreen(
     LaunchedEffect(markerState.position) {
         favoriteViewModel.getSelectedWeather(
             longitude = markerState.position.longitude,
-            latitude = markerState.position.latitude
+            latitude = markerState.position.latitude,
+            isConnected = true
         )
         favoriteViewModel.getSelectedFiveDaysWeatherForecast(
             longitude = markerState.position.longitude,
-            latitude = markerState.position.latitude
+            latitude = markerState.position.latitude,
+            isConnected = true
         )
         favoriteViewModel.getCountryName(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude,
-            geocoder
+            geocoder = geocoder,
+            isConnected = true
         )
     }
 

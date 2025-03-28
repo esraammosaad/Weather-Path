@@ -54,7 +54,8 @@ secrets {
 
 
 dependencies {
-
+    implementation("network.chaintech:kmp-date-time-picker:1.0.7")
+    implementation("androidx.work:work-runtime-ktx:2.7.1")
     implementation ("nl.dionsegijn:konfetti-compose:2.0.2")
     implementation("com.airbnb.android:lottie-compose:6.6.3")
     implementation("com.google.android.libraries.places:places:3.1.0")

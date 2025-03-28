@@ -1,5 +1,6 @@
 package com.example.weatherapp.favorite.view
 
+import android.content.Context
 import android.location.Address
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,9 +38,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.work.Constraints
+import androidx.work.Data
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkRequest
 import coil.compose.rememberAsyncImagePainter
 import com.example.weatherapp.R
-import com.example.weatherapp.alarm.view.WeatherAlarmManager
+import com.example.weatherapp.data.managers.WeatherWorkManager
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
@@ -53,6 +60,7 @@ import com.example.weatherapp.utilis.view.FailureDisplay
 import com.example.weatherapp.utilis.view.LoadingDisplay
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 
 @Composable
@@ -70,8 +78,6 @@ fun FavoriteScreen(
     bottomNavigationBarViewModel.setCurrentWeatherTheme(
         currentWeather.weather.firstOrNull()?.icon ?: ""
     )
-
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -246,19 +252,10 @@ fun FavoriteItem(
     onFavoriteCardClicked: (longitude: Double, latitude: Double) -> Unit,
 ) {
     val context = LocalContext.current
-    val myAlarmManager = WeatherAlarmManager(context)
-
-
     Box(modifier = Modifier
         .padding(bottom = 12.dp)
         .clickable {
-            selectedWeather?.id?.let {
-                myAlarmManager.schedule(
-                    "${selectedWeather.longitude}, ${selectedWeather.latitude}-------------------",
-                    it
-                )
-            }
-
+            requestWorkManager(selectedWeather, context)
             onFavoriteCardClicked.invoke(
                 selectedWeather?.longitude ?: 0.0,
                 selectedWeather?.latitude ?: 0.0
@@ -365,6 +362,22 @@ fun FavoriteItem(
 
         }
     }
+}
+
+private fun requestWorkManager(
+    selectedWeather: CurrentWeatherResponse?,
+    context: Context
+) {
+    val inputData = Data.Builder()
+    inputData.putDouble(Strings.LONG_CONST, selectedWeather?.longitude ?: 0.0)
+    inputData.putDouble(Strings.LAT_CONST, selectedWeather?.latitude ?: 0.0)
+    inputData.putInt(Strings.CODE_CONST, selectedWeather?.id ?: 0)
+    val constraint = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+    val workRequest: WorkRequest =
+        OneTimeWorkRequestBuilder<WeatherWorkManager>().setConstraints(constraint)
+            .setInputData(inputData.build()).setInitialDelay(5, TimeUnit.SECONDS)
+            .build()
+    WorkManager.getInstance(context).enqueue(workRequest)
 }
 
 

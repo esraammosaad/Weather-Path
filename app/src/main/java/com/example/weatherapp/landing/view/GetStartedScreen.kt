@@ -146,3 +146,4 @@ private fun GetStartedScreenPreview() {
     GetStartedScreen({}, {})
 
 }
+

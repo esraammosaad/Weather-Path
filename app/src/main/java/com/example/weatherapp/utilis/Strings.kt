@@ -15,6 +15,10 @@ object Strings {
     const val SEEN_GET_STARTED: String = "SEEN_GET_STARTED"
     const val LOCATION_STATE: String = "LOCATION_STATE"
     const val GOOGLE_API_KEY: String = "AIzaSyDCe9_Jl18IXC42sQe5RWY5ZwCnD_qKGfk"
+    const val LONG_CONST: String = "LONG"
+    const val LAT_CONST: String = "LAT"
+    const val CODE_CONST: String = "CODE"
+    const val RESULT_CONST: String = "RESULT"
 
 
 }

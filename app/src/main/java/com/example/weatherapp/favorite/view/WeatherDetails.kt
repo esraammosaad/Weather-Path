@@ -34,9 +34,9 @@ fun WeatherDetailsScreen(
 ) {
 
     val context = LocalContext.current
-    favoriteViewModel.getSelectedWeather(longitude = longitude, latitude = latitude)
-    favoriteViewModel.getSelectedFiveDaysWeatherForecast(longitude = longitude, latitude = latitude)
-    favoriteViewModel.getCountryName(longitude = longitude, latitude = latitude, Geocoder(context))
+    favoriteViewModel.getSelectedWeather(longitude = longitude, latitude = latitude, isConnected = true)
+    favoriteViewModel.getSelectedFiveDaysWeatherForecast(longitude = longitude, latitude = latitude, isConnected = true)
+    favoriteViewModel.getCountryName(longitude = longitude, latitude = latitude, Geocoder(context), isConnected = true)
     val selectedWeather = favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
     val selectedFiveDaysWeatherForecast =
         favoriteViewModel.selectedFiveDaysWeatherForecast.collectAsStateWithLifecycle().value

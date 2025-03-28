@@ -15,35 +15,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProvider
@@ -61,17 +45,17 @@ import com.example.weatherapp.data.remote.WeatherRemoteDataSource
 import com.example.weatherapp.data.repository.Repository
 import com.example.weatherapp.home.view_model.HomeViewModelImpl
 import com.example.weatherapp.home.view_model.HomeViewModelFactory
-import com.example.weatherapp.internet.InternetConnectivityViewModel
-import com.example.weatherapp.internet.InternetConnectivityViewModelFactory
-import com.example.weatherapp.internet.InternetObserverImpl
+import com.example.weatherapp.utilis.internet.InternetConnectivityViewModel
+import com.example.weatherapp.utilis.internet.InternetConnectivityViewModelFactory
+import com.example.weatherapp.utilis.internet.InternetObserverImpl
 import com.example.weatherapp.landing.view.GetStartedScreen
 import com.example.weatherapp.landing.view.SplashScreen
-import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.utilis.BottomNavigationBar
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
 import com.example.weatherapp.utilis.view.FailureDisplay
 import com.example.weatherapp.utilis.view.LoadingDisplay
 import com.example.weatherapp.utilis.NavHostImpl
+import com.example.weatherapp.utilis.view.ConfirmationDialog
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -87,182 +71,250 @@ class MainActivity : ComponentActivity() {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var bottomNavigationBarViewModel: BottomNavigationBarViewModel
     private lateinit var homeViewModel: HomeViewModelImpl
-    var isConnected  = mutableStateOf(true)
+    private lateinit var internetConnectivityViewModel: InternetConnectivityViewModel
+    var isConnected = mutableStateOf(true)
     override fun onCreate(savedInstanceState: Bundle?) {
-
         locationState =
             mutableStateOf(Location(LocationManager.GPS_PROVIDER))
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         super.onCreate(savedInstanceState)
-        homeViewModel = ViewModelProvider(
-            this,
-            HomeViewModelFactory(
-                Repository.getInstance(
-                    weatherRemoteDataSource = WeatherRemoteDataSource(RetrofitFactory.apiService),
-                    weatherLocalDataSource = WeatherLocalDataSource(
-                        WeatherDatabase.getInstance(
-                            this
-                        ).getDao()
-                    )
-                )
-            )
-        )[HomeViewModelImpl::class]
+        homeViewModel = homeViewModel()
+        internetConnectivityViewModel = internetConnectivityViewModel()
+        bottomNavigationBarViewModel = BottomNavigationBarViewModel()
         enableEdgeToEdge()
-        val internetConnectivityViewModel = ViewModelProvider(
-            this@MainActivity, InternetConnectivityViewModelFactory(
-                InternetObserverImpl(
-                    this@MainActivity
-                )
-            )
-        )[InternetConnectivityViewModel::class]
-
-
         setContent {
             val isSeenGetStartedScreen =
                 remember { mutableStateOf(LocalStorageDataSource.getInstance(this).getStartedState) }
             val isSplash = remember { mutableStateOf(true) }
-            bottomNavigationBarViewModel = BottomNavigationBarViewModel()
             val navController = rememberNavController()
             val currentWeather by homeViewModel.currentWeather.collectAsStateWithLifecycle()
-            val fiveDaysWeatherForecast by
-            homeViewModel.fiveDaysWeatherForecast.collectAsStateWithLifecycle()
+            val fiveDaysWeatherForecast by homeViewModel.fiveDaysWeatherForecast.collectAsStateWithLifecycle()
             val countryName by homeViewModel.countryName.collectAsStateWithLifecycle()
+            internetConnectivityViewModel.getInternetConnectivity()
+            isConnected.value =
+                internetConnectivityViewModel.isConnected.collectAsStateWithLifecycle().value
+            if (LocalStorageDataSource.getInstance(this).getLocationState == stringResource(R.string.gps)) {
+                getLocation()
+            }
             val openAlertDialog = remember { mutableStateOf(false) }
             val dialogTitle = remember { mutableStateOf("") }
             val dialogText = remember { mutableStateOf("") }
             val onConfirmation = remember { mutableStateOf({}) }
             val showRadioButton = remember { mutableStateOf(false) }
             val option = remember { mutableStateOf("") }
-            isConnected.value= internetConnectivityViewModel.isConnected.collectAsStateWithLifecycle().value
-            OpenAlertDialog(
-                openAlertDialog,
-                onConfirmation,
-                dialogText,
-                dialogTitle,
-                showRadioButton,
-                option
-            )
+            if (openAlertDialog.value) {
+                ConfirmationDialog(
+                    onConfirmation = onConfirmation.value,
+                    dialogText = dialogText.value,
+                    dialogTitle = dialogTitle.value,
+                    onDismiss = {
+                        openAlertDialog.value = false
+                    },
+                    showRadioButton = showRadioButton.value,
+                    onOptionClicked = { text ->
+                        option.value = text
+                    }
+                )
+            }
             if (isSplash.value) {
                 SplashScreen {
                     isSplash.value = false
                 }
             } else {
                 if (!isSeenGetStartedScreen.value) {
-                    AnimatedVisibility(visible = !isSeenGetStartedScreen.value) {
-                        GetStartedScreen(
-                            onAllowPermissionClicked = {
-                                onAllowPermissionButtonClicked(
-                                    showRadioButton,
-                                    openAlertDialog,
-                                    dialogTitle,
-                                    dialogText,
-                                    onConfirmation
-                                )
-                            },
-                            onGetStartedClicked = {
-                                showRadioButton.value = false
-                                openAlertDialog.value = true
-                                if (checkLocationPermission()) {
-                                    if (isLocationEnabled()) {
-                                        dialogTitle.value = getString(R.string.choose)
-                                        dialogText.value =
-                                            getString(R.string.chooseMapOrGPS)
-                                        showRadioButton.value = true
-                                        onConfirmation.value = {
-                                            if (option.value == "GPS") {
-                                                getLocation()
-
-                                            } else {
-                                                //map
-                                            }
-                                            LocalStorageDataSource.getInstance(this@MainActivity)
-                                                .saveLocationState(option.value)
-                                            isSeenGetStartedScreen.value = true
-                                            LocalStorageDataSource.getInstance(this@MainActivity)
-                                                .saveGetStartedStateState()
-                                            openAlertDialog.value = false
-                                        }
-                                    } else {
-                                        allowPermissionDialog(
-                                            dialogTitle,
-                                            dialogText,
-                                            onConfirmation,
-                                            openAlertDialog,
-
-                                            )
-                                    }
-                                } else {
-                                    allowPermissionDialog(
-                                        dialogTitle,
-                                        dialogText,
-                                        onConfirmation,
-                                        openAlertDialog,
-                                    )
-                                }
-                            }
-
+                    GetStartedContent(
+                        isSeenGetStartedScreen,
+                        showRadioButton,
+                        openAlertDialog,
+                        dialogTitle,
+                        dialogText,
+                        onConfirmation,
+                        option
+                    )
+                } else {
+                    val snackBarHostState = remember { SnackbarHostState() }
+                    Scaffold(
+                        snackbarHost = { SnackbarHost(snackBarHostState) },
+                        contentWindowInsets = WindowInsets(0.dp),
+                        bottomBar = {
+                            BottomNavigationBar(
+                                navController,
+                                bottomNavigationBarViewModel
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxSize(),
+                    ) { innerPadding ->
+                        MainScreen(
+                            currentWeather,
+                            isSeenGetStartedScreen,
+                            countryName,
+                            fiveDaysWeatherForecast,
+                            navController,
+                            innerPadding,
+                            snackBarHostState
                         )
                     }
-
-                } else {
-                    when (currentWeather) {
-                        is Response.Loading -> LoadingDisplay()
-                        is Response.Success<*> -> {
-                            currentWeather as Response.Success<CurrentWeatherResponse>
-                            bottomNavigationBarViewModel.setCurrentWeatherTheme(
-                                (currentWeather as Response.Success<CurrentWeatherResponse>).result?.weather?.get(
-                                    0
-                                )?.icon ?: ""
-                            )
-                            val snackBarHostState = remember { SnackbarHostState() }
-                            AnimatedVisibility(visible = isSeenGetStartedScreen.value) {
-                                MainScreen(
-                                    snackBarHostState,
-                                    navController,
-                                    currentWeather,
-                                    countryName,
-                                    fiveDaysWeatherForecast
-                                )
-                            }
-                        }
-
-                        is Response.Failure -> FailureDisplay((currentWeather as Response.Failure).exception)
-
-                    }
                 }
-
-
             }
-
-
         }
     }
 
     @Composable
-    private fun OpenAlertDialog(
-        openAlertDialog: MutableState<Boolean>,
-        onConfirmation: MutableState<() -> Unit>,
-        dialogText: MutableState<String>,
-        dialogTitle: MutableState<String>,
+    private fun MainScreen(
+        currentWeather: Response,
+        isSeenGetStartedScreen: MutableState<Boolean>,
+        countryName: Response,
+        fiveDaysWeatherForecast: Response,
+        navController: NavHostController,
+        innerPadding: PaddingValues,
+        snackBarHostState: SnackbarHostState
+    ) {
+        when (currentWeather) {
+            is Response.Loading -> LoadingDisplay()
+            is Response.Success<*> -> {
+                val currentWeatherResponse =
+                    currentWeather as Response.Success<CurrentWeatherResponse>
+                bottomNavigationBarViewModel.setCurrentWeatherTheme(
+                    currentWeatherResponse.result?.weather?.firstOrNull()?.icon
+                        ?: ""
+                )
+                AnimatedVisibility(visible = isSeenGetStartedScreen.value) {
+                    currentWeatherResponse.result.let {
+                        when (countryName) {
+                            is Response.Success<*> -> {
+                                val cName = countryName as Response.Success<Address>
+                                when (fiveDaysWeatherForecast) {
+                                    is Response.Failure -> {}
+                                    Response.Loading -> {}
+                                    is Response.Success<*> -> {
+                                        val fiveDaysWeatherForecastResponse =
+                                            fiveDaysWeatherForecast as Response.Success<List<WeatherItem>>
+                                        homeViewModel.insertCurrentWeather(
+                                            it,
+                                            cName.result,
+                                            locationState.value
+                                        )
+                                        homeViewModel.insertFiveDaysForecast(
+                                            fiveDaysWeatherForecastResponse.result,
+                                            locationState.value
+                                        )
+                                    }
+                                }
+                                if (it != null) {
+                                    NavHostImpl(
+                                        navController = navController,
+                                        currentWeatherResponse = it,
+                                        countryName = cName.result,
+                                        innerPadding = innerPadding,
+                                        snackBarHostState = snackBarHostState,
+                                        homeViewModel = homeViewModel,
+                                        bottomNavigationBarViewModel = bottomNavigationBarViewModel,
+                                        locationState = locationState,
+
+                                        )
+                                }
+                            }
+
+                            is Response.Failure -> FailureDisplay(countryName.exception)
+                            Response.Loading -> LoadingDisplay()
+                        }
+                    }
+
+
+                }
+            }
+
+            is Response.Failure -> FailureDisplay(currentWeather.exception)
+        }
+    }
+    @Composable
+    private fun GetStartedContent(
+        isSeenGetStartedScreen: MutableState<Boolean>,
         showRadioButton: MutableState<Boolean>,
+        openAlertDialog: MutableState<Boolean>,
+        dialogTitle: MutableState<String>,
+        dialogText: MutableState<String>,
+        onConfirmation: MutableState<() -> Unit>,
         option: MutableState<String>
     ) {
-        if (openAlertDialog.value) {
-            AlertDialogExample(
-                onConfirmation = onConfirmation.value,
-                dialogText = dialogText.value,
-                dialogTitle = dialogTitle.value,
-                onDismiss = {
-                    openAlertDialog.value = false
+        AnimatedVisibility(visible = !isSeenGetStartedScreen.value) {
+            GetStartedScreen(
+                onAllowPermissionClicked = {
+                    onAllowPermissionButtonClicked(
+                        showRadioButton,
+                        openAlertDialog,
+                        dialogTitle,
+                        dialogText,
+                        onConfirmation
+                    )
                 },
-                showRadioButton = showRadioButton.value,
-                onOptionClicked = { text ->
-                    option.value = text
+                onGetStartedClicked = {
+                    showRadioButton.value = false
+                    openAlertDialog.value = true
+                    if (checkLocationPermission()) {
+                        if (isLocationEnabled()) {
+                            dialogTitle.value = getString(R.string.choose)
+                            dialogText.value =
+                                getString(R.string.chooseMapOrGPS)
+                            showRadioButton.value = true
+                            onConfirmation.value = {
+                                if (option.value == "GPS") {
+                                    if (isConnected.value)
+                                        getLocation()
+                                } else {
+                                    //map
+                                }
+                                LocalStorageDataSource.getInstance(this@MainActivity)
+                                    .saveLocationState(option.value)
+                                isSeenGetStartedScreen.value = true
+                                LocalStorageDataSource.getInstance(this@MainActivity)
+                                    .saveGetStartedStateState()
+                                openAlertDialog.value = false
+                            }
+                        } else {
+                            allowPermissionDialog(
+                                dialogTitle,
+                                dialogText,
+                                onConfirmation,
+                                openAlertDialog,
+
+                                )
+                        }
+                    } else {
+                        allowPermissionDialog(
+                            dialogTitle,
+                            dialogText,
+                            onConfirmation,
+                            openAlertDialog,
+                        )
+                    }
                 }
+
             )
         }
     }
 
+    private fun homeViewModel() = ViewModelProvider(
+        this,
+        HomeViewModelFactory(
+            Repository.getInstance(
+                weatherRemoteDataSource = WeatherRemoteDataSource(RetrofitFactory.apiService),
+                weatherLocalDataSource = WeatherLocalDataSource(
+                    WeatherDatabase.getInstance(
+                        this
+                    ).getDao()
+                )
+            )
+        )
+    )[HomeViewModelImpl::class]
+    private fun internetConnectivityViewModel() = ViewModelProvider(
+        this@MainActivity, InternetConnectivityViewModelFactory(
+            InternetObserverImpl(
+                this@MainActivity
+            )
+        )
+    )[InternetConnectivityViewModel::class]
     private fun onAllowPermissionButtonClicked(
         showRadioButton: MutableState<Boolean>,
         openAlertDialog: MutableState<Boolean>,
@@ -291,7 +343,6 @@ class MainActivity : ComponentActivity() {
             requestPermission()
         }
     }
-
     private fun allowPermissionDialog(
         dialogTitle: MutableState<String>,
         dialogText: MutableState<String>,
@@ -300,98 +351,23 @@ class MainActivity : ComponentActivity() {
     ) {
         dialogTitle.value = getString(R.string.warning)
         dialogText.value =
-            "Please allow permission first"
+            getString(R.string.please_allow_permission_first)
         onConfirmation.value = {
             openAlertDialog.value = false
         }
 
     }
-
-    @Composable
-    private fun MainScreen(
-        snackBarHostState: SnackbarHostState,
-        navController: NavHostController,
-        currentWeather: Response,
-        countryName: Response,
-        fiveDaysWeatherForecast: Response
-    ) {
-        Scaffold(
-            snackbarHost = { SnackbarHost(snackBarHostState) },
-            contentWindowInsets = WindowInsets(0.dp),
-            bottomBar = {
-                BottomNavigationBar(
-                    navController,
-                    bottomNavigationBarViewModel
-                )
-
-            },
-            modifier = Modifier
-                .fillMaxSize(),
-        ) { innerPadding ->
-            (currentWeather as Response.Success<CurrentWeatherResponse>).result.let {
-                when (countryName) {
-                    is Response.Success<*> -> {
-                        countryName as Response.Success<Address>
-                        when (fiveDaysWeatherForecast) {
-                            is Response.Failure -> {}
-                            Response.Loading -> {}
-                            is Response.Success<*> -> {
-                                fiveDaysWeatherForecast as Response.Success<List<WeatherItem>>
-                                homeViewModel.insertCurrentWeather(
-                                    currentWeather.result,
-                                    countryName.result,
-                                    locationState.value
-                                )
-                                homeViewModel.insertFiveDaysForecast(
-                                    fiveDaysWeatherForecast.result,
-                                    locationState.value
-                                )
-                            }
-                        }
-                        if (it != null) {
-                            NavHostImpl(
-                                navController,
-                                it,
-                                countryName.result,
-                                innerPadding,
-                                snackBarHostState,
-                                homeViewModel,
-                                bottomNavigationBarViewModel,
-                                locationState
-
-                            )
-                        }
-                    }
-
-                    is Response.Failure -> FailureDisplay(countryName.exception)
-                    Response.Loading -> LoadingDisplay()
-                }
-            }
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        if (LocalStorageDataSource.getInstance(this).getLocationState == "GPS") {
-            getLocation()
-        }
-    }
-
-
     private fun enableLocationServices() {
         val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
         startActivity(intent)
     }
-
     private fun isLocationEnabled(): Boolean {
         val locationManager: LocationManager =
             getSystemService(LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(
             LocationManager.NETWORK_PROVIDER
         )
-
     }
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -405,7 +381,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
     private fun requestPermission() {
         ActivityCompat.requestPermissions(
             this,
@@ -417,7 +392,6 @@ class MainActivity : ComponentActivity() {
         )
 
     }
-
     private fun checkLocationPermission(): Boolean {
         return !(ActivityCompat.checkSelfPermission(
             this,
@@ -427,7 +401,6 @@ class MainActivity : ComponentActivity() {
             Manifest.permission.ACCESS_COARSE_LOCATION
         ) != PackageManager.PERMISSION_GRANTED)
     }
-
     @SuppressLint("MissingPermission")
     fun getLocation() {
         val locationRequest = LocationRequest.Builder(3600000).apply {
@@ -437,10 +410,14 @@ class MainActivity : ComponentActivity() {
         val locationCallBack = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
-
                 locationState.value =
                     locationResult.lastLocation ?: Location(LocationManager.GPS_PROVIDER)
-                homeViewModel.getWeatherFromApi(locationState.value, Geocoder(this@MainActivity),isConnected.value)
+                    homeViewModel.getWeatherFromApi(
+                        locationState.value,
+                        Geocoder(this@MainActivity),
+                        isConnected.value
+                    )
+
 
             }
         }
@@ -453,91 +430,5 @@ class MainActivity : ComponentActivity() {
 
 }
 
-@Composable
-fun AlertDialogExample(
-    onConfirmation: () -> Unit,
-    onDismiss: () -> Unit,
-    dialogTitle: String,
-    dialogText: String,
-    showRadioButton: Boolean,
-    onOptionClicked: (String) -> Unit
-) {
-    AlertDialog(
-        icon = {
-            Icon(
-                painterResource(R.drawable.baseline_location_pin_24),
-                contentDescription = "Confirmation Icon",
-                tint = PrimaryColor
-            )
-        },
-        title = {
-            Text(text = dialogTitle, textAlign = TextAlign.Center)
-        },
-        text = {
-            Column {
-                Text(text = dialogText, textAlign = TextAlign.Center)
-                if (showRadioButton) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    RadioButtonSingleSelection(onOptionClicked)
-                }
-            }
-        },
-        onDismissRequest = {
-            onDismiss()
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onConfirmation()
-                }
-            ) {
-                Text("Confirm", color = PrimaryColor)
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = {
-                    onDismiss()
-                }
-            ) {
-                Text("Dismiss", color = PrimaryColor)
-            }
-        }
 
-    )
-}
 
-@Composable
-fun RadioButtonSingleSelection(onOptionClicked: (String) -> Unit) {
-    val radioOptions = listOf("Map", "GPS")
-    val (selectedOption, optionClicked) = remember { mutableStateOf(radioOptions[0]) }
-    Column(Modifier.selectableGroup()) {
-        radioOptions.forEach { text ->
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .selectable(
-                        selected = (text == selectedOption),
-                        onClick = {
-                            optionClicked(text)
-                            onOptionClicked(text)
-                        },
-                        role = Role.RadioButton
-                    )
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                RadioButton(
-                    selected = (text == selectedOption),
-                    onClick = null
-                )
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(start = 16.dp)
-                )
-            }
-        }
-    }
-}
