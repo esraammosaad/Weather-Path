@@ -30,7 +30,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -78,9 +80,7 @@ import com.google.maps.android.compose.MarkerInfoWindow
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.math.RoundingMode
 
 @Composable
@@ -316,15 +316,9 @@ fun MapScreen(
                                 fiveDaysWeatherForecast,
                                 listOfDays,
                                 favoriteViewModel,
-                                snackBarHostState
-                            ) {
-                                if (selectedWeather != null && selectedFiveDaysForecast != null)
-                                    favoriteViewModel.insertWeather(
-                                        selectedWeather,
-                                        selectedFiveDaysForecast
-                                    )
-                                showBottomSheet.value = false
-                            }
+                                snackBarHostState,
+                                selectedFiveDaysForecast
+                            )
 
 
                         }
@@ -341,14 +335,17 @@ fun MapScreen(
 @Composable
 fun PartialBottomSheet(
     showBottomSheet: MutableState<Boolean>,
-    selectedWeatherUiState: CurrentWeatherResponse?,
+    selectedWeather: CurrentWeatherResponse?,
     countryNameUiState: Address?,
-    fiveDaysWeatherForecastUiState: Response,
+    fiveDaysWeatherForecastResponse: Response,
     listOfDays: List<List<WeatherItem>>,
     favoriteViewModel: FavoriteViewModelImpl,
     snackBarHostState: SnackbarHostState,
-    onAddClick: () -> Unit,
+    selectedFiveDaysForecast: FiveDaysWeatherForecastResponse?,
 ) {
+    val addedItemMessage =
+        favoriteViewModel.insertFavoriteItemResult.collectAsStateWithLifecycle().value
+
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = false,
     )
@@ -374,7 +371,7 @@ fun PartialBottomSheet(
                         .background(
                             brush =
                             getWeatherGradient(
-                                selectedWeatherUiState?.weather?.firstOrNull()?.icon ?: ""
+                                selectedWeather?.weather?.firstOrNull()?.icon ?: ""
                             )
                         ),
                 ) {
@@ -404,11 +401,37 @@ fun PartialBottomSheet(
                                 fontSize = 18.sp,
                                 color = Color.White,
                                 modifier = Modifier.clickable {
-                                    onAddClick.invoke()
+
+                                    if (selectedWeather != null && selectedFiveDaysForecast != null)
+                                        favoriteViewModel.insertWeather(
+                                            selectedWeather,
+                                            selectedFiveDaysForecast
+                                        )
+                                    showBottomSheet.value = false
+
                                     coroutineScope.launch {
-                                        favoriteViewModel.message.collect {
-                                            snackBarHostState.showSnackbar(it)
+                                        val result = snackBarHostState.showSnackbar(
+                                            "Location Added Successfully",
+                                            actionLabel = "UNDO",
+                                            withDismissAction = true,
+                                            duration = SnackbarDuration.Long
+                                        )
+                                        when (result) {
+                                            SnackbarResult.ActionPerformed -> {
+                                                if (selectedWeather != null && selectedFiveDaysForecast != null) {
+                                                    favoriteViewModel.deleteWeather(
+                                                        currentWeatherResponse = selectedWeather,
+                                                        fiveDaysWeatherForecastResponse = selectedFiveDaysForecast
+                                                    )
+
+                                                }
+
+                                            }
+
+                                            SnackbarResult.Dismissed -> {
+                                            }
                                         }
+
                                     }
                                 }
 
@@ -421,8 +444,8 @@ fun PartialBottomSheet(
                     item {
                         WeatherDetails(
                             countryNameUiState,
-                            selectedWeatherUiState,
-                            fiveDaysWeatherForecastUiState,
+                            selectedWeather,
+                            fiveDaysWeatherForecastResponse,
                             listOfDays
                         )
                     }

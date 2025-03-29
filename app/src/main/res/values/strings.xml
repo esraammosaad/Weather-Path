@@ -30,4 +30,5 @@
     <string name="confirm">Confirm</string>
     <string name="dismiss">Dismiss</string>
     <string name="confirmation_icon">Confirmation Icon</string>
+    <string name="notification_icon">Notification Icon</string>
 </resources>

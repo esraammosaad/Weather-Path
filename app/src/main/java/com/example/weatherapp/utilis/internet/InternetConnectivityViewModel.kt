@@ -16,10 +16,7 @@ class InternetConnectivityViewModel(val internetObserver: InternetObserver) : Vi
     fun getInternetConnectivity() {
         viewModelScope.launch {
             internetObserver.isConnected.collect {
-                Log.i("TAG", "getInternetConnectivity: $it")
                 _isConnected.emit(it)
-                Log.i("TAG", "getInternetConnectivity:111 ${_isConnected.value}")
-                Log.i("TAG", "getInternetConnectivity:222 ${isConnected.value}")
 
             }
         }

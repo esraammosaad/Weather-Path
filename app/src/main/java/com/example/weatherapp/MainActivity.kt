@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -27,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
@@ -50,6 +52,8 @@ import com.example.weatherapp.utilis.internet.InternetConnectivityViewModelFacto
 import com.example.weatherapp.utilis.internet.InternetObserverImpl
 import com.example.weatherapp.landing.view.GetStartedScreen
 import com.example.weatherapp.landing.view.SplashScreen
+import com.example.weatherapp.ui.theme.OffWhite
+import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.utilis.BottomNavigationBar
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
 import com.example.weatherapp.utilis.view.FailureDisplay
@@ -134,7 +138,17 @@ class MainActivity : ComponentActivity() {
                 } else {
                     val snackBarHostState = remember { SnackbarHostState() }
                     Scaffold(
-                        snackbarHost = { SnackbarHost(snackBarHostState) },
+                        snackbarHost = {
+                            SnackbarHost(snackBarHostState) { data ->
+                                Snackbar(
+                                    actionColor = PrimaryColor,
+                                    snackbarData = data,
+                                    containerColor = OffWhite,
+                                    contentColor = Color.Black,
+                                    dismissActionContentColor = Color.Black
+                                )
+                            }
+                        },
                         contentWindowInsets = WindowInsets(0.dp),
                         bottomBar = {
                             BottomNavigationBar(
@@ -159,6 +173,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 
     @Composable
     private fun MainScreen(
@@ -228,6 +243,7 @@ class MainActivity : ComponentActivity() {
             is Response.Failure -> FailureDisplay(currentWeather.exception)
         }
     }
+
     @Composable
     private fun GetStartedContent(
         isSeenGetStartedScreen: MutableState<Boolean>,
@@ -308,6 +324,7 @@ class MainActivity : ComponentActivity() {
             )
         )
     )[HomeViewModelImpl::class]
+
     private fun internetConnectivityViewModel() = ViewModelProvider(
         this@MainActivity, InternetConnectivityViewModelFactory(
             InternetObserverImpl(
@@ -315,6 +332,7 @@ class MainActivity : ComponentActivity() {
             )
         )
     )[InternetConnectivityViewModel::class]
+
     private fun onAllowPermissionButtonClicked(
         showRadioButton: MutableState<Boolean>,
         openAlertDialog: MutableState<Boolean>,
@@ -343,6 +361,7 @@ class MainActivity : ComponentActivity() {
             requestPermission()
         }
     }
+
     private fun allowPermissionDialog(
         dialogTitle: MutableState<String>,
         dialogText: MutableState<String>,
@@ -357,10 +376,12 @@ class MainActivity : ComponentActivity() {
         }
 
     }
+
     private fun enableLocationServices() {
         val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
         startActivity(intent)
     }
+
     private fun isLocationEnabled(): Boolean {
         val locationManager: LocationManager =
             getSystemService(LOCATION_SERVICE) as LocationManager
@@ -368,6 +389,7 @@ class MainActivity : ComponentActivity() {
             LocationManager.NETWORK_PROVIDER
         )
     }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -401,6 +423,7 @@ class MainActivity : ComponentActivity() {
             Manifest.permission.ACCESS_COARSE_LOCATION
         ) != PackageManager.PERMISSION_GRANTED)
     }
+
     @SuppressLint("MissingPermission")
     fun getLocation() {
         val locationRequest = LocationRequest.Builder(3600000).apply {
@@ -412,11 +435,12 @@ class MainActivity : ComponentActivity() {
                 super.onLocationResult(locationResult)
                 locationState.value =
                     locationResult.lastLocation ?: Location(LocationManager.GPS_PROVIDER)
-                    homeViewModel.getWeatherFromApi(
-                        locationState.value,
-                        Geocoder(this@MainActivity),
-                        isConnected.value
-                    )
+
+                homeViewModel.getWeatherFromApi(
+                    locationState.value,
+                    Geocoder(this@MainActivity),
+                    isConnected.value
+                )
 
 
             }
