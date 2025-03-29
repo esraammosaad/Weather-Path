@@ -1,6 +1,7 @@
 package com.example.weatherapp.data.repository
 
 import com.example.weatherapp.data.local.WeatherLocalDataSource
+import com.example.weatherapp.data.model.AlarmModel
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
@@ -113,6 +114,26 @@ class Repository(
     suspend fun selectAllFiveDaysWeatherFromFavorites(): Flow<List<FiveDaysWeatherForecastResponse>> {
 
         return weatherLocalDataSource.selectFiveDaysWeatherFromFavorites()
+    }
+
+
+    suspend fun insertAlarm(alarm: AlarmModel): Long {
+
+        return weatherLocalDataSource.insertAlarm(alarm)
+    }
+
+    suspend fun deleteAlarm(alarm: AlarmModel): Int {
+        return weatherLocalDataSource.deleteAlarm(alarm)
+    }
+
+    suspend fun selectAllAlarms(): Flow<List<AlarmModel>> {
+
+        return weatherLocalDataSource.selectAllAlarms()
+    }
+
+    suspend fun updateAlarm(alarm: AlarmModel): Int {
+
+        return weatherLocalDataSource.updateAlarm(alarm)
     }
 
 }

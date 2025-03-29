@@ -2,10 +2,10 @@ package com.example.weatherapp.favorite.view_model
 
 import android.location.Address
 import android.location.Geocoder
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.weatherapp.data.model.AlarmModel
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
@@ -73,6 +73,10 @@ class FavoriteViewModelImpl(
     private var _updateFavoriteResult: MutableStateFlow<String> = MutableStateFlow("")
     var updateFavoriteResult = _updateFavoriteResult.asStateFlow()
 
+
+    private var _alarms: MutableStateFlow<Response> = MutableStateFlow(Response.Loading)
+    var alarms = _updateFavoriteResult.asStateFlow()
+
     fun getSelectedWeather(latitude: Double, longitude: Double, isConnected: Boolean) {
         viewModelScope.launch {
             if (isConnected) {
@@ -133,16 +137,6 @@ class FavoriteViewModelImpl(
         _sixthDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(5) }
             .toList())
     }
-
-//    fun insertWeather(
-//        currentWeatherResponse: CurrentWeatherResponse,
-//        fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse
-//    ) {
-//        viewModelScope.launch {
-//            insertSelectedWeather(currentWeatherResponse)
-//            insertSelectedFiveDaysWeather(fiveDaysWeatherForecastResponse)
-//        }
-//    }
 
     fun insertWeather(
         currentWeatherResponse: CurrentWeatherResponse,
@@ -275,6 +269,39 @@ class FavoriteViewModelImpl(
                 _selectedFiveDaysWeatherForecast.emit(Response.Success(it.list))
                 filterDaysList(it.list.asFlow())
             }
+        }
+    }
+
+    fun selectAllAlarms() {
+        viewModelScope.launch {
+            try {
+                val result = repository.selectAllAlarms()
+                result.catch { ex ->
+                    _alarms.emit(Response.Failure(ex.message.toString()))
+                }.collect {
+                    _alarms.emit(Response.Success(it))
+                }
+            } catch (e: Exception) {
+                _alarms.emit(Response.Failure(e.message.toString()))
+            }
+        }
+    }
+
+    fun insertAlarm(alarm: AlarmModel) {
+        viewModelScope.launch {
+            val result = repository.insertAlarm(alarm)
+        }
+    }
+
+    fun deleteAlarm(alarm: AlarmModel) {
+        viewModelScope.launch {
+            val result = repository.deleteAlarm(alarm)
+        }
+    }
+
+    fun updateAlarm(alarm: AlarmModel) {
+        viewModelScope.launch {
+            val result = repository.updateAlarm(alarm)
         }
     }
 

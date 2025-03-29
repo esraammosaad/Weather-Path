@@ -12,7 +12,6 @@ import com.example.weatherapp.alarm.view.DialogActivity
 import com.example.weatherapp.utilis.Strings
 
 
-const val CHANNEL_ID = "CHANNEL ID"
 
 class WeatherBroadcastReceiver : BroadcastReceiver() {
 
@@ -24,9 +23,7 @@ class WeatherBroadcastReceiver : BroadcastReceiver() {
                 FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TOP or FLAG_ACTIVITY_REORDER_TO_FRONT
             ).putExtra(Strings.RESULT_CONST,response)
             context.startActivity(dialogIntent)
-
         }
-
     }
 
 }

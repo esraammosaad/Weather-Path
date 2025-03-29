@@ -31,4 +31,6 @@
     <string name="dismiss">Dismiss</string>
     <string name="confirmation_icon">Confirmation Icon</string>
     <string name="notification_icon">Notification Icon</string>
+    <string name="you_need_to_allow_draw_over_other_apps_permission">You need to allow draw over other apps permission</string>
+    <string name="you_sure_you_want_to_reset_the_alarm">You sure you want to reset the alarm?</string>
 </resources>

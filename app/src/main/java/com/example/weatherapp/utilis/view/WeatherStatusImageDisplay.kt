@@ -11,13 +11,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.weatherapp.R
-import com.example.weatherapp.utilis.Strings.BASE_IMAGE_URL
+import com.example.weatherapp.utilis.Strings
 
 @Composable
 fun WeatherStatusImageDisplay(icon: String) {
     Image(
         painter = rememberAsyncImagePainter(
-            "$BASE_IMAGE_URL${
+            "${Strings.BASE_IMAGE_URL}${
                 icon
             }.png"
         ),

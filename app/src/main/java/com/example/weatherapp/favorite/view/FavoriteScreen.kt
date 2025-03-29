@@ -6,7 +6,6 @@ import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.location.Address
 import android.net.Uri
 import android.provider.Settings
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -63,6 +62,7 @@ import androidx.work.WorkRequest
 import coil.compose.rememberAsyncImagePainter
 import com.example.weatherapp.R
 import com.example.weatherapp.data.managers.WeatherWorkManager
+import com.example.weatherapp.data.model.AlarmModel
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
@@ -72,7 +72,6 @@ import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
 import com.example.weatherapp.utilis.Strings
-import com.example.weatherapp.utilis.Strings.BASE_IMAGE_URL
 import com.example.weatherapp.utilis.calculateDelay
 import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.ConfirmationDialog
@@ -171,7 +170,14 @@ fun FavoriteLazyColumn(
 
     LazyColumn(modifier = Modifier.padding(top = 16.dp, end = 16.dp, start = 16.dp)) {
         item {
-            FavoriteItem(currentWeatherResponse, countryName, "", onFavoriteCardClicked)
+            FavoriteItem(
+                currentWeatherResponse,
+                countryName,
+                "",
+                snackBarHostState,
+                favoriteViewModel,
+                onFavoriteCardClicked
+            )
 
         }
         when (weatherFavorites) {
@@ -203,8 +209,10 @@ fun FavoriteLazyColumn(
                                     Box {
                                         FavoriteItem(
                                             selectedWeather = item,
-                                            cityName = ciName,
-                                            countryName = coName,
+                                            ciName = ciName,
+                                            cName = coName,
+                                            snackBarHostState = snackBarHostState,
+                                            favoriteViewModel = favoriteViewModel,
                                             onFavoriteCardClicked = onFavoriteCardClicked,
                                         )
                                         Icon(
@@ -288,28 +296,31 @@ private fun deleteFavoriteItem(
 @Composable
 fun FavoriteItem(
     selectedWeather: CurrentWeatherResponse?,
-    countryName: String, cityName: String,
+    cName: String, ciName: String,
+    snackBarHostState: SnackbarHostState,
+    favoriteViewModel: FavoriteViewModelImpl,
     onFavoriteCardClicked: (longitude: Double, latitude: Double) -> Unit,
-) {
+
+    ) {
     val context = LocalContext.current
     var isDialog by remember { mutableStateOf(false) }
     val showDatePicker = remember { mutableStateOf(false) }
     val datePickerTitle = remember { mutableStateOf("") }
     val selectedTime = remember { mutableStateOf("No alarm set") }
     val selectedDate = remember { mutableStateOf("stay ready!") }
+    val scope = rememberCoroutineScope()
+    val dialogTitle = remember { mutableStateOf("") }
+    val dialogText = remember { mutableStateOf("") }
+    val onConfirmation = remember { mutableStateOf({}) }
     if (isDialog) {
         ConfirmationDialog(
             onConfirmation = {
-                val permissionIntent = Intent(
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:com.example.weatherapp")
-                ).addFlags(FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(permissionIntent)
+                onConfirmation.value.invoke()
                 isDialog = false
             },
             onDismiss = { isDialog = false },
-            dialogTitle = "Warning",
-            dialogText = "You need to allow draw over other apps permission",
+            dialogTitle = dialogTitle.value,
+            dialogText = dialogText.value,
             showRadioButton = false
         ) { }
     }
@@ -353,7 +364,7 @@ fun FavoriteItem(
                 ) {
                     Column {
                         Text(
-                            text = cityName.ifEmpty { stringResource(R.string.current_location) },
+                            text = ciName.ifEmpty { stringResource(R.string.current_location) },
                             fontWeight = FontWeight.SemiBold,
                             fontFamily = poppinsFontFamily,
                             fontSize = 20.sp,
@@ -362,7 +373,7 @@ fun FavoriteItem(
                             modifier = Modifier.fillMaxWidth(0.6f)
                         )
                         Text(
-                            text = countryName,
+                            text = cName,
                             fontWeight = FontWeight.Normal,
                             fontFamily = poppinsFontFamily,
                             fontSize = 16.sp
@@ -394,7 +405,7 @@ fun FavoriteItem(
                         )
                         Image(
                             painter = rememberAsyncImagePainter(
-                                "$BASE_IMAGE_URL${
+                                "${Strings.BASE_IMAGE_URL}${
                                     selectedWeather?.weather?.firstOrNull()?.icon
                                 }.png"
                             ),
@@ -447,16 +458,57 @@ fun FavoriteItem(
                     Switch(
                         checked = checked,
                         onCheckedChange = {
-                            Log.i("TAG", "FavoriteItem: $it")
                             if (!Settings.canDrawOverlays(context)) {
                                 isDialog = true
-                            } else {
-                                checked = it
-                                if (checked) {
-                                    showDatePicker.value = true
-                                    datePickerTitle.value =
-                                        selectedWeather?.cityName ?: ""
+                                dialogTitle.value = context.resources.getString(R.string.warning)
+                                dialogText.value =
+                                    context.getString(R.string.you_need_to_allow_draw_over_other_apps_permission)
+                                onConfirmation.value = {
+                                    val permissionIntent = Intent(
+                                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                        Uri.parse("package:com.example.weatherapp")
+                                    ).addFlags(FLAG_ACTIVITY_NEW_TASK)
+                                    context.startActivity(permissionIntent)
                                 }
+                            } else {
+                                val   alarm = AlarmModel(
+                                    locationId = selectedWeather?.id ?: 0,
+                                    date = selectedDate.value,
+                                    time = selectedTime.value,
+                                    countryName = selectedWeather?.countryName ?: "",
+                                    cityName = selectedWeather?.cityName ?: "",
+                                    status = checked
+                                )
+                                showDatePicker.value = true
+                                datePickerTitle.value = selectedWeather?.cityName ?: ""
+                                if (selectedDate.value.isNotEmpty() && selectedTime.value.isNotEmpty() && !checked) {
+                                     alarm.apply {
+                                         locationId = selectedWeather?.id ?: 0
+                                         date = selectedDate.value
+                                         time = selectedTime.value
+                                         countryName = selectedWeather?.countryName ?: ""
+                                         cityName = selectedWeather?.cityName ?: ""
+                                         status = checked
+                                     }
+                                    checked = it
+                                    favoriteViewModel.insertAlarm(alarm)
+                                    scope.launch {
+                                        snackBarHostState.showSnackbar("Alarm Set Successfully")
+                                    }
+                                } else {
+
+                                    isDialog = true
+                                    dialogTitle.value =
+                                        context.resources.getString(R.string.warning)
+                                    dialogText.value =
+                                        context.getString(R.string.you_sure_you_want_to_reset_the_alarm)
+                                    onConfirmation.value = {
+                                        favoriteViewModel.deleteAlarm(alarm)
+                                    }
+
+
+                                }
+
                             }
                         },
                         colors = SwitchDefaults.colors(
@@ -499,7 +551,6 @@ fun DateAndTimePicker(
     selectedTime: MutableState<String>
 ) {
     val context = LocalContext.current
-
     WheelDateTimePickerView(
         showDatePicker = showDatePicker.value,
         height = 200.dp,
@@ -532,9 +583,9 @@ fun DateAndTimePicker(
             requestWorkManager(selectedWeather, context, duration)
             showDatePicker.value = false
         },
-        containerColor = OffWhite
+        containerColor = OffWhite,
 
-    )
+        )
 
 }
 

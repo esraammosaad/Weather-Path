@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.example.weatherapp.data.model.AlarmModel
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
 import kotlinx.coroutines.flow.Flow
@@ -46,5 +47,17 @@ interface WeatherDao {
         longitude: Double,
         latitude: Double
     ): Flow<FiveDaysWeatherForecastResponse>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAlarm(alarm: AlarmModel): Long
+
+    @Delete
+    suspend fun deleteAlarm(alarm: AlarmModel): Int
+
+    @Query("SELECT * FROM alarm_weather_table")
+    fun selectAllAlarms(): Flow<List<AlarmModel>>
+
+    @Update
+    suspend fun updateAlarm(alarm: AlarmModel): Int
 
 }

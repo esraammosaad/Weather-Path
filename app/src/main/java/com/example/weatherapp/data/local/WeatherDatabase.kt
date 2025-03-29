@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.example.weatherapp.data.model.AlarmModel
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.current_weather.type_converters.CurrentWeatherResponseTypeConverter
 import com.example.weatherapp.data.model.five_days_weather_forecast.type_converter.FiveDaysWeatherForecastTypeConverter
@@ -21,7 +22,7 @@ import com.example.weatherapp.data.model.five_days_weather_forecast.type_convert
 
 
 @Database(
-    entities = [CurrentWeatherResponse::class,FiveDaysWeatherForecastResponse::class], version = 1, exportSchema = false
+    entities = [CurrentWeatherResponse::class,FiveDaysWeatherForecastResponse::class,AlarmModel::class], version = 1, exportSchema = false
 )
 
 @TypeConverters(
