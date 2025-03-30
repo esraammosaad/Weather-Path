@@ -33,4 +33,16 @@
     <string name="notification_icon">Notification Icon</string>
     <string name="you_need_to_allow_draw_over_other_apps_permission">You need to allow draw over other apps permission</string>
     <string name="you_sure_you_want_to_reset_the_alarm">You sure you want to reset the alarm?</string>
+    <string name="location_deleted_successfully">Location Deleted Successfully</string>
+    <string name="undo">UNDO</string>
+    <string name="choose_date_and_time">Choose Date And Time</string>
+    <string name="alarm_set_successfully">Alarm Set Successfully</string>
+    <string name="alert">Alert</string>
+    <string name="notification">Notification</string>
+    <string name="choose_your_preferred_option_to_stay_informed">Choose your preferred option to stay informed!</string>
+    <string name="no_alarm_set">No alarm set</string>
+    <string name="stay_ready">stay ready!</string>
+    <string name="alarm_reset_successfully">Alarm Reset Successfully</string>
+    <string name="weather_news">Weather News</string>
+    <string name="shows_weather_news_of_a_scheduled_location_s_alarm">Shows weather news of a scheduled location\'s alarm</string>
 </resources>

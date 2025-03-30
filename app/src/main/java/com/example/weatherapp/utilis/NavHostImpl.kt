@@ -24,9 +24,9 @@ import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.remote.RetrofitFactory
 import com.example.weatherapp.data.remote.WeatherRemoteDataSource
 import com.example.weatherapp.data.repository.Repository
-import com.example.weatherapp.favorite.view.FavoriteScreen
-import com.example.weatherapp.favorite.view.MapScreen
-import com.example.weatherapp.favorite.view.WeatherDetailsScreen
+import com.example.weatherapp.favorite.view.screens.FavoriteScreen
+import com.example.weatherapp.favorite.view.screens.MapScreen
+import com.example.weatherapp.favorite.view.components.WeatherDetailsScreen
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelFactory
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
 import com.example.weatherapp.home.view.HomeScreen
@@ -81,8 +81,18 @@ fun NavHostImpl(
                 )
             }
         }
-        composable<NavigationRoutes.AlarmScreen> {
-            AlarmScreen()
+        composable<NavigationRoutes.AlarmScreen> { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(NavigationRoutes.AlarmScreen)
+            }
+            val context = LocalContext.current
+            val favoriteViewModel = getFavoriteViewModel(parentEntry, context)
+            AlarmScreen(
+                favoriteViewModel,
+                currentWeatherResponse,
+                snackBarHostState,
+                bottomNavigationBarViewModel
+            )
         }
 
         composable<NavigationRoutes.WeatherDetailsScreen> { backStackEntry ->

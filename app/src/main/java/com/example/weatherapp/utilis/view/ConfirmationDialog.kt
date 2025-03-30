@@ -22,8 +22,8 @@ fun ConfirmationDialog(
     onDismiss: () -> Unit,
     dialogTitle: String,
     dialogText: String,
-    showRadioButton: Boolean,
-    onOptionClicked: (String) -> Unit
+    showRadioButton: Boolean=false,
+    onOptionClicked: (String) -> Unit={}
 ) {
     AlertDialog(
         icon = {
@@ -41,7 +41,7 @@ fun ConfirmationDialog(
                 Text(text = dialogText, textAlign = TextAlign.Center)
                 if (showRadioButton) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    RadioButtonSingleSelection(onOptionClicked)
+                    RadioButtonSingleSelection(onOptionClicked,listOf("Map", "GPS"))
                 }
             }
         },

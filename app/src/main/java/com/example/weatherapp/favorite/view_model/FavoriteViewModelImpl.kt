@@ -75,7 +75,7 @@ class FavoriteViewModelImpl(
 
 
     private var _alarms: MutableStateFlow<Response> = MutableStateFlow(Response.Loading)
-    var alarms = _updateFavoriteResult.asStateFlow()
+    var alarms = _alarms.asStateFlow()
 
     fun getSelectedWeather(latitude: Double, longitude: Double, isConnected: Boolean) {
         viewModelScope.launch {

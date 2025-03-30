@@ -36,7 +36,6 @@ fun BottomNavigationBar(
     val dynamicBrush = bottomNavigationBarViewModel.currentWeatherTheme.collectAsStateWithLifecycle().value
 
     NavigationBar(
-
         modifier = Modifier.background(
             brush = dynamicBrush,
         ),
@@ -44,7 +43,6 @@ fun BottomNavigationBar(
         tonalElevation = 0.dp,
 
         ) {
-
         screensList.forEachIndexed { index, item ->
             NavigationBarItem(
                 selected = selectedItem.intValue == index ,

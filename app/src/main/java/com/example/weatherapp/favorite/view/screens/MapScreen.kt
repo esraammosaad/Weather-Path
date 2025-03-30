@@ -1,4 +1,4 @@
-package com.example.weatherapp.favorite.view
+package com.example.weatherapp.favorite.view.screens
 
 import android.app.Activity
 import android.location.Address

@@ -1,0 +1,46 @@
+package com.example.weatherapp.utilis
+
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.example.weatherapp.ui.theme.poppinsFontFamily
+
+
+class Styles {
+    companion object {
+        val textStyleSemiBold26 = TextStyle(
+            fontSize = 26.sp,
+            color = Color.White,
+            fontWeight = FontWeight.SemiBold,
+            fontFamily = poppinsFontFamily,
+        )
+        val textStyleMedium16 = TextStyle(
+            fontWeight = FontWeight.Medium,
+            fontFamily = poppinsFontFamily,
+            fontSize = 16.sp
+        )
+
+        val textStyleSemiBold20 = TextStyle(
+            fontWeight = FontWeight.SemiBold,
+            fontFamily = poppinsFontFamily,
+            fontSize = 20.sp,
+        )
+        val textStyleNormal16 = TextStyle(
+            fontWeight = FontWeight.Normal,
+            fontFamily = poppinsFontFamily,
+            fontSize = 16.sp
+        )
+        val textStyleMedium30 = TextStyle(
+            fontWeight = FontWeight.Medium,
+            fontFamily = poppinsFontFamily,
+            fontSize = 30.sp
+        )
+        val textStyleMedium18 = TextStyle(
+            fontWeight = FontWeight.Medium,
+            fontFamily = poppinsFontFamily,
+            fontSize = 18.sp
+        )
+
+    }
+}

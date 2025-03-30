@@ -12,5 +12,7 @@ data class AlarmModel(
     var time: String,
     var countryName: String,
     var cityName: String,
-    var status: Boolean
+    var alarmType: String,
+    var longitude: Double,
+    var latitude: Double
 )

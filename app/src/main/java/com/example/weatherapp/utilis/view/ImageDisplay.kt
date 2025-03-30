@@ -17,9 +17,7 @@ import com.example.weatherapp.utilis.isMorning
 fun ImageDisplay(currentWeatherResponse: CurrentWeatherResponse) {
     Image(
         painter = painterResource(
-
             getWeatherImage(currentWeatherResponse.weather.firstOrNull()?.icon?:"")
-
         ),
         contentDescription = stringResource(R.string.sun_or_moon_icon),
         modifier = Modifier
@@ -27,6 +25,3 @@ fun ImageDisplay(currentWeatherResponse: CurrentWeatherResponse) {
             .padding(top = 36.dp, end = 16.dp)
     )
 }
-
-//if (isMorning()) R.drawable.sun
-//            else R.drawable.moon

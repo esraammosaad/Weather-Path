@@ -1,17 +1,8 @@
 package com.example.weatherapp.alarm.view
 
-import android.Manifest
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.PendingIntent.FLAG_IMMUTABLE
-import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.media.MediaPlayer
-import android.os.Build.VERSION
-import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
@@ -38,8 +29,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
 import com.example.weatherapp.MainActivity
 import com.example.weatherapp.R
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
@@ -54,8 +43,7 @@ import com.google.gson.Gson
 class DialogActivity : ComponentActivity() {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val notificationManager =
-            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
         window.setBackgroundDrawable(ColorDrawable(0))
         window.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -69,108 +57,16 @@ class DialogActivity : ComponentActivity() {
         setContent {
             AlertScreen(response, onConfirmClicked = {
                 finish()
-            }, onDismissClicked = { finish() })
-
-            notificationManager.notify(1, createNotification(this))
+            }, onOpenAppClicked = {
+                finish()
+                val intent = Intent(this, MainActivity::class.java)
+                startActivity(intent)
+            })
 
 
 
         }
     }
-
-    override fun onStart() {
-        super.onStart()
-        askForNotificationPermission()
-    }
-
-    private fun askForNotificationPermission() {
-        if (VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) {
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            if (!notificationManager.areNotificationsEnabled()) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                    10
-                )
-            } else {
-                createNotification(this)
-            }
-        }
-    }
-
-    private fun createNotification(context: Context): Notification {
-        val channelId = Strings.CHANNEL_ID
-        val channelName = "Full Screen Alert"
-
-        // Create Notification Channel for Android 8+
-        if (VERSION.SDK_INT >= VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                channelName,
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Shows notifications as alerts on the screen"
-                lockscreenVisibility = Notification.VISIBILITY_PUBLIC // Show on lock screen
-            }
-
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(channel)
-        }
-
-        // Full-screen intent (forces pop-up)
-        val fullScreenIntent = Intent(context, MainActivity::class.java)
-        val fullScreenPendingIntent = PendingIntent.getActivity(
-            context, 0,
-            fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        // Build the Notification
-        return NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.sun)
-            .setContentTitle("Weather Alert")
-            .setContentText("Check today's weather!")
-            .setPriority(NotificationCompat.PRIORITY_HIGH) // Use PRIORITY_HIGH for heads-up
-            .setDefaults(Notification.DEFAULT_ALL) // Enables sound, vibration, and LED
-            .setCategory(NotificationCompat.CATEGORY_ALARM) // Makes it more urgent
-            .setFullScreenIntent(fullScreenPendingIntent, true) // Forces heads-up display
-            .setAutoCancel(true)
-            .build()
-    }
-
-
-//    private fun createNotification(context: Context): Notification {
-//        if (VERSION.SDK_INT >= VERSION_CODES.O) {
-//            val name = "channel name"
-//            val desc = "channel desc"
-//            val importance = NotificationManager.IMPORTANCE_HIGH
-//            val channel = NotificationChannel(Strings.CHANNEL_ID, name, importance)
-//            channel.description = desc
-//            val notificationManager =
-//                context.getSystemService(NotificationManager::class.java) as NotificationManager
-//            notificationManager.createNotificationChannel(channel)
-//          channel.lockscreenVisibility= Notification.VISIBILITY_PUBLIC
-//
-//
-//
-//        }
-//        val fullScreenIntent = Intent(this, MainActivity::class.java)
-//        val fullScreenPendingIntent = PendingIntent.getActivity(
-//            this, 0,
-//            fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE
-//        )
-//
-//        val builder = NotificationCompat.Builder(context, Strings.CHANNEL_ID)
-//            .setSmallIcon(R.drawable.sun)
-//            .setContentTitle("Downloading")
-//            .setContentText("Image Downloading....")
-//            .setPriority(NotificationManager.IMPORTANCE_HIGH)
-//            .setCategory(NotificationCompat.CATEGORY_CALL)
-//            .setFullScreenIntent(fullScreenPendingIntent, true)
-//            .setAutoCancel(true)
-//            .build()
-//        return builder
-//
-//    }
 
 }
 
@@ -178,7 +74,7 @@ class DialogActivity : ComponentActivity() {
 private fun AlertScreen(
     currentWeatherResponse: CurrentWeatherResponse,
     onConfirmClicked: () -> Unit,
-    onDismissClicked: () -> Unit
+    onOpenAppClicked: () -> Unit
 ) {
     Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(12.dp)) {
         Box(
@@ -232,7 +128,7 @@ private fun AlertScreen(
                 Row {
                     Button(
                         onClick = {
-                            onDismissClicked.invoke()
+                            onOpenAppClicked.invoke()
                         }, colors = ButtonColors(
                             containerColor = PrimaryColor,
                             contentColor = Color.White,
@@ -242,7 +138,7 @@ private fun AlertScreen(
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         Text(
-                            stringResource(R.string.dismiss),
+                            "Open App",
                             fontFamily = poppinsFontFamily,
                             fontWeight = FontWeight.Normal,
                             fontSize = 16.sp,

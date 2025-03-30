@@ -22,7 +22,9 @@ import com.example.weatherapp.data.model.five_days_weather_forecast.type_convert
 
 
 @Database(
-    entities = [CurrentWeatherResponse::class,FiveDaysWeatherForecastResponse::class,AlarmModel::class], version = 1, exportSchema = false
+    entities = [CurrentWeatherResponse::class, FiveDaysWeatherForecastResponse::class, AlarmModel::class],
+    version = 1,
+    exportSchema = false
 )
 
 @TypeConverters(
@@ -39,7 +41,6 @@ import com.example.weatherapp.data.model.five_days_weather_forecast.type_convert
     WeatherTypeConverter::class
 )
 abstract class WeatherDatabase : RoomDatabase() {
-
     abstract fun getDao(): WeatherDao
 
     companion object {
@@ -52,12 +53,9 @@ abstract class WeatherDatabase : RoomDatabase() {
                         .build()
                 instance = temp
                 temp
-
             }
         }
-
     }
-
 
 }
 

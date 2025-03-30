@@ -33,9 +33,14 @@ class LocalStorageDataSource private constructor(context: Context) {
         editor.putString(Strings.LOCATION_STATE, locationState)
         editor.apply()
     }
-
     val getLocationState: String
         get() = prefs.getString(Strings.LOCATION_STATE, "GPS") ?: ""
 
+    fun saveAlarmType(alarmType: String) {
+        editor.putString(Strings.ALARM_TYPE, alarmType)
+        editor.apply()
+    }
+    val getAlarmType: String
+        get() = prefs.getString(Strings.ALARM_TYPE, "Alert") ?: ""
 
 }
