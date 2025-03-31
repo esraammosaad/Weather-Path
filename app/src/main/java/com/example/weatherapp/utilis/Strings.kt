@@ -26,6 +26,7 @@ class Strings {
         const val LANG_CODE = "LANG_CODE"
         const val TEMP_UNIT = "TEMP_UNIT"
         const val TEMP_SYMBOL = "TEMP_SYMBOL"
+        const val WIND_UNIT = "WIND_UNIT"
     }
 
 

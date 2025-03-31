@@ -2,8 +2,10 @@ package com.example.weatherapp.settings.view
 
 import android.app.Activity
 import android.app.LocaleManager
+import android.content.Context
 import android.os.Build
 import android.os.LocaleList
+import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,6 +25,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
+import androidx.room.PrimaryKey
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
@@ -50,10 +57,16 @@ fun SettingsScreen(
     homeViewModel: HomeViewModelImpl,
     currentWeather: CurrentWeatherResponse,
     snackBarHostState: SnackbarHostState,
-    navigationBarViewModel: BottomNavigationBarViewModel
+    navigationBarViewModel: BottomNavigationBarViewModel,
 ) {
 
     val context = LocalContext.current
+    val tempState =
+        remember { mutableIntStateOf(LocalStorageDataSource.getInstance(context).getTempSymbol) }
+    val windState =
+        remember { mutableIntStateOf(LocalStorageDataSource.getInstance(context).getWindUnit) }
+
+
 
     Column(
         modifier = Modifier
@@ -130,51 +143,41 @@ fun SettingsScreen(
                 ),
                 R.drawable.thermometer,
                 currentWeather.weather.firstOrNull()?.icon ?: "",
-                stringResource(LocalStorageDataSource.getInstance(context).getTempSymbol)
+                stringResource(tempState.intValue)
             ) { selectedTempUnit ->
-                var tempUnit = ""
-                var tempSymbol = 0
+                val tempUnit: String
+                val tempSymbol: Int
                 when (selectedTempUnit) {
                     context.getString(R.string.celsius) -> {
                         tempUnit = Strings.CELSIUS
                         tempSymbol = R.string.celsius
+                        tempState.intValue=R.string.celsius
+                        windState.intValue=R.string.meter_sec
                     }
 
                     context.getString(R.string.Kelvin) -> {
                         tempUnit = Strings.KELVIN
                         tempSymbol = R.string.Kelvin
+                        tempState.intValue=R.string.Kelvin
+                        windState.intValue=R.string.meter_sec
                     }
 
                     context.getString(R.string.fahrenheit) -> {
                         tempUnit = Strings.FAHRENHEIT
                         tempSymbol = R.string.fahrenheit
+                        tempState.intValue=R.string.fahrenheit
+                        windState.intValue=R.string.miles_hour
                     }
-
                     else -> {
                         tempUnit = Strings.CELSIUS
                         tempSymbol = R.string.celsius
+                        tempState.intValue=R.string.celsius
+                        windState.intValue=R.string.meter_sec
                     }
                 }
-                LocalStorageDataSource.getInstance(context).saveTempUnit(tempUnit)
-                LocalStorageDataSource.getInstance(context).saveTempSymbol(tempSymbol)
-                homeViewModel.getCurrentWeather(
-                    latitude = currentWeather.latitude,
-                    longitude = currentWeather.longitude,
-                    tempUnit = tempUnit,
-                    languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode,
-                    isConnected = true
-                )
-                homeViewModel.getFiveDaysWeatherForecast(
-                    latitude = currentWeather.latitude,
-                    longitude = currentWeather.longitude,
-                    tempUnit = tempUnit,
-                    languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode,
-                    isConnected = true
-                )
-
+                saveNewTempUnit(context, tempUnit, tempSymbol, homeViewModel, currentWeather)
             }
             Spacer(modifier = Modifier.height(18.dp))
-
             CustomPreferencesCard(
                 stringResource(R.string.wind_speed), listOf(
                     stringResource(R.string.meter_sec),
@@ -184,8 +187,31 @@ fun SettingsScreen(
                 ),
                 R.drawable.wind,
                 currentWeather.weather.firstOrNull()?.icon ?: "",
-                ""
-            ) {
+                stringResource(windState.intValue)
+            ) { selectedOption ->
+                if (selectedOption == context.getString(R.string.miles_hour)) {
+                    LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.miles_hour)
+                    saveNewTempUnit(
+                        context, homeViewModel = homeViewModel, currentWeather = currentWeather,
+                        tempUnit = Strings.FAHRENHEIT, tempSymbol = R.string.fahrenheit
+                    )
+                    tempState.intValue =
+                        R.string.fahrenheit
+                    windState.intValue = R.string.miles_hour
+                    Log.i("TAG", "SettingsScreen: ${tempState.intValue}")
+                } else {
+                    LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.meter_sec)
+                    saveNewTempUnit(
+                        context, homeViewModel = homeViewModel, currentWeather = currentWeather,
+                        tempUnit = Strings.CELSIUS, tempSymbol = R.string.celsius
+                    )
+
+                    tempState.intValue =
+                        R.string.celsius
+                    windState.intValue = R.string.meter_sec
+                    Log.i("TAG", "SettingsScreen: ${tempState.intValue}")
+
+                }
 
             }
 
@@ -194,6 +220,31 @@ fun SettingsScreen(
 
 
     }
+}
+
+private fun saveNewTempUnit(
+    context: Context,
+    tempUnit: String,
+    tempSymbol: Int,
+    homeViewModel: HomeViewModelImpl,
+    currentWeather: CurrentWeatherResponse
+) {
+    LocalStorageDataSource.getInstance(context).saveTempUnit(tempUnit)
+    LocalStorageDataSource.getInstance(context).saveTempSymbol(tempSymbol)
+    homeViewModel.getCurrentWeather(
+        latitude = currentWeather.latitude,
+        longitude = currentWeather.longitude,
+        tempUnit = tempUnit,
+        languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode,
+        isConnected = true
+    )
+    homeViewModel.getFiveDaysWeatherForecast(
+        latitude = currentWeather.latitude,
+        longitude = currentWeather.longitude,
+        tempUnit = tempUnit,
+        languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode,
+        isConnected = true
+    )
 }
 
 
@@ -223,6 +274,7 @@ private fun CustomPreferencesCard(
             disabledContentColor = Color.White
         )
     ) {
+        Log.i("TAG", "CustomPreferencesCard: $defaultSelectedItem")
         Column(
             verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.height(120.dp)

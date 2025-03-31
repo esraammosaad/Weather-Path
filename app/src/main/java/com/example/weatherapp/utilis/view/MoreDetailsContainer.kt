@@ -16,14 +16,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.weatherapp.R
+import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.utilis.convertUnixToTime
 
 @Composable
 fun MoreDetailsContainer(currentWeather: CurrentWeatherResponse) {
+
+    val context = LocalContext.current
     Column(modifier = Modifier.padding(horizontal = 12.dp)) {
 
         Box(
@@ -50,7 +54,7 @@ fun MoreDetailsContainer(currentWeather: CurrentWeatherResponse) {
                     MoreDetailsItem(
                         icon = R.drawable.wind,
                         textOne = stringResource(R.string.wind),
-                        textTwo = currentWeather.wind.speed.toString() + stringResource(R.string.m_s)
+                        textTwo = currentWeather.wind.speed.toString() + stringResource(LocalStorageDataSource.getInstance(context).getWindUnit)
                     )
                     Spacer(modifier = Modifier.height(20.dp))
                     MoreDetailsItem(

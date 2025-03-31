@@ -1,14 +1,19 @@
 package com.example.weatherapp.favorite.view.components
 
+import android.location.Geocoder
+import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.weatherapp.R
+import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
@@ -34,6 +39,7 @@ fun FavoriteLazyColumn(
         favoriteViewModel.fiveDaysForecastFavorites.collectAsStateWithLifecycle().value
     val deleteItemMessage =
         favoriteViewModel.deleteFavoriteItemResult.collectAsStateWithLifecycle().value
+    val context = LocalContext.current
     LazyColumn(modifier = Modifier.padding(top = 16.dp, end = 16.dp, start = 16.dp)) {
         item {
             FavoriteItem(

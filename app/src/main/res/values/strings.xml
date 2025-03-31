@@ -68,7 +68,6 @@
     <string name="sunset">Sunset</string>
     <string name="humidity">Humidity</string>
     <string name="clouds">Clouds</string>
-    <string name="m_s">" m/s"</string>
     <string name="todaySmall">Today</string>
     <string name="edit_alarm_icon">Edit Alarm Icon</string>
     <string name="update_your_alarm">Update Your Alarm</string>

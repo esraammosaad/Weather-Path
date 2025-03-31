@@ -59,4 +59,11 @@ class LocalStorageDataSource private constructor(context: Context) {
     val getTempSymbol: Int
         get() = prefs.getInt(Strings.TEMP_SYMBOL, R.string.celsius)
 
+    fun saveWindUnit(windUnit: Int) {
+        editor.putInt(Strings.WIND_UNIT, windUnit)
+        editor.apply()
+    }
+    val getWindUnit: Int
+        get() = prefs.getInt(Strings.WIND_UNIT, R.string.meter_sec)
+
 }

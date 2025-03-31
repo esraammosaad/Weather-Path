@@ -1,5 +1,6 @@
 package com.example.weatherapp.utilis.view
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,9 +23,13 @@ import androidx.compose.ui.unit.dp
 import com.example.weatherapp.ui.theme.PrimaryColor
 
 @Composable
-fun RadioButtonSingleSelection(onOptionClicked: (String) -> Unit, radioOptions:List<String>,defaultSelectedItem:String=radioOptions[0]) {
-    val (selectedOption, optionClicked) = remember { mutableStateOf(defaultSelectedItem) }
+fun RadioButtonSingleSelection(onOptionClicked: (String) -> Unit, radioOptions:List<String>,
+                               defaultSelectedItem:String= radioOptions[0]) {
+    var (selectedOption, optionClicked) = remember { mutableStateOf(defaultSelectedItem) }
+    Log.i("TAG", "RadioButtonSingleSelection: $defaultSelectedItem")
+    Log.i("TAG", "RadioButtonSingleSelectionssssssssss: $selectedOption")
     Row(Modifier.selectableGroup()) {
+        selectedOption=defaultSelectedItem
         radioOptions.forEach { text ->
             Row(
                 Modifier

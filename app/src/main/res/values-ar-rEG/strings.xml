@@ -69,7 +69,6 @@
     <string name="sunset">غروب الشمس</string>
     <string name="humidity">الرطوبة</string>
     <string name="clouds">الغيوم</string>
-    <string name="m_s">" م/ث"</string>
     <string name="todaySmall">اليوم</string>
     <string name="edit_alarm_icon">تعديل أيقونة المنبه</string>
     <string name="update_your_alarm">تحديث المنبه الخاص بك</string>
