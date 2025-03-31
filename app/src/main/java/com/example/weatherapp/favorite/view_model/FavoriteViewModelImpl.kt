@@ -77,12 +77,18 @@ class FavoriteViewModelImpl(
     private var _alarms: MutableStateFlow<Response> = MutableStateFlow(Response.Loading)
     var alarms = _alarms.asStateFlow()
 
-    fun getSelectedWeather(latitude: Double, longitude: Double, isConnected: Boolean) {
+    fun getSelectedWeather(
+        latitude: Double, longitude: Double, isConnected: Boolean, languageCode: String,
+        tempUnit: String
+    ) {
         viewModelScope.launch {
             if (isConnected) {
                 try {
                     val result = repository.getCurrentWeather(
-                        latitude = latitude, longitude = longitude
+                        latitude = latitude,
+                        longitude = longitude,
+                        languageCode = languageCode,
+                        tempUnit = tempUnit
                     )
                     _selectedWeather.emit(Response.Success(result))
                 } catch (e: Exception) {
@@ -97,13 +103,18 @@ class FavoriteViewModelImpl(
     fun getSelectedFiveDaysWeatherForecast(
         latitude: Double,
         longitude: Double,
-        isConnected: Boolean
+        isConnected: Boolean,
+        languageCode: String,
+        tempUnit: String
     ) {
         viewModelScope.launch {
             if (isConnected) {
                 try {
                     val result = repository.getFiveDaysWeatherForecast(
-                        latitude = latitude, longitude = longitude
+                        latitude = latitude,
+                        longitude = longitude,
+                        languageCode = languageCode,
+                        tempUnit = tempUnit
                     )
 
                     _selectedFiveDaysWeatherForecast.emit(
@@ -164,6 +175,20 @@ class FavoriteViewModelImpl(
             val resultOne = repository.updateCurrentWeather(currentWeatherResponse)
             val resultTwo = repository.updateFiveDaysWeather(fiveDaysWeatherForecastResponse)
             if (resultOne > 0 && resultTwo > 0) {
+                _updateFavoriteResult.emit("Weather Updated Successfully")
+            } else {
+                _updateFavoriteResult.emit("Something wrong happened!!")
+
+            }
+        }
+    }
+
+    fun updateSelectedWeather(
+        currentWeatherResponse: CurrentWeatherResponse
+    ) {
+        viewModelScope.launch {
+            val result = repository.updateCurrentWeather(currentWeatherResponse)
+            if (result > 0) {
                 _updateFavoriteResult.emit("Weather Updated Successfully")
             } else {
                 _updateFavoriteResult.emit("Something wrong happened!!")

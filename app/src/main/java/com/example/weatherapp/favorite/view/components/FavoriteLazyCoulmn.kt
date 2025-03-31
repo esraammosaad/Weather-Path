@@ -29,6 +29,7 @@ fun FavoriteLazyColumn(
     coroutineScope: CoroutineScope,
 
     ) {
+    val selectedWeather = favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
     val fiveDaysForecastFavorites =
         favoriteViewModel.fiveDaysForecastFavorites.collectAsStateWithLifecycle().value
     val deleteItemMessage =
@@ -41,8 +42,7 @@ fun FavoriteLazyColumn(
                 snackBarHostState = snackBarHostState,
                 favoriteViewModel = favoriteViewModel,
                 alarmsList = alarms,
-                coroutineScope =
-                coroutineScope,
+                coroutineScope = coroutineScope,
                 onFavoriteCardClicked = onFavoriteCardClicked,
             )
         }

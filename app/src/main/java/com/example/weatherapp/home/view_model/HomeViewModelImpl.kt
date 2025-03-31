@@ -68,14 +68,19 @@ class HomeViewModelImpl(
     var favoriteItems = _favoriteItems.asStateFlow()
 
 
-    private fun getCurrentWeather(latitude: Double, longitude: Double, isConnected: Boolean) {
+    fun getCurrentWeather(
+        latitude: Double, longitude: Double, isConnected: Boolean, languageCode: String,
+        tempUnit: String
+    ) {
         viewModelScope.launch {
 
             if (isConnected) {
                 try {
                     val result = repository.getCurrentWeather(
                         latitude = latitude,
-                        longitude = longitude
+                        longitude = longitude,
+                        languageCode = languageCode,
+                        tempUnit = tempUnit
                     )
                     _currentWeather.emit(Response.Success(result))
                     _message.postValue("Success")
@@ -96,10 +101,12 @@ class HomeViewModelImpl(
 
     }
 
-    private fun getFiveDaysWeatherForecast(
+     fun getFiveDaysWeatherForecast(
         latitude: Double,
         longitude: Double,
-        isConnected: Boolean
+        isConnected: Boolean,
+        languageCode: String,
+        tempUnit: String
     ) {
         viewModelScope.launch {
             if (isConnected) {
@@ -107,10 +114,12 @@ class HomeViewModelImpl(
                     val result =
                         repository.getFiveDaysWeatherForecast(
                             latitude = latitude,
-                            longitude = longitude
+                            longitude = longitude,
+                            languageCode = languageCode,
+                            tempUnit = tempUnit
                         )
 
-                    _fiveDaysWeatherForecast.emit(Response.Success(result.catch {ex->
+                    _fiveDaysWeatherForecast.emit(Response.Success(result.catch { ex ->
                         _message.postValue(ex.message.toString())
                         selectFiveDaysWeather(longitude = longitude, latitude = latitude)
 
@@ -193,7 +202,12 @@ class HomeViewModelImpl(
                     .setScale(2, RoundingMode.DOWN).toDouble(), latitude = latitude.toBigDecimal()
                     .setScale(2, RoundingMode.DOWN).toDouble()
             )
-            result.collect {
+            result.catch { ex ->
+
+                _currentWeather.emit(Response.Failure(ex.message.toString()))
+
+
+            }.collect {
                 _currentWeather.emit(Response.Success(it))
             }
         }
@@ -208,18 +222,28 @@ class HomeViewModelImpl(
                     latitude = latitude.toBigDecimal()
                         .setScale(2, RoundingMode.DOWN).toDouble()
                 )
-            result.collect {
+            result.catch { ex ->
+
+                _fiveDaysWeatherForecast.emit(Response.Failure(ex.message.toString()))
+
+
+            }.collect {
                 _fiveDaysWeatherForecast.emit(Response.Success(it.list))
                 filterDaysList(it.list.asFlow())
             }
         }
     }
 
-    fun getWeatherFromApi(locationState: Location, geocoder: Geocoder, isConnected: Boolean) {
+    fun getWeatherFromApi(
+        locationState: Location, geocoder: Geocoder, isConnected: Boolean, languageCode: String,
+        tempUnit: String
+    ) {
         getCurrentWeather(
             latitude = locationState.latitude,
             longitude = locationState.longitude,
-            isConnected
+            isConnected = isConnected,
+            languageCode = languageCode,
+            tempUnit = tempUnit
         )
         getCountryName(
             longitude = locationState.longitude,
@@ -230,7 +254,9 @@ class HomeViewModelImpl(
         getFiveDaysWeatherForecast(
             latitude = locationState.latitude,
             longitude = locationState.longitude,
-            isConnected
+            isConnected = isConnected,
+            languageCode = languageCode,
+            tempUnit = tempUnit
         )
     }
 

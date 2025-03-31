@@ -8,6 +8,7 @@ import android.os.SystemClock
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.local.WeatherDatabase
 import com.example.weatherapp.data.remote.RetrofitFactory
 import com.example.weatherapp.utilis.Strings
@@ -23,7 +24,12 @@ class WeatherWorkManager(context: Context, workerParameters: WorkerParameters) :
         val requestCode = inputData.getInt(Strings.CODE_CONST, 0)
         Log.i("TAG", "doWork: $longitude , $latitude")
         val result =
-            RetrofitFactory.apiService.getCurrentWeather(longitude = longitude, latitude = latitude)
+            RetrofitFactory.apiService.getCurrentWeather(
+                longitude = longitude,
+                latitude = latitude,
+                language = LocalStorageDataSource.getInstance(applicationContext).getLanguageCode,
+                unit = LocalStorageDataSource.getInstance(applicationContext).getTempUnit
+            )
         WeatherDatabase.getInstance(applicationContext).getDao().selectAllAlarms().collect {
             val gson = Gson()
             val stringResult = gson.toJson(result)

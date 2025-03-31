@@ -10,21 +10,29 @@ class WeatherRemoteDataSource(private val apiService: ApiService = RetrofitFacto
 
     suspend fun getCurrentWeather(
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        languageCode : String,
+        tempUnit : String
     ): CurrentWeatherResponse {
         return apiService.getCurrentWeather(
             latitude = latitude,
-            longitude = longitude
+            longitude = longitude,
+            language = languageCode ,
+            unit = tempUnit
         )
     }
 
     suspend fun getFiveDaysWeatherForecast(
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        languageCode : String,
+        tempUnit : String
     ): Flow<WeatherItem> {
         return apiService.getFiveDaysWeatherForecast(
             latitude = latitude,
-            longitude = longitude
+            longitude = longitude,
+            language = languageCode,
+            unit = tempUnit
         ).list.asFlow()
     }
 }

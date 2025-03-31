@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
@@ -22,7 +23,7 @@ import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.FailureDisplay
 import com.example.weatherapp.utilis.view.LoadingDisplay
 import com.example.weatherapp.utilis.view.WeatherDetails
-
+import java.util.Locale
 
 
 @Composable
@@ -34,9 +35,12 @@ fun WeatherDetailsScreen(
 ) {
 
     val context = LocalContext.current
-    favoriteViewModel.getSelectedWeather(longitude = longitude, latitude = latitude, isConnected = true)
-    favoriteViewModel.getSelectedFiveDaysWeatherForecast(longitude = longitude, latitude = latitude, isConnected = true)
-    favoriteViewModel.getCountryName(longitude = longitude, latitude = latitude, Geocoder(context), isConnected = true)
+    val languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode
+    val tempUnit = LocalStorageDataSource.getInstance(context).getTempUnit
+    favoriteViewModel.getSelectedWeather(longitude = longitude, latitude = latitude, languageCode = languageCode, tempUnit = tempUnit ,isConnected = true)
+    favoriteViewModel.getSelectedFiveDaysWeatherForecast(longitude = longitude, latitude = latitude,languageCode = languageCode, tempUnit = tempUnit, isConnected = true)
+    favoriteViewModel.getCountryName(longitude = longitude, latitude = latitude, Geocoder(context,
+        Locale(LocalStorageDataSource.getInstance(context).getLanguageCode)), isConnected = true)
     val selectedWeather = favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
     val selectedFiveDaysWeatherForecast =
         favoriteViewModel.selectedFiveDaysWeatherForecast.collectAsStateWithLifecycle().value

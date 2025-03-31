@@ -30,13 +30,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.weatherapp.R
+import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.AlarmModel
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
 import com.example.weatherapp.favorite.view.screens.deleteFavoriteItem
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
-import com.example.weatherapp.utilis.Strings
 import com.example.weatherapp.utilis.Styles
 import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.ConfirmationDialog
@@ -57,7 +57,7 @@ fun FavoriteItem(
     onFavoriteCardClicked: (longitude: Double, latitude: Double) -> Unit,
 ) {
     val context = LocalContext.current
-    val isDialog= remember { mutableStateOf(false) }
+    val isDialog = remember { mutableStateOf(false) }
     val showDatePicker = remember { mutableStateOf(false) }
     val datePickerTitle = remember { mutableStateOf("") }
     val dialogTitle = remember { mutableStateOf("") }
@@ -140,10 +140,19 @@ fun FavoriteItem(
                                         style = Styles.textStyleNormal16
                                     )
                                 }
-                                Text(
-                                    text = selectedWeather?.main?.temp.toString() + Strings.CELSIUS_SYMBOL,
-                                    style = Styles.textStyleMedium30
-                                )
+                                Row {
+                                    Text(
+                                        text = selectedWeather?.main?.temp.toString(),
+                                        style = Styles.textStyleMedium30
+                                    )
+
+                                    Text(
+                                        text =  stringResource(
+                                            LocalStorageDataSource.getInstance(context).getTempSymbol
+                                        ),
+                                        style = Styles.textStyleMedium28
+                                    )
+                                }
                             }
                             Row(
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -164,7 +173,18 @@ fun FavoriteItem(
                                     )
                                 }
                                 Text(
-                                    text = "H:${selectedWeather?.main?.temp_max?.toInt()}${Strings.CELSIUS_SYMBOL}  L:${selectedWeather?.main?.temp_min?.toInt()}${Strings.CELSIUS_SYMBOL}",
+                                    text = stringResource(R.string.h) + " " + "${selectedWeather?.main?.temp_max?.toInt()}" +
+                                            stringResource(
+                                                LocalStorageDataSource.getInstance(
+                                                    context
+                                                ).getTempSymbol
+                                            ) + " " + stringResource(R.string.l) + " " +
+                                            "${selectedWeather?.main?.temp_min?.toInt()}" +
+                                            stringResource(
+                                                LocalStorageDataSource.getInstance(
+                                                    context
+                                                ).getTempSymbol
+                                            ),
                                     style = Styles.textStyleMedium16
                                 )
 
@@ -192,7 +212,6 @@ fun FavoriteItem(
                                 )
                             }
                         }
-
                     }
                 }
                 if (index != -1) {

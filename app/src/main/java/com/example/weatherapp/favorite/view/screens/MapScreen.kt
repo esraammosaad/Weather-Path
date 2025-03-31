@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.weatherapp.R
+import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
@@ -62,6 +63,7 @@ import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
 import com.example.weatherapp.utilis.Strings
+import com.example.weatherapp.utilis.Styles
 import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.WeatherDetails
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -82,6 +84,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import kotlinx.coroutines.launch
 import java.math.RoundingMode
+import java.util.Locale
 
 @Composable
 fun MapScreen(
@@ -102,7 +105,7 @@ fun MapScreen(
         mutableStateOf(MapProperties(mapType = MapType.TERRAIN))
     }
 
-    val geocoder = Geocoder(context)
+    val geocoder = Geocoder(context, Locale(LocalStorageDataSource.getInstance(context).getLanguageCode))
 
     val currentWeatherUiState =
         favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
@@ -142,24 +145,7 @@ fun MapScreen(
         sixthDayForecast
     )
 
-    LaunchedEffect(markerState.position) {
-        favoriteViewModel.getSelectedWeather(
-            longitude = markerState.position.longitude,
-            latitude = markerState.position.latitude,
-            isConnected = true
-        )
-        favoriteViewModel.getSelectedFiveDaysWeatherForecast(
-            longitude = markerState.position.longitude,
-            latitude = markerState.position.latitude,
-            isConnected = true
-        )
-        favoriteViewModel.getCountryName(
-            longitude = markerState.position.longitude,
-            latitude = markerState.position.latitude,
-            geocoder = geocoder,
-            isConnected = true
-        )
-    }
+    GetLocation(markerState, favoriteViewModel, geocoder)
 
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
@@ -174,85 +160,12 @@ fun MapScreen(
             markerState.showInfoWindow()
         },
     ) {
-        MarkerInfoWindow(
-            state = markerState,
-            draggable = true,
-            onInfoWindowClick = {
-                it.hideInfoWindow()
-            }
-
-        ) {
-            when (currentWeatherUiState) {
-                Response.Loading -> CircularProgressIndicator(
-                    modifier = Modifier.size(25.dp),
-                    color = Color.Black
-                )
-
-                is Response.Failure -> Text(currentWeatherUiState.exception)
-                is Response.Success<*> -> {
-                    currentWeatherUiState as Response.Success<CurrentWeatherResponse>
-                    bottomNavigationBarViewModel.setCurrentWeatherTheme(
-                        currentWeatherUiState.result?.weather?.firstOrNull()?.icon ?: ""
-                    )
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                        modifier = Modifier
-                            .border(
-                                BorderStroke(
-                                    1.dp,
-                                    getWeatherGradient(
-                                        currentWeatherUiState.result?.weather?.firstOrNull()?.icon
-                                            ?: ""
-                                    )
-                                ),
-                                RoundedCornerShape(50)
-                            )
-                            .clip(RoundedCornerShape(10))
-                            .background(
-                                getWeatherGradient(
-                                    currentWeatherUiState.result?.weather?.firstOrNull()?.icon ?: ""
-                                )
-                            )
-                            .padding(20.dp)
-                    ) {
-                        when (countryName) {
-                            is Response.Failure -> {}
-                            Response.Loading -> {}
-                            is Response.Success<*> -> {
-                                countryName as Response.Success<Address>
-                                Text(
-                                    countryName.result?.locality
-                                        ?: currentWeatherUiState.result?.name ?: "",
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    fontFamily = poppinsFontFamily,
-                                    fontSize = 16.sp
-                                )
-                                Spacer(modifier = Modifier.height(5.dp))
-                                Text(
-                                    countryName.result?.countryName
-                                        ?: currentWeatherUiState.result?.sys?.country ?: "",
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    fontFamily = poppinsFontFamily,
-                                    fontSize = 16.sp
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(5.dp))
-                        Text(
-                            currentWeatherUiState.result?.main?.temp.toString() + Strings.CELSIUS_SYMBOL,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            fontFamily = poppinsFontFamily,
-                            fontSize = 16.sp
-                        )
-                    }
-                }
-            }
-
-        }
+        CustomMarkerWindow(
+            markerState,
+            currentWeatherUiState,
+            bottomNavigationBarViewModel,
+            countryName
+        )
 
 
     }
@@ -329,6 +242,109 @@ fun MapScreen(
     }
 
 
+}
+
+@Composable
+private fun CustomMarkerWindow(
+    markerState: MarkerState,
+    currentWeatherUiState: Response,
+    bottomNavigationBarViewModel: BottomNavigationBarViewModel,
+    countryName: Response
+) {
+    MarkerInfoWindow(
+        state = markerState,
+        draggable = true,
+        onInfoWindowClick = { it.hideInfoWindow() }
+    ) {
+        when (currentWeatherUiState) {
+            Response.Loading -> CircularProgressIndicator(
+                modifier = Modifier.size(25.dp),
+                color = Color.Black
+            )
+
+            is Response.Failure -> Text(currentWeatherUiState.exception)
+            is Response.Success<*> -> {
+                currentWeatherUiState as Response.Success<CurrentWeatherResponse>
+                bottomNavigationBarViewModel.setCurrentWeatherTheme(
+                    currentWeatherUiState.result?.weather?.firstOrNull()?.icon ?: ""
+                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .border(
+                            BorderStroke(1.dp, weatherCustomColor(currentWeatherUiState)),
+                            RoundedCornerShape(50)
+                        )
+                        .clip(RoundedCornerShape(10))
+                        .background(weatherCustomColor(currentWeatherUiState))
+                        .padding(20.dp)
+                ) {
+                    when (countryName) {
+                        is Response.Failure -> {}
+                        Response.Loading -> {}
+                        is Response.Success<*> -> {
+                            countryName as Response.Success<Address>
+                            Text(
+                                countryName.result?.locality
+                                    ?: currentWeatherUiState.result?.name ?: "",
+                                style = Styles.textStyleBold16,
+                            )
+                            Spacer(modifier = Modifier.height(5.dp))
+                            Text(
+                                countryName.result?.countryName
+                                    ?: currentWeatherUiState.result?.sys?.country ?: "",
+                                style = Styles.textStyleBold16,
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Text(
+                        currentWeatherUiState.result?.main?.temp.toString() + Strings.CELSIUS_SYMBOL,
+                        style = Styles.textStyleBold16,
+                    )
+                }
+            }
+        }
+
+    }
+}
+
+@Composable
+private fun weatherCustomColor(currentWeatherUiState: Response.Success<CurrentWeatherResponse>) =
+    getWeatherGradient(currentWeatherUiState.result?.weather?.firstOrNull()?.icon ?: "")
+
+@Composable
+private fun GetLocation(
+    markerState: MarkerState,
+    favoriteViewModel: FavoriteViewModelImpl,
+    geocoder: Geocoder
+) {
+    val context = LocalContext.current
+    val languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode
+    val tempUnit = LocalStorageDataSource.getInstance(context).getTempUnit
+    LaunchedEffect(markerState.position) {
+        favoriteViewModel.getSelectedWeather(
+            longitude = markerState.position.longitude,
+            latitude = markerState.position.latitude,
+            isConnected = true,
+            languageCode = languageCode,
+            tempUnit = tempUnit
+        )
+        favoriteViewModel.getSelectedFiveDaysWeatherForecast(
+            longitude = markerState.position.longitude,
+            latitude = markerState.position.latitude,
+            isConnected = true,
+            languageCode = languageCode,
+            tempUnit = tempUnit
+        )
+        favoriteViewModel.getCountryName(
+            longitude = markerState.position.longitude,
+            latitude = markerState.position.latitude,
+            geocoder = geocoder,
+            isConnected = true
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -507,6 +523,10 @@ fun SearchableMapScreen(
             )
         }
     }
+
+    //Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+    //                CircularProgressIndicator(modifier = Modifier.size(25.dp), color = Color.Black)
+    //            }
 }
 
 

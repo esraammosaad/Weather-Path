@@ -23,6 +23,9 @@ class Strings {
         const val RESULT_CONST: String = "RESULT"
         const val CHANNEL_ID = "CHANNEL ID"
         const val OPEN_OVER_APP_URI = "package:com.example.weatherapp"
+        const val LANG_CODE = "LANG_CODE"
+        const val TEMP_UNIT = "TEMP_UNIT"
+        const val TEMP_SYMBOL = "TEMP_SYMBOL"
     }
 
 

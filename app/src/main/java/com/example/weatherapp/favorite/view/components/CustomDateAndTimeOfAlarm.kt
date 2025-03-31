@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -37,7 +36,7 @@ fun CustomDateAndTimeOfAlarm(selectedAlarm: AlarmModel?) {
                     ?: stringResource(R.string.no_alarm_set),
                 fontSize = 16.sp
             )
-            Spacer(Modifier.height(5.dp))
+            Spacer(Modifier.height(3.dp))
             Text(
                 selectedAlarm?.date
                     ?: stringResource(R.string.stay_ready),

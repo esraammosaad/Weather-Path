@@ -1,6 +1,7 @@
 package com.example.weatherapp.data.local
 
 import android.content.Context
+import com.example.weatherapp.R
 import com.example.weatherapp.utilis.Strings
 
 class LocalStorageDataSource private constructor(context: Context) {
@@ -34,13 +35,28 @@ class LocalStorageDataSource private constructor(context: Context) {
         editor.apply()
     }
     val getLocationState: String
-        get() = prefs.getString(Strings.LOCATION_STATE, "GPS") ?: ""
+        get() = prefs.getString(Strings.LOCATION_STATE, "GPS") ?: "GPS"
 
-    fun saveAlarmType(alarmType: String) {
-        editor.putString(Strings.ALARM_TYPE, alarmType)
+    fun saveLanguageCode(langCode: String) {
+        editor.putString(Strings.LANG_CODE, langCode)
         editor.apply()
     }
-    val getAlarmType: String
-        get() = prefs.getString(Strings.ALARM_TYPE, "Alert") ?: ""
+    val getLanguageCode: String
+        get() = prefs.getString(Strings.LANG_CODE, "en") ?: "en"
+
+    fun saveTempUnit(tempUnit: String) {
+        editor.putString(Strings.TEMP_UNIT, tempUnit)
+        editor.apply()
+    }
+    val getTempUnit: String
+        get() = prefs.getString(Strings.TEMP_UNIT, Strings.CELSIUS) ?: Strings.CELSIUS
+
+
+    fun saveTempSymbol(tempSymbol: Int) {
+        editor.putInt(Strings.TEMP_SYMBOL, tempSymbol)
+        editor.apply()
+    }
+    val getTempSymbol: Int
+        get() = prefs.getInt(Strings.TEMP_SYMBOL, R.string.celsius)
 
 }

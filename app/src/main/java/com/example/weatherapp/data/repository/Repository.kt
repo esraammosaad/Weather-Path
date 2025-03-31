@@ -30,18 +30,29 @@ class Repository(
 
     suspend fun getCurrentWeather(
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        languageCode: String,
+        tempUnit: String
     ): CurrentWeatherResponse {
-        return weatherRemoteDataSource.getCurrentWeather(latitude = latitude, longitude = longitude)
+        return weatherRemoteDataSource.getCurrentWeather(
+            latitude = latitude,
+            longitude = longitude,
+            languageCode = languageCode,
+            tempUnit = tempUnit
+        )
     }
 
     suspend fun getFiveDaysWeatherForecast(
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        languageCode: String,
+        tempUnit: String
     ): Flow<WeatherItem> {
         return weatherRemoteDataSource.getFiveDaysWeatherForecast(
             latitude = latitude,
-            longitude = longitude
+            longitude = longitude,
+            languageCode = languageCode,
+            tempUnit = tempUnit
         )
     }
 

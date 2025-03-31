@@ -111,7 +111,12 @@ fun NavHostImpl(
             )
         }
         composable<NavigationRoutes.SettingsScreen> {
-            SettingsScreen()
+            SettingsScreen(
+                homeViewModel,
+                currentWeatherResponse,
+                snackBarHostState,
+                bottomNavigationBarViewModel
+            )
         }
         composable<NavigationRoutes.MapScreen> { backStackEntry ->
             val parentEntry = remember(backStackEntry) {

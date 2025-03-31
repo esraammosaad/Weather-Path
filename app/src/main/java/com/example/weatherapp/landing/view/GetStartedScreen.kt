@@ -95,7 +95,7 @@ fun GetStartedScreen(onAllowPermissionClicked: () -> Unit, onGetStartedClicked: 
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                "Get Started!",
+                stringResource(R.string.get_started),
                 color = Color.White,
                 fontFamily = poppinsFontFamily,
                 fontSize = 20.sp,

@@ -128,7 +128,7 @@ fun AlarmScreen(
                 .fillMaxWidth()
         ) {
             Text(
-                "Alarms", textAlign = TextAlign.Center,
+                stringResource(R.string.alarms), textAlign = TextAlign.Center,
                 style = Styles.textStyleSemiBold26
             )
         }
@@ -270,7 +270,7 @@ fun AlarmScreen(
                             }
                             Icon(
                                 painter = painterResource(R.drawable.baseline_edit_notifications_24),
-                                contentDescription = "Edit Alarm Icon",
+                                contentDescription = stringResource(R.string.edit_alarm_icon),
                                 tint = Color.White,
                                 modifier = Modifier
                                     .align(alignment = Alignment.TopEnd)
@@ -308,7 +308,7 @@ fun DateAndTimePickerForUpdate(
     coroutineScope: CoroutineScope
 ) {
     val context = LocalContext.current
-    val alarmType = remember { mutableStateOf("Alert") }
+    val alarmType = remember { mutableStateOf(context.getString(R.string.alert)) }
     ModalBottomSheet(
         onDismissRequest = {},
         containerColor = OffWhite,
@@ -316,7 +316,7 @@ fun DateAndTimePickerForUpdate(
         Column {
             WheelDateTimePicker(
                 height = 200.dp,
-                title = "Update Your Alarm",
+                title = stringResource(R.string.update_your_alarm),
                 rowCount = 3,
                 minDateTime = LocalDateTime.now(),
                 titleStyle = TextStyle(
@@ -359,7 +359,9 @@ fun DateAndTimePickerForUpdate(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                "Would you like to receive weather updates for ${title.value} via alerts or notifications?",
+                stringResource(R.string.would_you_like_to_receive_weather_updates_for)+ " "+title.value +" "+ stringResource(
+                    R.string.via_alerts_or_notifications
+                ),
                 fontSize = 16.sp,
                 fontFamily = poppinsFontFamily,
                 fontWeight = FontWeight.Normal,
@@ -378,7 +380,7 @@ fun DateAndTimePickerForUpdate(
             )
 
             RadioButtonSingleSelection({ selectedItem ->
-                alarmType.value = selectedItem.ifEmpty { "Alert" }
+                alarmType.value = selectedItem.ifEmpty { context.getString(R.string.alert) }
             }, listOf(stringResource(R.string.alert), stringResource(R.string.notification)))
 
         }

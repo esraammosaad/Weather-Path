@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.dp
 import com.example.weatherapp.ui.theme.PrimaryColor
 
 @Composable
-fun RadioButtonSingleSelection(onOptionClicked: (String) -> Unit, radioOptions:List<String>) {
-    val (selectedOption, optionClicked) = remember { mutableStateOf(radioOptions[0]) }
+fun RadioButtonSingleSelection(onOptionClicked: (String) -> Unit, radioOptions:List<String>,defaultSelectedItem:String=radioOptions[0]) {
+    val (selectedOption, optionClicked) = remember { mutableStateOf(defaultSelectedItem) }
     Row(Modifier.selectableGroup()) {
         radioOptions.forEach { text ->
             Row(
@@ -37,7 +37,7 @@ fun RadioButtonSingleSelection(onOptionClicked: (String) -> Unit, radioOptions:L
                         },
                         role = Role.RadioButton
                     )
-                    .padding(horizontal = 16.dp),
+                    .padding(end = 18.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 RadioButton(
@@ -53,7 +53,7 @@ fun RadioButtonSingleSelection(onOptionClicked: (String) -> Unit, radioOptions:L
                 Text(
                     text = text,
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(start = 16.dp)
+                    modifier = Modifier.padding(start = 12.dp)
                 )
             }
         }

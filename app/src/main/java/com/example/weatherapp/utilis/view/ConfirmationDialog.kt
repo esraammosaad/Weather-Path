@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -25,6 +26,8 @@ fun ConfirmationDialog(
     showRadioButton: Boolean=false,
     onOptionClicked: (String) -> Unit={}
 ) {
+
+    val context= LocalContext.current
     AlertDialog(
         icon = {
             Icon(
@@ -41,7 +44,7 @@ fun ConfirmationDialog(
                 Text(text = dialogText, textAlign = TextAlign.Center)
                 if (showRadioButton) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    RadioButtonSingleSelection(onOptionClicked,listOf("Map", "GPS"))
+                    RadioButtonSingleSelection(onOptionClicked,listOf(context.getString(R.string.map), context.getString(R.string.gps)))
                 }
             }
         },

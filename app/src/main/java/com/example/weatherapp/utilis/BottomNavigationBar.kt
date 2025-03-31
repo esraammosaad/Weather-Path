@@ -12,11 +12,14 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import com.example.weatherapp.R
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 
 @Composable
@@ -32,8 +35,16 @@ fun BottomNavigationBar(
         NavigationRoutes.SettingsScreen
     )
 
+    val titleList = arrayOf(
+        stringResource(R.string.weather),
+        stringResource(R.string.favorites),
+        stringResource(R.string.alarms),
+        stringResource(R.string.preferences)
+    )
+
     val selectedItem = remember { mutableIntStateOf(0) }
-    val dynamicBrush = bottomNavigationBarViewModel.currentWeatherTheme.collectAsStateWithLifecycle().value
+    val dynamicBrush =
+        bottomNavigationBarViewModel.currentWeatherTheme.collectAsStateWithLifecycle().value
 
     NavigationBar(
         modifier = Modifier.background(
@@ -45,7 +56,7 @@ fun BottomNavigationBar(
         ) {
         screensList.forEachIndexed { index, item ->
             NavigationBarItem(
-                selected = selectedItem.intValue == index ,
+                selected = selectedItem.intValue == index,
                 onClick = {
                     selectedItem.intValue = index
                     navController.navigate(item) {
@@ -56,7 +67,7 @@ fun BottomNavigationBar(
                     }
                 },
                 icon = { Icon(painter = painterResource(item.icon), contentDescription = "") },
-                label = { Text(item.title) },
+                label = { Text(titleList[index]) },
                 alwaysShowLabel = false,
                 colors = NavigationBarItemColors(
                     selectedIconColor = Color.White,

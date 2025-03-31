@@ -25,12 +25,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherapp.MainActivity
 import com.example.weatherapp.R
+import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.ui.theme.OffWhite
 import com.example.weatherapp.ui.theme.PrimaryColor
@@ -64,7 +66,6 @@ class DialogActivity : ComponentActivity() {
             })
 
 
-
         }
     }
 
@@ -76,6 +77,7 @@ private fun AlertScreen(
     onConfirmClicked: () -> Unit,
     onOpenAppClicked: () -> Unit
 ) {
+    val context = LocalContext.current
     Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(12.dp)) {
         Box(
             modifier = Modifier
@@ -93,7 +95,7 @@ private fun AlertScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        "${currentWeatherResponse.name}'s Weather",
+                        stringResource(R.string.s_weather, currentWeatherResponse.name),
                         fontFamily = poppinsFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 20.sp,
@@ -117,7 +119,12 @@ private fun AlertScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 Row {
                     Text(
-                        "Today's weather in ${currentWeatherResponse.name} is ${currentWeatherResponse.weather.firstOrNull()?.description} with a temperature of ${currentWeatherResponse.main.temp}°C. Stay prepared and enjoy your day!",
+                        stringResource(
+                            R.string.today_s_weather_in_is_with_a_temperature_of,
+                            currentWeatherResponse.name,
+                            currentWeatherResponse.weather.firstOrNull()?.description ?: "",
+                            currentWeatherResponse.main.temp
+                        ) + stringResource(LocalStorageDataSource.getInstance(context).getTempSymbol)+" "+ stringResource(R.string.stay_prepared_and_enjoy_your_day),
                         fontFamily = poppinsFontFamily,
                         fontWeight = FontWeight.Normal,
                         fontSize = 14.sp,
@@ -138,7 +145,7 @@ private fun AlertScreen(
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         Text(
-                            "Open App",
+                            stringResource(R.string.open_app),
                             fontFamily = poppinsFontFamily,
                             fontWeight = FontWeight.Normal,
                             fontSize = 16.sp,

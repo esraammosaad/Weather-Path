@@ -2,12 +2,14 @@ package com.example.weatherapp
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
@@ -56,6 +58,7 @@ import com.example.weatherapp.ui.theme.OffWhite
 import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.utilis.BottomNavigationBar
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
+import com.example.weatherapp.utilis.LocalizationHelper
 import com.example.weatherapp.utilis.view.FailureDisplay
 import com.example.weatherapp.utilis.view.LoadingDisplay
 import com.example.weatherapp.utilis.NavHostImpl
@@ -66,6 +69,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import java.util.Locale
 
 
 private const val My_LOCATION_PERMISSION_ID = 5005
@@ -85,6 +89,12 @@ class MainActivity : ComponentActivity() {
         homeViewModel = homeViewModel()
         internetConnectivityViewModel = internetConnectivityViewModel()
         bottomNavigationBarViewModel = BottomNavigationBarViewModel()
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            LocalizationHelper.updateLocale(
+                this,
+                LocalStorageDataSource.getInstance(this).getLanguageCode
+            )
+        }
         enableEdgeToEdge()
         setContent {
             val isSeenGetStartedScreen =
@@ -97,8 +107,8 @@ class MainActivity : ComponentActivity() {
             internetConnectivityViewModel.getInternetConnectivity()
             isConnected.value =
                 internetConnectivityViewModel.isConnected.collectAsStateWithLifecycle().value
-            if (LocalStorageDataSource.getInstance(this).getLocationState == stringResource(R.string.gps)) {
-                getLocation()
+            if (LocalStorageDataSource.getInstance(this).getLocationState == "GPS") {
+                getLocation(this)
             }
             val openAlertDialog = remember { mutableStateOf(false) }
             val dialogTitle = remember { mutableStateOf("") }
@@ -275,9 +285,9 @@ class MainActivity : ComponentActivity() {
                                 getString(R.string.chooseMapOrGPS)
                             showRadioButton.value = true
                             onConfirmation.value = {
-                                if (option.value == "GPS") {
+                                if (option.value == this@MainActivity.getString(R.string.gps)) {
                                     if (isConnected.value)
-                                        getLocation()
+                                        getLocation(this@MainActivity)
                                 } else {
                                     //map
                                 }
@@ -399,10 +409,11 @@ class MainActivity : ComponentActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults, deviceId)
         if (requestCode == My_LOCATION_PERMISSION_ID) {
             if (grantResults.getOrNull(0) == PackageManager.PERMISSION_GRANTED) {
-                getLocation()
+                getLocation(this@MainActivity)
             }
         }
     }
+
     private fun requestPermission() {
         ActivityCompat.requestPermissions(
             this,
@@ -414,6 +425,7 @@ class MainActivity : ComponentActivity() {
         )
 
     }
+
     private fun checkLocationPermission(): Boolean {
         return !(ActivityCompat.checkSelfPermission(
             this,
@@ -425,7 +437,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @SuppressLint("MissingPermission")
-    fun getLocation() {
+    fun getLocation(context: Context) {
         val locationRequest = LocationRequest.Builder(3600000).apply {
             setPriority(Priority.PRIORITY_LOW_POWER)
             setMinUpdateIntervalMillis(3600000)
@@ -438,8 +450,11 @@ class MainActivity : ComponentActivity() {
 
                 homeViewModel.getWeatherFromApi(
                     locationState.value,
-                    Geocoder(this@MainActivity),
-                    isConnected.value
+                    Geocoder(this@MainActivity, Locale(LocalStorageDataSource.getInstance(context).getLanguageCode)),
+                    isConnected.value,
+                    LocalStorageDataSource.getInstance(context).getLanguageCode,
+                    LocalStorageDataSource.getInstance(context).getTempUnit
+
                 )
 
 

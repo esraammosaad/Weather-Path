@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.weatherapp.R
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
@@ -31,7 +33,7 @@ fun WeatherDetails(
         verticalArrangement = Arrangement.Center
 
     ) {
-        CustomText(text = "TODAY")
+        CustomText(text = stringResource(R.string.today))
         Spacer(modifier = Modifier.height(3.dp))
         countryName?.let {
             selectedWeather?.let { it1 ->

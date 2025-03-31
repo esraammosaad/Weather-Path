@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.weatherapp.R
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
@@ -42,20 +43,20 @@ fun MoreDetailsContainer(currentWeather: CurrentWeatherResponse) {
                 Column(modifier = Modifier.padding(end = 20.dp)) {
                     MoreDetailsItem(
                         icon = R.drawable.sunrise,
-                        textOne = "Sunrise",
+                        textOne = stringResource(R.string.sunrise),
                         textTwo = convertUnixToTime(currentWeather.sys.sunrise.toLong())
                     )
                     Spacer(modifier = Modifier.height(20.dp))
                     MoreDetailsItem(
                         icon = R.drawable.wind,
-                        textOne = "Wind",
-                        textTwo = currentWeather.wind.speed.toString() + " m/s"
+                        textOne = stringResource(R.string.wind),
+                        textTwo = currentWeather.wind.speed.toString() + stringResource(R.string.m_s)
                     )
                     Spacer(modifier = Modifier.height(20.dp))
                     MoreDetailsItem(
                         icon = R.drawable.thermometer,
-                        textOne = "Pressure",
-                        textTwo = currentWeather.main.pressure.toString() + " hPa"
+                        textOne = stringResource(R.string.pressure),
+                        textTwo = currentWeather.main.pressure.toString() + stringResource(R.string.hpa)
                     )
                 }
                 Spacer(modifier = Modifier.width(20.dp))
@@ -68,19 +69,19 @@ fun MoreDetailsContainer(currentWeather: CurrentWeatherResponse) {
                 Column(modifier = Modifier.padding(start = 20.dp)) {
                     MoreDetailsItem(
                         icon = R.drawable.sunset,
-                        textOne = "Sunset",
+                        textOne = stringResource(R.string.sunset),
                         textTwo = convertUnixToTime(currentWeather.sys.sunset.toLong())
                     )
                     Spacer(modifier = Modifier.height(20.dp))
                     MoreDetailsItem(
                         icon = R.drawable.humidity,
-                        textOne = "Humidity",
+                        textOne = stringResource(R.string.humidity),
                         textTwo = currentWeather.main.humidity.toString() + " %"
                     )
                     Spacer(modifier = Modifier.height(20.dp))
                     MoreDetailsItem(
                         icon = R.drawable.cloud_sketched,
-                        textOne = "Clouds",
+                        textOne = stringResource(R.string.clouds),
                         textTwo = currentWeather.clouds.all.toString() + " %"
                     )
                 }

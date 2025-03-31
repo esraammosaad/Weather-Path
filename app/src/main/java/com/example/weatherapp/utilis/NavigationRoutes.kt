@@ -5,34 +5,33 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class NavigationRoutes(
-    val title: String,
     val icon: Int
 ) {
 
     @Serializable
-    object GetStartedScreen : NavigationRoutes(title = "GetStarted", icon = 0)
+    object GetStartedScreen : NavigationRoutes(icon = 0)
 
     @Serializable
-    object HomeScreen : NavigationRoutes(title = "Weather", icon = R.drawable.baseline_cloud_queue_24)
+    object HomeScreen : NavigationRoutes(icon = R.drawable.baseline_cloud_queue_24)
 
     @Serializable
     object FavoriteScreen :
-        NavigationRoutes(title = "Favorite", icon = R.drawable.baseline_map_24)
+        NavigationRoutes(icon = R.drawable.baseline_map_24)
 
     @Serializable
     data class WeatherDetailsScreen(var longitude : Double , var latitude : Double) :
-        NavigationRoutes(title = "Favorite", icon = R.drawable.baseline_map_24)
+        NavigationRoutes(icon = R.drawable.baseline_map_24)
 
     @Serializable
     object AlarmScreen :
-        NavigationRoutes(title = "Alarm", icon = R.drawable.baseline_notifications_none_24)
+        NavigationRoutes(icon = R.drawable.baseline_notifications_none_24)
 
     @Serializable
     object SettingsScreen :
-        NavigationRoutes(title = "Preferences", icon = R.drawable.baseline_settings_suggest_24)
+        NavigationRoutes(icon = R.drawable.baseline_settings_suggest_24)
 
     @Serializable
     object MapScreen :
-        NavigationRoutes(title = "Map", icon = R.drawable.baseline_map_24)
+        NavigationRoutes(icon = R.drawable.baseline_map_24)
 
 }

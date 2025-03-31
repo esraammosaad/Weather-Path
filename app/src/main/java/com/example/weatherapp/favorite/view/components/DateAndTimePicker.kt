@@ -16,18 +16,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.app.ActivityCompat
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
-import com.example.weatherapp.MainActivity
 import com.example.weatherapp.R
 import com.example.weatherapp.data.managers.WeatherWorkManager
 import com.example.weatherapp.data.model.AlarmModel
@@ -35,14 +30,15 @@ import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
 import com.example.weatherapp.ui.theme.OffWhite
 import com.example.weatherapp.ui.theme.PrimaryColor
-import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.Strings
+import com.example.weatherapp.utilis.Styles
 import com.example.weatherapp.utilis.calculateDelay
 import com.example.weatherapp.utilis.view.RadioButtonSingleSelection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import network.chaintech.kmp_date_time_picker.ui.datetimepicker.WheelDateTimePickerComponent.WheelDateTimePicker
+import network.chaintech.kmp_date_time_picker.utils.TimeFormat
 import network.chaintech.kmp_date_time_picker.utils.now
 import java.util.concurrent.TimeUnit
 
@@ -69,19 +65,11 @@ fun DateAndTimePickerForSet(
                 title = stringResource(R.string.choose_date_and_time),
                 rowCount = 3,
                 minDateTime = LocalDateTime.now(),
-                titleStyle = TextStyle(
-                    fontSize = 16.sp,
-                    fontFamily = poppinsFontFamily,
-                    fontWeight = FontWeight.Normal
-                ),
-                doneLabelStyle = TextStyle(
-                    fontSize = 14.sp,
-                    fontFamily = poppinsFontFamily,
-                    fontWeight = FontWeight.Normal,
-                    color = PrimaryColor,
-                ),
+                titleStyle = Styles.textStyleNormal16,
+                doneLabelStyle = Styles.textStyleNormal14,
+                doneLabel = stringResource(R.string.done),
+                timeFormat = TimeFormat.AM_PM,
                 onDoneClick = { snappedDate ->
-
                     onDoneDateAndTimePickerClicked(
                         selectedWeather,
                         snappedDate,
@@ -98,10 +86,11 @@ fun DateAndTimePickerForSet(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                "Would you like to receive weather updates for ${title.value} via alerts or notifications?",
-                fontSize = 16.sp,
-                fontFamily = poppinsFontFamily,
-                fontWeight = FontWeight.Normal,
+                stringResource(
+                    R.string.would_you_like_to_receive_weather_updates_for_via_alerts_or_notifications,
+                    title.value
+                ),
+                style = Styles.textStyleNormal16,
                 modifier = Modifier.padding(horizontal = 10.dp)
             )
 
@@ -109,12 +98,12 @@ fun DateAndTimePickerForSet(
 
             Text(
                 stringResource(R.string.choose_your_preferred_option_to_stay_informed),
-                fontSize = 15.sp,
-                fontFamily = poppinsFontFamily,
-                fontWeight = FontWeight.SemiBold,
+                style = Styles.textStyleSemiBold15,
                 color = PrimaryColor,
                 modifier = Modifier.padding(horizontal = 10.dp)
             )
+
+            Column ( modifier = Modifier.padding(horizontal = 10.dp)){
 
             RadioButtonSingleSelection({
                 selectedItem ->alarmType.value= selectedItem.ifEmpty { "Alert" }
@@ -124,6 +113,7 @@ fun DateAndTimePickerForSet(
 
                 }
             }, listOf(stringResource(R.string.alert), stringResource(R.string.notification)))
+        }
         }
     }
 }
@@ -152,8 +142,8 @@ private fun onDoneDateAndTimePickerClicked(
 ) {
     val alarm = AlarmModel(
         locationId = selectedWeather?.id ?: 0,
-        date = "${snappedDate.dayOfWeek.name} ${snappedDate.dayOfMonth} ${snappedDate.month.name} ${snappedDate.year}",
-        time = "${snappedDate.hour}:${snappedDate.minute}",
+        date = "${snappedDate.date}",
+        time = "${snappedDate.time}",
         countryName = selectedWeather?.countryName ?: "",
         cityName = selectedWeather?.cityName ?: "",
         alarmType = alarmType.value,
