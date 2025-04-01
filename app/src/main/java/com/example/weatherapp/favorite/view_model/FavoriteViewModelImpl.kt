@@ -2,6 +2,7 @@ package com.example.weatherapp.favorite.view_model
 
 import android.location.Address
 import android.location.Geocoder
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -81,6 +82,7 @@ class FavoriteViewModelImpl(
         latitude: Double, longitude: Double, isConnected: Boolean, languageCode: String,
         tempUnit: String
     ) {
+        Log.i("TAG", "getSelectedWeather: api call fav")
         viewModelScope.launch {
             if (isConnected) {
                 try {
@@ -107,6 +109,8 @@ class FavoriteViewModelImpl(
         languageCode: String,
         tempUnit: String
     ) {
+
+        Log.i("TAG", "getSelectedFiveDaysWeatherForecast: api call fav")
         viewModelScope.launch {
             if (isConnected) {
                 try {
@@ -318,9 +322,9 @@ class FavoriteViewModelImpl(
         }
     }
 
-    fun deleteAlarm(alarm: AlarmModel) {
+    fun deleteAlarm(locationId: Int) {
         viewModelScope.launch {
-            val result = repository.deleteAlarm(alarm)
+            val result = repository.deleteAlarm(locationId)
         }
     }
 

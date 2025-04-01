@@ -1,6 +1,5 @@
 package com.example.weatherapp.utilis
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -10,9 +9,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -20,7 +19,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.example.weatherapp.R
-import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 
 @Composable
 fun BottomNavigationBar(
@@ -35,6 +33,8 @@ fun BottomNavigationBar(
         NavigationRoutes.SettingsScreen
     )
 
+
+
     val titleList = arrayOf(
         stringResource(R.string.weather),
         stringResource(R.string.favorites),
@@ -42,7 +42,10 @@ fun BottomNavigationBar(
         stringResource(R.string.preferences)
     )
 
-    val selectedItem = remember { mutableIntStateOf(0) }
+
+
+
+    val selectedItem = rememberSaveable { mutableIntStateOf(0) }
     val dynamicBrush =
         bottomNavigationBarViewModel.currentWeatherTheme.collectAsStateWithLifecycle().value
 

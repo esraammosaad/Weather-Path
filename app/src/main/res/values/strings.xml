@@ -81,4 +81,5 @@
     <string name="today_s_weather_in_is_with_a_temperature_of">Today\'s weather in %1$s is %2$s with a temperature of %3$s</string>
     <string name="stay_prepared_and_enjoy_your_day">Stay prepared and enjoy your day!</string>
     <string name="done">Done</string>
+    <string name="location_added_successfully">Location Added Successfully</string>
 </resources>

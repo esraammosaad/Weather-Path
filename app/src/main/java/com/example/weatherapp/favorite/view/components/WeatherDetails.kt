@@ -37,11 +37,28 @@ fun WeatherDetailsScreen(
     val context = LocalContext.current
     val languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode
     val tempUnit = LocalStorageDataSource.getInstance(context).getTempUnit
-    favoriteViewModel.getSelectedWeather(longitude = longitude, latitude = latitude, languageCode = languageCode, tempUnit = tempUnit ,isConnected = true)
-    favoriteViewModel.getSelectedFiveDaysWeatherForecast(longitude = longitude, latitude = latitude,languageCode = languageCode, tempUnit = tempUnit, isConnected = true)
-    favoriteViewModel.getCountryName(longitude = longitude, latitude = latitude, Geocoder(context,
-        Locale(LocalStorageDataSource.getInstance(context).getLanguageCode)), isConnected = true)
+    favoriteViewModel.getSelectedWeather(
+        longitude = longitude,
+        latitude = latitude,
+        languageCode = languageCode,
+        tempUnit = tempUnit,
+        isConnected = true
+    )
+    favoriteViewModel.getSelectedFiveDaysWeatherForecast(
+        longitude = longitude,
+        latitude = latitude,
+        languageCode = languageCode,
+        tempUnit = tempUnit,
+        isConnected = true
+    )
+    favoriteViewModel.getCountryName(
+        longitude = longitude, latitude = latitude, Geocoder(
+            context,
+            Locale(LocalStorageDataSource.getInstance(context).getLanguageCode)
+        ), isConnected = true
+    )
     val selectedWeather = favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
+
     val selectedFiveDaysWeatherForecast =
         favoriteViewModel.selectedFiveDaysWeatherForecast.collectAsStateWithLifecycle().value
     val countryName = favoriteViewModel.countryName.collectAsStateWithLifecycle().value
@@ -64,7 +81,6 @@ fun WeatherDetailsScreen(
     val sixthDayForecast =
         favoriteViewModel.sixthDayList.collectAsStateWithLifecycle().value
 
-
     val listOfDays = listOf(
         currentDayForecast,
         nextDayForecast,
@@ -74,27 +90,26 @@ fun WeatherDetailsScreen(
         sixthDayForecast
     )
 
-
     when (selectedWeather) {
         is Response.Failure -> FailureDisplay(selectedWeather.exception)
         Response.Loading -> LoadingDisplay()
         is Response.Success<*> -> {
             selectedWeather as Response.Success<CurrentWeatherResponse>
-            bottomNavigationBarViewModel.setCurrentWeatherTheme(selectedWeather.result?.weather?.get(0)?.icon?:"")
+            bottomNavigationBarViewModel.setCurrentWeatherTheme(
+                selectedWeather.result?.weather?.get(
+                    0
+                )?.icon ?: ""
+            )
             when (countryName) {
                 is Response.Failure -> Text(countryName.exception)
                 Response.Loading -> CircularProgressIndicator(color = Color.Black)
                 is Response.Success<*> -> {
-
                     countryName as Response.Success<Address>
-
                     when (selectedFiveDaysWeatherForecast) {
                         is Response.Failure -> {}
                         Response.Loading -> {}
                         is Response.Success<*> -> {
-
                             selectedFiveDaysWeatherForecast as Response.Success<List<WeatherItem>>
-
                             selectedWeather.result?.let {
                                 it.latitude = latitude
                                 it.longitude = longitude
@@ -115,10 +130,8 @@ fun WeatherDetailsScreen(
                                         )
                                     }
                             }
-
                         }
                     }
-
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
@@ -138,15 +151,9 @@ fun WeatherDetailsScreen(
                             )
                         }
                     }
-
-
                 }
             }
-
-
         }
     }
-
-
 }
 

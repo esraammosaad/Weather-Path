@@ -51,8 +51,8 @@ interface WeatherDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAlarm(alarm: AlarmModel): Long
 
-    @Delete
-    suspend fun deleteAlarm(alarm: AlarmModel): Int
+    @Query("DELETE FROM alarm_weather_table WHERE locationId= :locationId")
+    suspend fun deleteAlarm(locationId: Int): Int
 
     @Query("SELECT * FROM alarm_weather_table")
     fun selectAllAlarms(): Flow<List<AlarmModel>>

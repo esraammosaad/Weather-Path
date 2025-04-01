@@ -4,6 +4,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.location.Geocoder
 import android.os.SystemClock
 import android.util.Log
 import androidx.work.CoroutineWorker
@@ -13,6 +14,7 @@ import com.example.weatherapp.data.local.WeatherDatabase
 import com.example.weatherapp.data.remote.RetrofitFactory
 import com.example.weatherapp.utilis.Strings
 import com.google.gson.Gson
+import java.util.Locale
 
 class WeatherWorkManager(context: Context, workerParameters: WorkerParameters) :
     CoroutineWorker(context, workerParameters) {
@@ -30,6 +32,14 @@ class WeatherWorkManager(context: Context, workerParameters: WorkerParameters) :
                 language = LocalStorageDataSource.getInstance(applicationContext).getLanguageCode,
                 unit = LocalStorageDataSource.getInstance(applicationContext).getTempUnit
             )
+        val list = Geocoder(
+            applicationContext,
+            Locale(LocalStorageDataSource.getInstance(applicationContext).getLanguageCode)
+        ).getFromLocation(latitude, longitude, 1)
+        if (!list.isNullOrEmpty()) {
+            result.countryName = list[0].countryName?:result.sys.country
+            result.cityName = list[0].locality?:result.name
+        }
         WeatherDatabase.getInstance(applicationContext).getDao().selectAllAlarms().collect {
             val gson = Gson()
             val stringResult = gson.toJson(result)
@@ -42,7 +52,8 @@ class WeatherWorkManager(context: Context, workerParameters: WorkerParameters) :
             val pendingIntent: PendingIntent = PendingIntent.getBroadcast(
                 applicationContext,
                 requestCode,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 
             )
             alarmManager.setExactAndAllowWhileIdle(

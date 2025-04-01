@@ -27,6 +27,8 @@ class Strings {
         const val TEMP_UNIT = "TEMP_UNIT"
         const val TEMP_SYMBOL = "TEMP_SYMBOL"
         const val WIND_UNIT = "WIND_UNIT"
+        const val PICKED_LONG = "PICKED_LONG"
+        const val PICKED_LAT = "PICKED_LAT"
     }
 
 

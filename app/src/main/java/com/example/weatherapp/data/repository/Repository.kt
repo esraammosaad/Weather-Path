@@ -133,8 +133,8 @@ class Repository(
         return weatherLocalDataSource.insertAlarm(alarm)
     }
 
-    suspend fun deleteAlarm(alarm: AlarmModel): Int {
-        return weatherLocalDataSource.deleteAlarm(alarm)
+    suspend fun deleteAlarm(locationId: Int): Int {
+        return weatherLocalDataSource.deleteAlarm(locationId)
     }
 
     suspend fun selectAllAlarms(): Flow<List<AlarmModel>> {

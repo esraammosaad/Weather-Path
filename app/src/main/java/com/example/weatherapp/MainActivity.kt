@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -25,10 +26,12 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -47,6 +50,7 @@ import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.data.remote.RetrofitFactory
 import com.example.weatherapp.data.remote.WeatherRemoteDataSource
 import com.example.weatherapp.data.repository.Repository
+import com.example.weatherapp.home.view.LocationPickScreen
 import com.example.weatherapp.home.view_model.HomeViewModelImpl
 import com.example.weatherapp.home.view_model.HomeViewModelFactory
 import com.example.weatherapp.utilis.internet.InternetConnectivityViewModel
@@ -63,6 +67,8 @@ import com.example.weatherapp.utilis.view.FailureDisplay
 import com.example.weatherapp.utilis.view.LoadingDisplay
 import com.example.weatherapp.utilis.NavHostImpl
 import com.example.weatherapp.utilis.view.ConfirmationDialog
+import com.google.accompanist.systemuicontroller.SystemUiController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -95,11 +101,19 @@ class MainActivity : ComponentActivity() {
                 LocalStorageDataSource.getInstance(this).getLanguageCode
             )
         }
+
         enableEdgeToEdge()
         setContent {
+
+            val systemUiController: SystemUiController = rememberSystemUiController()
+            systemUiController.isStatusBarVisible = false // Status bar
+            systemUiController.isNavigationBarVisible = false // Navigation bar
+            systemUiController.isSystemBarsVisible = false // Status & Navigation bars
+
             val isSeenGetStartedScreen =
                 remember { mutableStateOf(LocalStorageDataSource.getInstance(this).getStartedState) }
-            val isSplash = remember { mutableStateOf(true) }
+            val isSplash = rememberSaveable { mutableStateOf(true) }
+            val isLocationPickScreen = remember { mutableStateOf(false) }
             val navController = rememberNavController()
             val currentWeather by homeViewModel.currentWeather.collectAsStateWithLifecycle()
             val fiveDaysWeatherForecast by homeViewModel.fiveDaysWeatherForecast.collectAsStateWithLifecycle()
@@ -107,15 +121,63 @@ class MainActivity : ComponentActivity() {
             internetConnectivityViewModel.getInternetConnectivity()
             isConnected.value =
                 internetConnectivityViewModel.isConnected.collectAsStateWithLifecycle().value
-            if (LocalStorageDataSource.getInstance(this).getLocationState == "GPS") {
-                getLocation(this)
-            }
             val openAlertDialog = remember { mutableStateOf(false) }
             val dialogTitle = remember { mutableStateOf("") }
             val dialogText = remember { mutableStateOf("") }
             val onConfirmation = remember { mutableStateOf({}) }
             val showRadioButton = remember { mutableStateOf(false) }
             val option = remember { mutableStateOf("") }
+            val radioButtonState = remember { mutableStateOf(getString(R.string.map)) }
+
+            Log.i("TAG", "onCreate:  ${isConnected.value}")
+            LaunchedEffect(isConnected.value) {
+                if (LocalStorageDataSource.getInstance(this@MainActivity).getLocationState == "GPS") {
+                    getLocation(this@MainActivity)
+                } else {
+                    //map get weather from lat long from database
+                    if (LocalStorageDataSource.getInstance(this@MainActivity).getStartedState) {
+                        val lat =
+                            LocalStorageDataSource.getInstance(this@MainActivity).getPickedLat
+                        val long =
+                            LocalStorageDataSource.getInstance(this@MainActivity).getPickedLong
+
+                        locationState.value.longitude = long
+                        locationState.value.latitude = lat
+
+                        Log.i("TAG", "onCreate: $long , $lat , ${isConnected.value}")
+
+                        val languageCode =
+                            LocalStorageDataSource.getInstance(this@MainActivity).getLanguageCode
+
+                        val tempUnit =
+                            LocalStorageDataSource.getInstance(this@MainActivity).getTempUnit
+
+                        homeViewModel.getCurrentWeather(
+                            longitude = long,
+                            latitude = lat,
+                            isConnected = isConnected.value,
+                            languageCode = languageCode,
+                            tempUnit = tempUnit
+                        )
+                        homeViewModel.getFiveDaysWeatherForecast(
+                            longitude = long,
+                            latitude = lat,
+                            isConnected = isConnected.value,
+                            languageCode = languageCode,
+                            tempUnit = tempUnit
+                        )
+                        homeViewModel.getCountryName(
+                            longitude = long,
+                            latitude = lat,
+                            geocoder = Geocoder(
+                                this@MainActivity,
+                                Locale(LocalStorageDataSource.getInstance(this@MainActivity).getLanguageCode)
+                            ),
+                            isConnected = isConnected.value
+                        )
+                    }
+                }
+            }
             if (openAlertDialog.value) {
                 ConfirmationDialog(
                     onConfirmation = onConfirmation.value,
@@ -125,7 +187,9 @@ class MainActivity : ComponentActivity() {
                         openAlertDialog.value = false
                     },
                     showRadioButton = showRadioButton.value,
+                    radioButtonState = radioButtonState,
                     onOptionClicked = { text ->
+                        radioButtonState.value = text
                         option.value = text
                     }
                 )
@@ -133,6 +197,23 @@ class MainActivity : ComponentActivity() {
             if (isSplash.value) {
                 SplashScreen {
                     isSplash.value = false
+                }
+            } else if (isLocationPickScreen.value) {
+                LocationPickScreen(
+                    onBackClicked = {
+                        isSeenGetStartedScreen.value = false
+                        isLocationPickScreen.value = false
+                    },
+                    homeViewModel = homeViewModel,
+                    location = locationState.value,
+                    isConnected = isConnected.value,
+                    bottomNavigationBarViewModel = bottomNavigationBarViewModel,
+                ) {
+                    isLocationPickScreen.value = false
+                    isSeenGetStartedScreen.value = true
+                    LocalStorageDataSource.getInstance(this@MainActivity)
+                        .saveGetStartedStateState()
+
                 }
             } else {
                 if (!isSeenGetStartedScreen.value) {
@@ -143,7 +224,8 @@ class MainActivity : ComponentActivity() {
                         dialogTitle,
                         dialogText,
                         onConfirmation,
-                        option
+                        option,
+                        isLocationPickScreen
                     )
                 } else {
                     val snackBarHostState = remember { SnackbarHostState() }
@@ -215,6 +297,12 @@ class MainActivity : ComponentActivity() {
                                     is Response.Success<*> -> {
                                         val fiveDaysWeatherForecastResponse =
                                             fiveDaysWeatherForecast as Response.Success<List<WeatherItem>>
+                                        if (LocalStorageDataSource.getInstance(this@MainActivity).getLocationState == "Map") {
+                                            locationState.value.latitude =
+                                                LocalStorageDataSource.getInstance(this@MainActivity).getPickedLat
+                                            locationState.value.longitude =
+                                                LocalStorageDataSource.getInstance(this@MainActivity).getPickedLong
+                                        }
                                         homeViewModel.insertCurrentWeather(
                                             it,
                                             cName.result,
@@ -262,7 +350,8 @@ class MainActivity : ComponentActivity() {
         dialogTitle: MutableState<String>,
         dialogText: MutableState<String>,
         onConfirmation: MutableState<() -> Unit>,
-        option: MutableState<String>
+        option: MutableState<String>,
+        isLocationPickScreen: MutableState<Boolean>
     ) {
         AnimatedVisibility(visible = !isSeenGetStartedScreen.value) {
             GetStartedScreen(
@@ -286,17 +375,23 @@ class MainActivity : ComponentActivity() {
                             showRadioButton.value = true
                             onConfirmation.value = {
                                 if (option.value == this@MainActivity.getString(R.string.gps)) {
-                                    if (isConnected.value)
-                                        getLocation(this@MainActivity)
+                                    isSeenGetStartedScreen.value = true
+                                    LocalStorageDataSource.getInstance(this@MainActivity)
+                                        .saveGetStartedStateState()
+
+
                                 } else {
-                                    //map
+                                    isLocationPickScreen.value = true
+
                                 }
+
+                                if (isConnected.value)
+                                    getLocation(this@MainActivity)
                                 LocalStorageDataSource.getInstance(this@MainActivity)
                                     .saveLocationState(option.value)
-                                isSeenGetStartedScreen.value = true
-                                LocalStorageDataSource.getInstance(this@MainActivity)
-                                    .saveGetStartedStateState()
                                 openAlertDialog.value = false
+
+
                             }
                         } else {
                             allowPermissionDialog(
@@ -316,7 +411,6 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
-
             )
         }
     }
@@ -447,17 +541,16 @@ class MainActivity : ComponentActivity() {
                 super.onLocationResult(locationResult)
                 locationState.value =
                     locationResult.lastLocation ?: Location(LocationManager.GPS_PROVIDER)
-
                 homeViewModel.getWeatherFromApi(
                     locationState.value,
-                    Geocoder(this@MainActivity, Locale(LocalStorageDataSource.getInstance(context).getLanguageCode)),
+                    Geocoder(
+                        this@MainActivity,
+                        Locale(LocalStorageDataSource.getInstance(context).getLanguageCode)
+                    ),
                     isConnected.value,
                     LocalStorageDataSource.getInstance(context).getLanguageCode,
                     LocalStorageDataSource.getInstance(context).getTempUnit
-
                 )
-
-
             }
         }
         fusedLocationProviderClient.requestLocationUpdates(

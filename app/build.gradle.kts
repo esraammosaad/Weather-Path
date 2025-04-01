@@ -56,6 +56,7 @@ secrets {
 
 
 dependencies {
+    implementation ("com.google.accompanist:accompanist-systemuicontroller:0.28.0")
     implementation("network.chaintech:kmp-date-time-picker:1.0.7")
     implementation("androidx.work:work-runtime-ktx:2.7.1")
     implementation ("nl.dionsegijn:konfetti-compose:2.0.2")

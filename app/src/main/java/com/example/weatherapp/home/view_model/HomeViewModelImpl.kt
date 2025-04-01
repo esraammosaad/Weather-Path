@@ -72,6 +72,7 @@ class HomeViewModelImpl(
         latitude: Double, longitude: Double, isConnected: Boolean, languageCode: String,
         tempUnit: String
     ) {
+        Log.i("TAG", "getCurrentWeather: api call")
         viewModelScope.launch {
 
             if (isConnected) {
@@ -108,6 +109,7 @@ class HomeViewModelImpl(
         languageCode: String,
         tempUnit: String
     ) {
+         Log.i("TAG", "getFiveDaysWeatherForecast: api call")
         viewModelScope.launch {
             if (isConnected) {
                 try {
@@ -173,7 +175,7 @@ class HomeViewModelImpl(
 
     }
 
-    private fun getCountryName(
+    fun getCountryName(
         longitude: Double,
         latitude: Double,
         geocoder: Geocoder,
@@ -238,6 +240,8 @@ class HomeViewModelImpl(
         locationState: Location, geocoder: Geocoder, isConnected: Boolean, languageCode: String,
         tempUnit: String
     ) {
+
+        Log.i("TAG", "getWeatherFromApi: warninggg!!!!!!!!!!!!!!1")
         getCurrentWeather(
             latitude = locationState.latitude,
             longitude = locationState.longitude,
@@ -293,8 +297,8 @@ class HomeViewModelImpl(
             currentWeather.longitude =
                 locationState.longitude.toBigDecimal().setScale(2, RoundingMode.DOWN)
                     .toDouble()
-            currentWeather.countryName = countryName?.countryName ?: ""
-            currentWeather.cityName = countryName?.locality ?: ""
+            currentWeather.countryName = countryName?.countryName ?: currentWeather.sys.country
+            currentWeather.cityName = countryName?.locality ?: currentWeather.name
             insertCurrentWeather(
                 currentWeather
             )

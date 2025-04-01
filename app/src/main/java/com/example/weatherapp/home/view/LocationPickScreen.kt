@@ -1,16 +1,12 @@
-package com.example.weatherapp.favorite.view.screens
+package com.example.weatherapp.home.view
 
-
-import android.content.Context
+import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,14 +14,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
-import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
-import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
+import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.favorite.view.components.BottomSheetDisplay
 import com.example.weatherapp.favorite.view.components.CustomMarkerWindow
 import com.example.weatherapp.favorite.view.components.SearchableMapScreen
-import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
+import com.example.weatherapp.home.view_model.HomeViewModelImpl
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -36,16 +30,17 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import java.util.Locale
 
+
 @Composable
-fun MapScreen(
-    favoriteViewModel: FavoriteViewModelImpl,
+fun LocationPickScreen(
+    onBackClicked: () -> Unit,
+    homeViewModel: HomeViewModelImpl,
     location: Location,
+    isConnected: Boolean,
     bottomNavigationBarViewModel: BottomNavigationBarViewModel,
-    snackBarHostState: SnackbarHostState
+    onChooseClicked: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -67,30 +62,30 @@ fun MapScreen(
         Geocoder(context, Locale(LocalStorageDataSource.getInstance(context).getLanguageCode))
 
     val currentWeatherUiState =
-        favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
+        homeViewModel.currentWeather.collectAsStateWithLifecycle().value
 
     val currentDayForecast =
-        favoriteViewModel.currentDayList.collectAsStateWithLifecycle().value
+        homeViewModel.currentDayList.collectAsStateWithLifecycle().value
 
     val nextDayForecast =
-        favoriteViewModel.nextDayList.collectAsStateWithLifecycle().value
+        homeViewModel.nextDayList.collectAsStateWithLifecycle().value
 
     val thirdDayForecast =
-        favoriteViewModel.thirdDayList.collectAsStateWithLifecycle().value
+        homeViewModel.thirdDayList.collectAsStateWithLifecycle().value
 
     val fourthDayForecast =
-        favoriteViewModel.fourthDayList.collectAsStateWithLifecycle().value
+        homeViewModel.fourthDayList.collectAsStateWithLifecycle().value
 
     val fifthDayForecast =
-        favoriteViewModel.fifthDayList.collectAsStateWithLifecycle().value
+        homeViewModel.fifthDayList.collectAsStateWithLifecycle().value
 
     val sixthDayForecast =
-        favoriteViewModel.sixthDayList.collectAsStateWithLifecycle().value
+        homeViewModel.sixthDayList.collectAsStateWithLifecycle().value
 
     val fiveDaysWeatherForecast =
-        favoriteViewModel.selectedFiveDaysWeatherForecast.collectAsStateWithLifecycle().value
+        homeViewModel.fiveDaysWeatherForecast.collectAsStateWithLifecycle().value
 
-    val countryName = favoriteViewModel.countryName.collectAsStateWithLifecycle().value
+    val countryName = homeViewModel.countryName.collectAsStateWithLifecycle().value
 
     val showBottomSheet = remember { mutableStateOf(false) }
 
@@ -105,7 +100,8 @@ fun MapScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
-    GetLocation(markerState, favoriteViewModel, geocoder)
+    GetLocation(markerState, homeViewModel, geocoder, isConnected)
+
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         properties = properties,
@@ -135,97 +131,73 @@ fun MapScreen(
         showBottomSheet,
         listOfDays,
     ) { selectedWeather, selectedFiveDaysForecast ->
-        onAddClicked(
-            selectedWeather,
-            selectedFiveDaysForecast,
-            favoriteViewModel,
-            showBottomSheet,
-            coroutineScope,
-            snackBarHostState,
-            context
-        )
+        onChooseClicked.invoke()
+        showBottomSheet.value = false
+        LocalStorageDataSource.getInstance(context).savePickedLong(selectedWeather.longitude)
+        LocalStorageDataSource.getInstance(context).savePickedLat(selectedWeather.latitude)
+//        Log.i(
+//            "TAG",
+//            "LocationPickScreen: ${LocalStorageDataSource.getInstance(context).getPickedLat}"
+//        )
+//        Log.i(
+//            "TAG",
+//            "LocationPickScreen: ${LocalStorageDataSource.getInstance(context).getPickedLong}"
+//        )
+        location.latitude = LocalStorageDataSource.getInstance(context).getPickedLat
+        location.longitude = LocalStorageDataSource.getInstance(context).getPickedLong
+//
+//        when(countryName){
+//            is Response.Failure -> TODO()
+//            Response.Loading -> TODO()
+//            is Response.Success<*> -> {
+//                countryName as Response.Success<Address>
+//                homeViewModel.insertCurrentWeather(
+//                    selectedWeather,
+//                    countryName.result,
+//                    location
+//                )
+//
+//
+//            }
+//        }
+//
+//        homeViewModel.insertFiveDaysForecast(
+//            selectedFiveDaysForecast.list,
+//            location
+//        )
     }
 }
-
 
 @Composable
 private fun GetLocation(
     markerState: MarkerState,
-    favoriteViewModel: FavoriteViewModelImpl,
-    geocoder: Geocoder
+    homeViewModel: HomeViewModelImpl,
+    geocoder: Geocoder,
+    isConnected: Boolean
 ) {
     val context = LocalContext.current
     val languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode
     val tempUnit = LocalStorageDataSource.getInstance(context).getTempUnit
     LaunchedEffect(markerState.position) {
-        favoriteViewModel.getSelectedWeather(
+        homeViewModel.getCurrentWeather(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude,
-            isConnected = true,
+            isConnected = isConnected,
             languageCode = languageCode,
             tempUnit = tempUnit
         )
-        favoriteViewModel.getSelectedFiveDaysWeatherForecast(
+        homeViewModel.getFiveDaysWeatherForecast(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude,
-            isConnected = true,
+            isConnected = isConnected,
             languageCode = languageCode,
             tempUnit = tempUnit
         )
-        favoriteViewModel.getCountryName(
+        homeViewModel.getCountryName(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude,
             geocoder = geocoder,
-            isConnected = true
+            isConnected = isConnected
         )
     }
 }
-
-fun onAddClicked(
-    selectedWeather: CurrentWeatherResponse?,
-    selectedFiveDaysForecast: FiveDaysWeatherForecastResponse?,
-    favoriteViewModel: FavoriteViewModelImpl,
-    showBottomSheet: MutableState<Boolean>,
-    coroutineScope: CoroutineScope,
-    snackBarHostState: SnackbarHostState,
-    context: Context
-) {
-    if (selectedWeather != null && selectedFiveDaysForecast != null)
-        favoriteViewModel.insertWeather(
-            selectedWeather,
-            selectedFiveDaysForecast
-        )
-    showBottomSheet.value = false
-    coroutineScope.launch {
-        val result = snackBarHostState.showSnackbar(
-            context.getString(R.string.location_added_successfully),
-            actionLabel = context.getString(R.string.undo),
-            withDismissAction = true,
-            duration = SnackbarDuration.Long
-        )
-        when (result) {
-            SnackbarResult.ActionPerformed -> {
-                if (selectedWeather != null && selectedFiveDaysForecast != null) {
-                    favoriteViewModel.deleteWeather(
-                        currentWeatherResponse = selectedWeather,
-                        fiveDaysWeatherForecastResponse = selectedFiveDaysForecast
-                    )
-                }
-            }
-            SnackbarResult.Dismissed -> {
-            }
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-

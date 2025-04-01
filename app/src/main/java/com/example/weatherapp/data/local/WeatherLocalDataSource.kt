@@ -73,8 +73,8 @@ class WeatherLocalDataSource(private val weatherDao: WeatherDao) {
         return weatherDao.insertAlarm(alarm)
     }
 
-    suspend fun deleteAlarm(alarm: AlarmModel): Int {
-        return weatherDao.deleteAlarm(alarm)
+    suspend fun deleteAlarm(locationId: Int): Int {
+        return weatherDao.deleteAlarm(locationId)
     }
 
     suspend fun selectAllAlarms(): Flow<List<AlarmModel>> {

@@ -169,7 +169,7 @@ fun deleteAlarm(
     snackBarHostState: SnackbarHostState
 ) {
     if (selectedAlarm != null) {
-        favoriteViewModel.deleteAlarm(selectedAlarm)
+        favoriteViewModel.deleteAlarm(selectedAlarm.locationId)
         WorkManager.getInstance(context)
             .cancelAllWorkByTag(selectedAlarm.locationId.toString())
         coroutineScope.launch {

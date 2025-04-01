@@ -53,7 +53,8 @@ fun DateAndTimePickerForSet(
     coroutineScope: CoroutineScope
 ) {
     val context = LocalContext.current
-    val alarmType = remember{ mutableStateOf("Alert") }
+    val alarmType = remember { mutableStateOf("Alert") }
+    val alarmState = remember { mutableStateOf(context.getString(R.string.alert)) }
     ModalBottomSheet(
         onDismissRequest = {},
         containerColor = OffWhite,
@@ -103,17 +104,24 @@ fun DateAndTimePickerForSet(
                 modifier = Modifier.padding(horizontal = 10.dp)
             )
 
-            Column ( modifier = Modifier.padding(horizontal = 10.dp)){
+            Column(modifier = Modifier.padding(horizontal = 10.dp)) {
 
-            RadioButtonSingleSelection({
-                selectedItem ->alarmType.value= selectedItem.ifEmpty { "Alert" }
-                if(selectedItem== context.getString(R.string.notification)){
+                RadioButtonSingleSelection(
+                    { selectedItem ->
+                        alarmType.value = selectedItem.ifEmpty { "Alert" }
+                        alarmState.value = selectedItem
+                        if (selectedItem == context.getString(R.string.notification)) {
 
 //                    askForNotificationPermission(context)
 
-                }
-            }, listOf(stringResource(R.string.alert), stringResource(R.string.notification)))
-        }
+                        }
+                    },
+                    listOf(stringResource(R.string.alert), stringResource(R.string.notification)),
+                    alarmState.value
+
+
+                )
+            }
         }
     }
 }
@@ -147,8 +155,8 @@ private fun onDoneDateAndTimePickerClicked(
         countryName = selectedWeather?.countryName ?: "",
         cityName = selectedWeather?.cityName ?: "",
         alarmType = alarmType.value,
-        longitude = selectedWeather?.longitude?: 0.0,
-        latitude = selectedWeather?.latitude?:0.0
+        longitude = selectedWeather?.longitude ?: 0.0,
+        latitude = selectedWeather?.latitude ?: 0.0
     )
     val duration = calculateDelay(
         targetYear = snappedDate.year,

@@ -66,4 +66,18 @@ class LocalStorageDataSource private constructor(context: Context) {
     val getWindUnit: Int
         get() = prefs.getInt(Strings.WIND_UNIT, R.string.meter_sec)
 
+    fun savePickedLong(longitude: Double) {
+        editor.putFloat(Strings.PICKED_LONG, longitude.toFloat())
+        editor.apply()
+    }
+    val getPickedLong: Double
+        get() = prefs.getFloat(Strings.PICKED_LONG, 0.0f).toDouble()
+
+    fun savePickedLat(latitude: Double) {
+        editor.putFloat(Strings.PICKED_LAT, latitude.toFloat())
+        editor.apply()
+    }
+    val getPickedLat: Double
+        get() = prefs.getFloat(Strings.PICKED_LAT, 0.0f).toDouble()
+
 }

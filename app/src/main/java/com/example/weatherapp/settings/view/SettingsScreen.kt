@@ -153,6 +153,8 @@ fun SettingsScreen(
                         tempSymbol = R.string.celsius
                         tempState.intValue=R.string.celsius
                         windState.intValue=R.string.meter_sec
+                        LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.meter_sec)
+
                     }
 
                     context.getString(R.string.Kelvin) -> {
@@ -160,6 +162,8 @@ fun SettingsScreen(
                         tempSymbol = R.string.Kelvin
                         tempState.intValue=R.string.Kelvin
                         windState.intValue=R.string.meter_sec
+                        LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.meter_sec)
+
                     }
 
                     context.getString(R.string.fahrenheit) -> {
@@ -167,12 +171,16 @@ fun SettingsScreen(
                         tempSymbol = R.string.fahrenheit
                         tempState.intValue=R.string.fahrenheit
                         windState.intValue=R.string.miles_hour
+                        LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.miles_hour)
+
                     }
                     else -> {
                         tempUnit = Strings.CELSIUS
                         tempSymbol = R.string.celsius
                         tempState.intValue=R.string.celsius
                         windState.intValue=R.string.meter_sec
+                        LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.meter_sec)
+
                     }
                 }
                 saveNewTempUnit(context, tempUnit, tempSymbol, homeViewModel, currentWeather)
