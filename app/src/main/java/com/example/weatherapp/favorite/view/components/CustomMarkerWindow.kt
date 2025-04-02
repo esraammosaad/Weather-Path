@@ -18,7 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.weatherapp.R
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
@@ -33,7 +35,8 @@ fun CustomMarkerWindow(
     markerState: MarkerState,
     currentWeatherUiState: Response,
     bottomNavigationBarViewModel: BottomNavigationBarViewModel,
-    countryName: Response
+    countryName: Response,
+    isConnected: Boolean
 ) {
     MarkerInfoWindow(
         state = markerState,
@@ -45,7 +48,7 @@ fun CustomMarkerWindow(
                 modifier = Modifier.size(25.dp),
                 color = Color.Black
             )
-            is Response.Failure -> Text(currentWeatherUiState.exception)
+            is Response.Failure -> FailureText(isConnected, currentWeatherUiState)
             is Response.Success<*> -> {
                 currentWeatherUiState as Response.Success<CurrentWeatherResponse>
                 bottomNavigationBarViewModel.setCurrentWeatherTheme(
@@ -64,7 +67,9 @@ fun CustomMarkerWindow(
                         .padding(20.dp)
                 ) {
                     when (countryName) {
-                        is Response.Failure -> {}
+                        is Response.Failure -> {
+                            FailureText(isConnected, countryName)
+                        }
                         Response.Loading -> {}
                         is Response.Success<*> -> {
                             countryName as Response.Success<Address>
@@ -91,6 +96,17 @@ fun CustomMarkerWindow(
         }
 
     }
+}
+
+@Composable
+private fun FailureText(
+    isConnected: Boolean,
+    currentWeatherUiState: Response.Failure
+) {
+    Text(
+        if (isConnected) currentWeatherUiState.exception else stringResource(R.string.no_internet),
+        style = Styles.textStyleBold16,
+    )
 }
 
 @Composable

@@ -21,6 +21,7 @@ fun BottomSheetDisplay(
     countryName: Response,
     showBottomSheet: MutableState<Boolean>,
     listOfDays: List<List<WeatherItem>>,
+    isConnected: Boolean,
     onAddClicked: (CurrentWeatherResponse, FiveDaysWeatherForecastResponse) -> Unit
 ) {
 
@@ -33,7 +34,7 @@ fun BottomSheetDisplay(
         }
 
         is Response.Failure -> {
-            Failure(currentWeatherUiState)
+            Failure(currentWeatherUiState, isConnected)
         }
 
         is Response.Success<*> -> {
@@ -49,8 +50,8 @@ fun BottomSheetDisplay(
                 markerState.position.longitude.toBigDecimal().setScale(2, RoundingMode.DOWN)
                     .toDouble()
             when (fiveDaysWeatherForecast) {
-                is Response.Loading -> CircularProgressIndicator()
-                is Response.Failure -> Text(fiveDaysWeatherForecast.exception)
+                is Response.Loading -> Loading()
+                is Response.Failure -> Failure(fiveDaysWeatherForecast, isConnected)
                 is Response.Success<*> -> {
                     fiveDaysWeatherForecast as Response.Success<List<WeatherItem>>
                     selectedFiveDaysForecast = fiveDaysWeatherForecast.result?.let {

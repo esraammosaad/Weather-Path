@@ -26,8 +26,6 @@ import com.example.weatherapp.ui.theme.PrimaryColor
 fun RadioButtonSingleSelection(onOptionClicked: (String) -> Unit, radioOptions:List<String>,
                                defaultSelectedItem:String= radioOptions[0]) {
     var (selectedOption, optionClicked) = remember { mutableStateOf(defaultSelectedItem) }
-    Log.i("TAG", "RadioButtonSingleSelection: $defaultSelectedItem")
-    Log.i("TAG", "RadioButtonSingleSelectionssssssssss: $selectedOption")
     Row(Modifier.selectableGroup()) {
         selectedOption=defaultSelectedItem
         radioOptions.forEach { text ->

@@ -15,23 +15,22 @@ sealed class NavigationRoutes(
     object HomeScreen : NavigationRoutes(icon = R.drawable.baseline_cloud_queue_24)
 
     @Serializable
-    object FavoriteScreen :
+    object FavoriteScreen : NavigationRoutes(icon = R.drawable.baseline_map_24)
+
+    @Serializable
+    data class WeatherDetailsScreen(var longitude: Double, var latitude: Double) :
         NavigationRoutes(icon = R.drawable.baseline_map_24)
 
     @Serializable
-    data class WeatherDetailsScreen(var longitude : Double , var latitude : Double) :
-        NavigationRoutes(icon = R.drawable.baseline_map_24)
+    object AlarmScreen : NavigationRoutes(icon = R.drawable.baseline_notifications_none_24)
 
     @Serializable
-    object AlarmScreen :
-        NavigationRoutes(icon = R.drawable.baseline_notifications_none_24)
+    object SettingsScreen : NavigationRoutes(icon = R.drawable.baseline_settings_suggest_24)
 
     @Serializable
-    object SettingsScreen :
-        NavigationRoutes(icon = R.drawable.baseline_settings_suggest_24)
+    object MapScreen : NavigationRoutes(icon = R.drawable.baseline_map_24)
 
     @Serializable
-    object MapScreen :
-        NavigationRoutes(icon = R.drawable.baseline_map_24)
+    object LocationPickScreen : NavigationRoutes(icon = R.drawable.baseline_map_24)
 
 }

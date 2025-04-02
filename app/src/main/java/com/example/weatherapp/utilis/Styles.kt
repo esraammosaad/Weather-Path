@@ -27,6 +27,11 @@ class Styles {
             fontFamily = poppinsFontFamily,
             fontSize = 20.sp,
         )
+        val textStyleSemiBold22 = TextStyle(
+            fontWeight = FontWeight.SemiBold,
+            fontFamily = poppinsFontFamily,
+            fontSize = 22.sp,
+        )
         val textStyleSemiBold15 = TextStyle(
             fontSize = 15.sp,
             fontFamily = poppinsFontFamily,

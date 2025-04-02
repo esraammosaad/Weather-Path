@@ -28,7 +28,6 @@ class InternetConnectivityViewModel(val internetObserver: InternetObserver) : Vi
 //        true
 //    )
 
-
 }
 
 class InternetConnectivityViewModelFactory(private val internetObserver: InternetObserver) :

@@ -76,6 +76,7 @@ fun FavoriteItem(
                         onConfirmation.value.invoke()
                         isDialog.value = false
                     },
+                    confirmText = R.string.confirm,
                     onDismiss = { isDialog.value = false },
                     dialogTitle = dialogTitle.value,
                     dialogText = dialogText.value,

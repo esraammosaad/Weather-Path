@@ -45,7 +45,8 @@ fun MapScreen(
     favoriteViewModel: FavoriteViewModelImpl,
     location: Location,
     bottomNavigationBarViewModel: BottomNavigationBarViewModel,
-    snackBarHostState: SnackbarHostState
+    snackBarHostState: SnackbarHostState,
+    isConnected: Boolean
 ) {
     val context = LocalContext.current
 
@@ -105,7 +106,7 @@ fun MapScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
-    GetLocation(markerState, favoriteViewModel, geocoder)
+    GetLocation(markerState, favoriteViewModel, geocoder, isConnected)
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         properties = properties,
@@ -123,7 +124,8 @@ fun MapScreen(
             markerState,
             currentWeatherUiState,
             bottomNavigationBarViewModel,
-            countryName
+            countryName,
+            isConnected
         )
     }
     SearchableMapScreen(cameraPositionState, markerState, showBottomSheet)
@@ -134,6 +136,7 @@ fun MapScreen(
         countryName,
         showBottomSheet,
         listOfDays,
+        isConnected
     ) { selectedWeather, selectedFiveDaysForecast ->
         onAddClicked(
             selectedWeather,
@@ -152,7 +155,8 @@ fun MapScreen(
 private fun GetLocation(
     markerState: MarkerState,
     favoriteViewModel: FavoriteViewModelImpl,
-    geocoder: Geocoder
+    geocoder: Geocoder,
+    isConnected: Boolean
 ) {
     val context = LocalContext.current
     val languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode
@@ -161,14 +165,14 @@ private fun GetLocation(
         favoriteViewModel.getSelectedWeather(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude,
-            isConnected = true,
+            isConnected = isConnected,
             languageCode = languageCode,
             tempUnit = tempUnit
         )
         favoriteViewModel.getSelectedFiveDaysWeatherForecast(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude,
-            isConnected = true,
+            isConnected = isConnected,
             languageCode = languageCode,
             tempUnit = tempUnit
         )
@@ -176,7 +180,7 @@ private fun GetLocation(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude,
             geocoder = geocoder,
-            isConnected = true
+            isConnected = isConnected
         )
     }
 }
@@ -212,6 +216,7 @@ fun onAddClicked(
                     )
                 }
             }
+
             SnackbarResult.Dismissed -> {
             }
         }

@@ -1,4 +1,4 @@
-package com.example.weatherapp.favorite.view.components
+package com.example.weatherapp.favorite.view.screens
 
 import android.location.Address
 import android.location.Geocoder
@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -31,32 +32,37 @@ fun WeatherDetailsScreen(
     longitude: Double,
     latitude: Double,
     favoriteViewModel: FavoriteViewModelImpl,
-    bottomNavigationBarViewModel: BottomNavigationBarViewModel
+    bottomNavigationBarViewModel: BottomNavigationBarViewModel,
+    isConnected : Boolean
 ) {
 
     val context = LocalContext.current
     val languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode
     val tempUnit = LocalStorageDataSource.getInstance(context).getTempUnit
-    favoriteViewModel.getSelectedWeather(
-        longitude = longitude,
-        latitude = latitude,
-        languageCode = languageCode,
-        tempUnit = tempUnit,
-        isConnected = true
-    )
-    favoriteViewModel.getSelectedFiveDaysWeatherForecast(
-        longitude = longitude,
-        latitude = latitude,
-        languageCode = languageCode,
-        tempUnit = tempUnit,
-        isConnected = true
-    )
-    favoriteViewModel.getCountryName(
-        longitude = longitude, latitude = latitude, Geocoder(
-            context,
-            Locale(LocalStorageDataSource.getInstance(context).getLanguageCode)
-        ), isConnected = true
-    )
+
+    LaunchedEffect(Unit) {
+        favoriteViewModel.getSelectedWeather(
+            longitude = longitude,
+            latitude = latitude,
+            languageCode = languageCode,
+            tempUnit = tempUnit,
+            isConnected = isConnected
+        )
+        favoriteViewModel.getSelectedFiveDaysWeatherForecast(
+            longitude = longitude,
+            latitude = latitude,
+            languageCode = languageCode,
+            tempUnit = tempUnit,
+            isConnected = isConnected
+        )
+        favoriteViewModel.getCountryName(
+            longitude = longitude, latitude = latitude, Geocoder(
+                context,
+                Locale(LocalStorageDataSource.getInstance(context).getLanguageCode)
+            ), isConnected = isConnected
+        )
+    }
+
     val selectedWeather = favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
 
     val selectedFiveDaysWeatherForecast =
@@ -96,9 +102,7 @@ fun WeatherDetailsScreen(
         is Response.Success<*> -> {
             selectedWeather as Response.Success<CurrentWeatherResponse>
             bottomNavigationBarViewModel.setCurrentWeatherTheme(
-                selectedWeather.result?.weather?.get(
-                    0
-                )?.icon ?: ""
+                selectedWeather.result?.weather?.firstOrNull()?.icon ?: ""
             )
             when (countryName) {
                 is Response.Failure -> Text(countryName.exception)

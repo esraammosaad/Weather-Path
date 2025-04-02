@@ -27,6 +27,7 @@ fun ConfirmationDialog(
     dialogTitle: String,
     dialogText: String,
     showRadioButton: Boolean=false,
+    confirmText : Int,
     radioButtonState:MutableState<String> = remember { mutableStateOf("") },
     onOptionClicked: (String) -> Unit={}
 ) {
@@ -62,7 +63,7 @@ fun ConfirmationDialog(
                     onConfirmation()
                 }
             ) {
-                Text(stringResource(R.string.confirm), color = PrimaryColor)
+                Text(stringResource(confirmText), color = PrimaryColor)
             }
         },
         dismissButton = {
@@ -71,7 +72,7 @@ fun ConfirmationDialog(
                     onDismiss()
                 }
             ) {
-                Text(stringResource(R.string.dismiss), color = PrimaryColor)
+                Text(stringResource(R.string.cancel), color = PrimaryColor)
             }
         }
 

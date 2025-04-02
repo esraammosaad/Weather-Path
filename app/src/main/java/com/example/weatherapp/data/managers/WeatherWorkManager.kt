@@ -24,6 +24,7 @@ class WeatherWorkManager(context: Context, workerParameters: WorkerParameters) :
         val longitude = inputData.getDouble(Strings.LONG_CONST, 0.0)
         val latitude = inputData.getDouble(Strings.LAT_CONST, 0.0)
         val requestCode = inputData.getInt(Strings.CODE_CONST, 0)
+        Log.i("TAG", "doWork: $requestCode")
         Log.i("TAG", "doWork: $longitude , $latitude")
         val result =
             RetrofitFactory.apiService.getCurrentWeather(
@@ -32,6 +33,8 @@ class WeatherWorkManager(context: Context, workerParameters: WorkerParameters) :
                 language = LocalStorageDataSource.getInstance(applicationContext).getLanguageCode,
                 unit = LocalStorageDataSource.getInstance(applicationContext).getTempUnit
             )
+        Log.i("TAG", "doWork:  result :  $result")
+
         val list = Geocoder(
             applicationContext,
             Locale(LocalStorageDataSource.getInstance(applicationContext).getLanguageCode)
@@ -45,6 +48,7 @@ class WeatherWorkManager(context: Context, workerParameters: WorkerParameters) :
             val stringResult = gson.toJson(result)
             val intent = Intent(applicationContext, WeatherBroadcastReceiver::class.java)
             intent.putExtra(Strings.RESULT_CONST, stringResult)
+            Log.i("TAG", "doWork: string result :  $stringResult")
             intent.putExtra(
                 Strings.ALARM_TYPE,
                 it.first { item -> item.locationId == result.id }.alarmType
@@ -58,9 +62,11 @@ class WeatherWorkManager(context: Context, workerParameters: WorkerParameters) :
             )
             alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
-                SystemClock.elapsedRealtime(),
+                SystemClock.elapsedRealtime()+20000,
                 pendingIntent
             )
+
+            WeatherDatabase.getInstance(applicationContext).getDao().deleteAlarm(result.id)
         }
         return Result.success()
     }

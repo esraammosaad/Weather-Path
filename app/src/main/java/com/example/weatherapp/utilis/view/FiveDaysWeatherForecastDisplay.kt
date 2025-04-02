@@ -25,6 +25,7 @@ import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.Strings
+import com.example.weatherapp.utilis.Styles
 import com.example.weatherapp.utilis.secondFormatDateTime
 
 @Composable
@@ -34,9 +35,19 @@ fun FiveDaysWeatherForecastDisplay(fiveDaysWeatherForecast: List<List<WeatherIte
 
     LazyColumn(
         modifier = Modifier
-            .padding(end = 12.dp, start = 12.dp, top = 16.dp)
+            .padding(end = 12.dp, start = 12.dp, top = 22.dp)
             .size(450.dp),
     ) {
+
+        item {
+            Text(
+                "5-DAY FORECAST",
+                style = Styles.textStyleSemiBold22,
+                color = Color.White
+
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
         items(fiveDaysWeatherForecast.size) {
 
                 dayIndex ->

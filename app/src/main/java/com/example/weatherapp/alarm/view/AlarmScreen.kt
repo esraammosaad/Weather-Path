@@ -105,6 +105,7 @@ fun AlarmScreen(
                 onConfirmation.value.invoke()
                 isDialog.value = false
             },
+            confirmText = R.string.confirm,
             onDismiss = { isDialog.value = false },
             dialogTitle = dialogTitle.value,
             dialogText = dialogText.value,
@@ -160,7 +161,7 @@ fun AlarmScreen(
                                 Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(150.dp)
+                                        .height(180.dp)
                                         .background(
                                             brush = getWeatherGradient(
                                                 currentWeather.weather.firstOrNull()?.icon ?: ""
@@ -178,7 +179,7 @@ fun AlarmScreen(
                                 ) {
                                     Column(
                                         verticalArrangement = Arrangement.SpaceBetween,
-                                        modifier = Modifier.height(150.dp)
+                                        modifier = Modifier.height(180.dp)
                                     ) {
                                         Row(
                                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -200,13 +201,12 @@ fun AlarmScreen(
                                                 )
                                             }
                                         }
-                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Spacer(modifier = Modifier.height(6.dp))
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
-
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 Image(
                                                     painter = painterResource(R.drawable.notification),
@@ -222,7 +222,7 @@ fun AlarmScreen(
                                                             ?: stringResource(R.string.no_alarm_set),
                                                         fontSize = 16.sp
                                                     )
-                                                    Spacer(Modifier.height(5.dp))
+                                                    Spacer(Modifier.height(4.dp))
                                                     Text(
                                                         item?.date
                                                             ?: stringResource(R.string.stay_ready),
@@ -259,11 +259,12 @@ fun AlarmScreen(
                                             )
                                         }
 
-//                                        Text(
-//                                            text = item?.alarmType
-//                                                ?: stringResource(R.string.n_a),
-//                                            style = Styles.textStyleMedium16
-//                                        )
+                                        Text(
+                                            text = item?.alarmType
+                                                ?: stringResource(R.string.n_a),
+                                            style = Styles.textStyleMedium18,
+                                            modifier = Modifier.padding(start = 3.dp)
+                                        )
                                     }
 
                                 }
@@ -407,4 +408,5 @@ private fun requestWorkManagerForUpdate(
             .build()
     WorkManager.getInstance(context).enqueue(workRequest)
 }
+
 

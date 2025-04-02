@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
+import com.example.weatherapp.utilis.Styles
 import com.example.weatherapp.utilis.convertUnixToTime
 
 @Composable
@@ -30,6 +32,13 @@ fun MoreDetailsContainer(currentWeather: CurrentWeatherResponse) {
     val context = LocalContext.current
     Column(modifier = Modifier.padding(horizontal = 12.dp)) {
 
+            Text(
+                "MORE DETAILS",
+                style = Styles.textStyleSemiBold22,
+                color = Color.White
+
+            )
+        Spacer(modifier = Modifier.height(10.dp))
         Box(
             Modifier
                 .background(Color.White.copy(alpha = 0.2f), shape = RoundedCornerShape(15.dp))
@@ -58,7 +67,7 @@ fun MoreDetailsContainer(currentWeather: CurrentWeatherResponse) {
                     )
                     Spacer(modifier = Modifier.height(20.dp))
                     MoreDetailsItem(
-                        icon = R.drawable.thermometer,
+                        icon = R.drawable.barometer,
                         textOne = stringResource(R.string.pressure),
                         textTwo = currentWeather.main.pressure.toString() + stringResource(R.string.hpa)
                     )

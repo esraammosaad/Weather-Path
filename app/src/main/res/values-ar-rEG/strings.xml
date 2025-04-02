@@ -53,8 +53,8 @@
     <string name="preferences">التفضيلات</string>
     <string name="temperature">درجة الحرارة</string>
     <string name="wind_speed">سرعة الرياح</string>
-    <string name="meter_sec">متر/ثانية</string>
-    <string name="miles_hour">ميل/ساعة</string>
+    <string name="meter_sec">" م/ث"</string>
+    <string name="miles_hour">" م/س"</string>
     <string name="get_location_by">تحديد الموقع عن طريق</string>
     <string name="weather">الطقس</string>
     <string name="favorites">المفضلة</string>
@@ -82,4 +82,11 @@
     <string name="today_s_weather_in_is_with_a_temperature_of">الطقس اليوم في %1$s هو %2$s مع درجة حرارة تبلغ %3$s</string>
     <string name="stay_prepared_and_enjoy_your_day">كن مستعدًا واستمتع بيومك!</string>
     <string name="done">تم</string>
+    <string name="location_added_successfully">تم إضافة الموقع بنجاح</string>
+    <string name="network_settings">إعدادات الشبكة</string>
+    <string name="no_internet_connection">لا يوجد اتصال بالإنترنت</string>
+    <string name="no_internet_connection_check_your_network_settings">لا يوجد اتصال بالإنترنت. تحقق من إعدادات الشبكة لديك.</string>
+    <string name="no_internet">لا يوجد إنترنت</string>
+    <string name="you_sure_you_want_change_your_location_and_pick_from_the_map">هل أنت متأكد أنك تريد تغيير موقعك واختيار موقع من الخريطة؟</string>
+    <string name="you_sure_you_want_the_gps_determine_your_location">هل أنت متأكد أنك تريد أن يحدد GPS موقعك؟</string>
 </resources>

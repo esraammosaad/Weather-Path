@@ -31,21 +31,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherapp.MainActivity
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.local.WeatherDatabase
 import com.example.weatherapp.data.local.WeatherLocalDataSource
-import com.example.weatherapp.data.model.AlarmModel
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.remote.RetrofitFactory
 import com.example.weatherapp.data.remote.WeatherRemoteDataSource
 import com.example.weatherapp.data.repository.Repository
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelFactory
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
-import com.example.weatherapp.home.view_model.HomeViewModelFactory
-import com.example.weatherapp.home.view_model.HomeViewModelImpl
 import com.example.weatherapp.ui.theme.OffWhite
 import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.ui.theme.poppinsFontFamily
@@ -69,26 +65,26 @@ class DialogActivity : ComponentActivity() {
         val mediaPlayer = MediaPlayer.create(this@DialogActivity, R.raw.sound_track_two)
         mediaPlayer.start()
         setContent {
-            val favoriteViewModelImpl  = ViewModelProvider(
-                this,
-                FavoriteViewModelFactory(
-                    Repository.getInstance(
-                        weatherRemoteDataSource = WeatherRemoteDataSource(RetrofitFactory.apiService),
-                        weatherLocalDataSource = WeatherLocalDataSource(
-                            WeatherDatabase.getInstance(
-                                this
-                            ).getDao()
-                        )
-                    )
-                )
-            )[FavoriteViewModelImpl::class]
+//            val favoriteViewModelImpl  = ViewModelProvider(
+//                this,
+//                FavoriteViewModelFactory(
+//                    Repository.getInstance(
+//                        weatherRemoteDataSource = WeatherRemoteDataSource(RetrofitFactory.apiService),
+//                        weatherLocalDataSource = WeatherLocalDataSource(
+//                            WeatherDatabase.getInstance(
+//                                this
+//                            ).getDao()
+//                        )
+//                    )
+//                )
+//            )[FavoriteViewModelImpl::class]
 
             AlertScreen(response, onConfirmClicked = {
-                favoriteViewModelImpl.deleteAlarm(response.id)
+//                favoriteViewModelImpl.deleteAlarm(response.id)
                 finish()
 
             }, onOpenAppClicked = {
-                favoriteViewModelImpl.deleteAlarm(response.id)
+//                favoriteViewModelImpl.deleteAlarm(response.id)
                 finish()
                 val intent = Intent(this, MainActivity::class.java)
                 startActivity(intent)
@@ -150,7 +146,7 @@ private fun AlertScreen(
                     Text(
                         stringResource(
                             R.string.today_s_weather_in_is_with_a_temperature_of,
-                            currentWeatherResponse.name,
+                            currentWeatherResponse.cityName,
                             currentWeatherResponse.weather.firstOrNull()?.description ?: "",
                             currentWeatherResponse.main.temp
                         ) + stringResource(LocalStorageDataSource.getInstance(context).getTempSymbol) + " " + stringResource(

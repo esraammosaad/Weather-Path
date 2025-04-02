@@ -3,12 +3,14 @@ package com.example.weatherapp.utilis
 import android.content.Context
 import android.location.Address
 import android.location.Location
+import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModelProvider
@@ -26,12 +28,14 @@ import com.example.weatherapp.data.remote.WeatherRemoteDataSource
 import com.example.weatherapp.data.repository.Repository
 import com.example.weatherapp.favorite.view.screens.FavoriteScreen
 import com.example.weatherapp.favorite.view.screens.MapScreen
-import com.example.weatherapp.favorite.view.components.WeatherDetailsScreen
+import com.example.weatherapp.favorite.view.screens.WeatherDetailsScreen
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelFactory
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
 import com.example.weatherapp.home.view.HomeScreen
+import com.example.weatherapp.home.view.LocationPickScreen
 import com.example.weatherapp.home.view_model.HomeViewModelImpl
 import com.example.weatherapp.settings.view.SettingsScreen
+import kotlinx.coroutines.launch
 
 @Composable
 fun NavHostImpl(
@@ -42,14 +46,20 @@ fun NavHostImpl(
     snackBarHostState: SnackbarHostState,
     homeViewModel: HomeViewModelImpl,
     bottomNavigationBarViewModel: BottomNavigationBarViewModel,
-    locationState: MutableState<Location>
+    locationState: MutableState<Location>,
+    isConnected: Boolean,
+    isLocationPickedScreen: MutableState<Boolean>,
+    isMainScreen: MutableState<Boolean>,
 ) {
+
+    Log.i("TAG", "NavHostImpl: ${locationState.value.longitude}")
     NavHost(
         navController = navController,
         modifier = Modifier.padding(innerPadding),
         startDestination = NavigationRoutes.HomeScreen
 
     ) {
+
         composable<NavigationRoutes.HomeScreen> {
             HomeScreen(homeViewModel, bottomNavigationBarViewModel, snackBarHostState)
         }
@@ -73,11 +83,11 @@ fun NavHostImpl(
                                 longitude,
                                 latitude
                             )
-
-
                         )
                     },
-                    bottomNavigationBarViewModel, snackBarHostState = snackBarHostState,
+                    bottomNavigationBarViewModel = bottomNavigationBarViewModel,
+                    snackBarHostState = snackBarHostState,
+                    isConnected = isConnected
                 )
             }
         }
@@ -107,7 +117,8 @@ fun NavHostImpl(
                 weatherDetailsScreen.longitude,
                 weatherDetailsScreen.latitude,
                 favoriteViewModel,
-                bottomNavigationBarViewModel
+                bottomNavigationBarViewModel,
+                isConnected
             )
         }
         composable<NavigationRoutes.SettingsScreen> {
@@ -115,7 +126,30 @@ fun NavHostImpl(
                 homeViewModel,
                 currentWeatherResponse,
                 snackBarHostState,
-                bottomNavigationBarViewModel
+                bottomNavigationBarViewModel,
+            ) {
+                navController.navigate(NavigationRoutes.LocationPickScreen)
+
+            }
+        }
+        composable<NavigationRoutes.LocationPickScreen> {
+            val context = LocalContext.current
+            val scope = rememberCoroutineScope()
+            LocationPickScreen(
+                homeViewModel = homeViewModel,
+                bottomNavigationBarViewModel = bottomNavigationBarViewModel,
+                onBackClicked = {
+                    navController.popBackStack()
+                },
+                location = locationState,
+                isConnected = isConnected,
+                onChooseClicked = {
+                    navController.popBackStack()
+                    scope.launch {
+                        snackBarHostState.showSnackbar("Location Updated Successfully")
+                    }
+//                    (context as Activity).recreate()
+                }
             )
         }
         composable<NavigationRoutes.MapScreen> { backStackEntry ->
@@ -129,13 +163,14 @@ fun NavHostImpl(
                 locationState.value,
                 bottomNavigationBarViewModel,
                 snackBarHostState = snackBarHostState,
+                isConnected
             )
         }
     }
 }
 
 @Composable
-private fun getFavoriteViewModel(
+fun getFavoriteViewModel(
     parentEntry: NavBackStackEntry,
     context: Context
 ) = ViewModelProvider(
@@ -150,3 +185,4 @@ private fun getFavoriteViewModel(
         )
     )
 )[FavoriteViewModelImpl::class.java]
+

@@ -223,13 +223,22 @@ class FavoriteViewModelImpl(
         fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse
     ) {
         viewModelScope.launch {
-            val resultOne = repository.deleteCurrentWeather(currentWeatherResponse)
-            val resultTwo = repository.deleteFiveDaysWeather(fiveDaysWeatherForecastResponse)
 
-            if (resultOne > 0 && resultTwo > 0) {
-                _deleteFavoriteItemResult.emit("Deleted Successfully")
-            } else {
+            try {
+
+
+                val resultOne = repository.deleteCurrentWeather(currentWeatherResponse)
+                val resultTwo = repository.deleteFiveDaysWeather(fiveDaysWeatherForecastResponse)
+
+                if (resultOne > 0 && resultTwo > 0) {
+                    _deleteFavoriteItemResult.emit("Deleted Successfully")
+                } else {
+                    _deleteFavoriteItemResult.emit("Something wrong happened!!")
+
+                }
+            } catch (e: Exception) {
                 _deleteFavoriteItemResult.emit("Something wrong happened!!")
+
 
             }
         }
@@ -274,29 +283,50 @@ class FavoriteViewModelImpl(
 
     private fun selectDayWeather(longitude: Double, latitude: Double) {
         viewModelScope.launch {
-            val result = repository.selectDayWeather(
-                longitude = longitude.toBigDecimal()
-                    .setScale(2, RoundingMode.DOWN).toDouble(), latitude = latitude.toBigDecimal()
-                    .setScale(2, RoundingMode.DOWN).toDouble()
-            )
-            result.collect {
-                _selectedWeather.emit(Response.Success(it))
+
+            try {
+
+
+                val result = repository.selectDayWeather(
+                    longitude = longitude.toBigDecimal()
+                        .setScale(2, RoundingMode.DOWN).toDouble(),
+                    latitude = latitude.toBigDecimal()
+                        .setScale(2, RoundingMode.DOWN).toDouble()
+                )
+                result.catch { ex ->
+                    _selectedWeather.emit(Response.Failure(ex.message.toString()))
+                }.collect {
+                    _selectedWeather.emit(Response.Success(it))
+                }
+            } catch (e: Exception) {
+                _selectedWeather.emit(Response.Failure(e.message.toString()))
+
+
             }
         }
     }
 
     private fun selectFiveDaysWeather(longitude: Double, latitude: Double) {
         viewModelScope.launch {
-            val result =
-                repository.selectFiveDaysWeather(
-                    longitude = longitude.toBigDecimal()
-                        .setScale(2, RoundingMode.DOWN).toDouble(),
-                    latitude = latitude.toBigDecimal()
-                        .setScale(2, RoundingMode.DOWN).toDouble()
-                )
-            result.collect {
-                _selectedFiveDaysWeatherForecast.emit(Response.Success(it.list))
-                filterDaysList(it.list.asFlow())
+
+            try {
+                val result =
+                    repository.selectFiveDaysWeather(
+                        longitude = longitude.toBigDecimal()
+                            .setScale(2, RoundingMode.DOWN).toDouble(),
+                        latitude = latitude.toBigDecimal()
+                            .setScale(2, RoundingMode.DOWN).toDouble()
+                    )
+                result.catch { ex ->
+                    _selectedFiveDaysWeatherForecast.emit(Response.Failure(ex.message.toString()))
+
+                }.collect {
+                    _selectedFiveDaysWeatherForecast.emit(Response.Success(it.list))
+                    filterDaysList(it.list.asFlow())
+                }
+            } catch (e: Exception) {
+                _selectedFiveDaysWeatherForecast.emit(Response.Failure(e.message.toString()))
+
             }
         }
     }

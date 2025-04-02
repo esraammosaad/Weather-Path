@@ -30,12 +30,12 @@ class LocalStorageDataSource private constructor(context: Context) {
     val getStartedState: Boolean
         get() = prefs.getBoolean(Strings.SEEN_GET_STARTED, false)
 
-    fun saveLocationState(locationState: String) {
-        editor.putString(Strings.LOCATION_STATE, locationState)
+    fun saveLocationState(locationState: Int) {
+        editor.putInt(Strings.LOCATION_STATE, locationState)
         editor.apply()
     }
-    val getLocationState: String
-        get() = prefs.getString(Strings.LOCATION_STATE, "GPS") ?: "GPS"
+    val getLocationState: Int
+        get() = prefs.getInt(Strings.LOCATION_STATE, R.string.gps)
 
     fun saveLanguageCode(langCode: String) {
         editor.putString(Strings.LANG_CODE, langCode)
@@ -79,5 +79,12 @@ class LocalStorageDataSource private constructor(context: Context) {
     }
     val getPickedLat: Double
         get() = prefs.getFloat(Strings.PICKED_LAT, 0.0f).toDouble()
+
+    fun saveIsMap(isMap: Boolean) {
+        editor.putBoolean("IS_Map", isMap)
+        editor.apply()
+    }
+    val getIsMap: Boolean
+        get() = prefs.getBoolean("IS_Map", false)
 
 }

@@ -92,9 +92,7 @@ class HomeViewModelImpl(
                     selectDayWeather(longitude = longitude, latitude = latitude)
                 }
             } else {
-
                 selectDayWeather(longitude = longitude, latitude = latitude)
-
             }
 
         }
@@ -102,14 +100,14 @@ class HomeViewModelImpl(
 
     }
 
-     fun getFiveDaysWeatherForecast(
+    fun getFiveDaysWeatherForecast(
         latitude: Double,
         longitude: Double,
         isConnected: Boolean,
         languageCode: String,
         tempUnit: String
     ) {
-         Log.i("TAG", "getFiveDaysWeatherForecast: api call")
+        Log.i("TAG", "getFiveDaysWeatherForecast: api call")
         viewModelScope.launch {
             if (isConnected) {
                 try {
@@ -120,21 +118,14 @@ class HomeViewModelImpl(
                             languageCode = languageCode,
                             tempUnit = tempUnit
                         )
-
                     _fiveDaysWeatherForecast.emit(Response.Success(result.catch { ex ->
                         _message.postValue(ex.message.toString())
                         selectFiveDaysWeather(longitude = longitude, latitude = latitude)
-
                     }.toList()))
-
                     filterDaysList(result)
-
-
                 } catch (e: Exception) {
                     _message.postValue(e.message.toString())
                     selectFiveDaysWeather(longitude = longitude, latitude = latitude)
-
-
                 }
             } else {
                 selectFiveDaysWeather(longitude = longitude, latitude = latitude)
@@ -182,16 +173,17 @@ class HomeViewModelImpl(
         isConnected: Boolean
     ) {
         viewModelScope.launch {
-
-            if (isConnected) {
-                val list =
-                    geocoder.getFromLocation(latitude, longitude, 1)
-                if (!list.isNullOrEmpty())
-                    _countryName.emit(Response.Success(list[0]))
-            } else {
-
-                _countryName.emit(Response.Success(Address(Locale("ar"))))
-
+            try {
+                if (isConnected) {
+                    val list =
+                        geocoder.getFromLocation(latitude, longitude, 1)
+                    if (!list.isNullOrEmpty())
+                        _countryName.emit(Response.Success(list[0]))
+                } else {
+                    _countryName.emit(Response.Success(Address(Locale("ar"))))
+                }
+            } catch (e: Exception) {
+                _countryName.emit(Response.Failure(e.message.toString()))
             }
         }
     }
@@ -205,10 +197,7 @@ class HomeViewModelImpl(
                     .setScale(2, RoundingMode.DOWN).toDouble()
             )
             result.catch { ex ->
-
                 _currentWeather.emit(Response.Failure(ex.message.toString()))
-
-
             }.collect {
                 _currentWeather.emit(Response.Success(it))
             }
@@ -217,21 +206,22 @@ class HomeViewModelImpl(
 
     private fun selectFiveDaysWeather(longitude: Double, latitude: Double) {
         viewModelScope.launch {
-            val result =
-                repository.selectFiveDaysWeather(
-                    longitude = longitude.toBigDecimal()
-                        .setScale(2, RoundingMode.DOWN).toDouble(),
-                    latitude = latitude.toBigDecimal()
-                        .setScale(2, RoundingMode.DOWN).toDouble()
-                )
-            result.catch { ex ->
-
-                _fiveDaysWeatherForecast.emit(Response.Failure(ex.message.toString()))
-
-
-            }.collect {
-                _fiveDaysWeatherForecast.emit(Response.Success(it.list))
-                filterDaysList(it.list.asFlow())
+            try {
+                val result =
+                    repository.selectFiveDaysWeather(
+                        longitude = longitude.toBigDecimal()
+                            .setScale(2, RoundingMode.DOWN).toDouble(),
+                        latitude = latitude.toBigDecimal()
+                            .setScale(2, RoundingMode.DOWN).toDouble()
+                    )
+                result.catch { ex ->
+                    _fiveDaysWeatherForecast.emit(Response.Failure(ex.message.toString()))
+                }.collect {
+                    _fiveDaysWeatherForecast.emit(Response.Success(it.list))
+                    filterDaysList(it.list.asFlow())
+                }
+            } catch (e: Exception) {
+                _fiveDaysWeatherForecast.emit(Response.Failure(e.message.toString()))
             }
         }
     }
@@ -262,18 +252,21 @@ class HomeViewModelImpl(
             languageCode = languageCode,
             tempUnit = tempUnit
         )
+
+
     }
 
     fun insertFiveDaysForecast(
         fiveDaysWeatherForecast: List<WeatherItem>?,
-        locationState: Location
+        longitude: Double,
+        latitude: Double
     ) {
         fiveDaysWeatherForecast?.let { it1 ->
             FiveDaysWeatherForecastResponse(
                 list = it1,
-                latitude = locationState.latitude.toBigDecimal()
+                latitude = latitude.toBigDecimal()
                     .setScale(2, RoundingMode.DOWN).toDouble(),
-                longitude = locationState.longitude.toBigDecimal()
+                longitude = longitude.toBigDecimal()
                     .setScale(2, RoundingMode.DOWN).toDouble()
             )
         }?.let { it2 ->
@@ -287,21 +280,28 @@ class HomeViewModelImpl(
     fun insertCurrentWeather(
         currentWeather: CurrentWeatherResponse?,
         countryName: Address?,
-        locationState: Location
+        longitude: Double,
+        latitude: Double
 
     ) {
-        currentWeather?.let { currentWeather ->
-            currentWeather.latitude =
-                locationState.latitude.toBigDecimal().setScale(2, RoundingMode.DOWN)
-                    .toDouble()
-            currentWeather.longitude =
-                locationState.longitude.toBigDecimal().setScale(2, RoundingMode.DOWN)
-                    .toDouble()
-            currentWeather.countryName = countryName?.countryName ?: currentWeather.sys.country
-            currentWeather.cityName = countryName?.locality ?: currentWeather.name
-            insertCurrentWeather(
-                currentWeather
-            )
+        try {
+            currentWeather?.let { currentWeather ->
+                currentWeather.latitude =
+                    latitude.toBigDecimal().setScale(2, RoundingMode.DOWN)
+                        .toDouble()
+                currentWeather.longitude =
+                    longitude.toBigDecimal().setScale(2, RoundingMode.DOWN)
+                        .toDouble()
+                currentWeather.countryName = countryName?.countryName ?: currentWeather?.sys?.country?:""
+                currentWeather.cityName = countryName?.locality ?: currentWeather?.name?:""
+                insertCurrentWeather(
+                    currentWeather
+                )
+            }
+        } catch (e: Exception) {
+
+
+
         }
     }
 

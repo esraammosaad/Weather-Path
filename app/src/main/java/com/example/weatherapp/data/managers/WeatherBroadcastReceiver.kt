@@ -1,8 +1,6 @@
 package com.example.weatherapp.data.managers
 
-import android.app.Notification
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -11,11 +9,12 @@ import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
 import android.provider.Settings
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import com.example.weatherapp.MainActivity
 import com.example.weatherapp.R
 import com.example.weatherapp.alarm.view.DialogActivity
+import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.utilis.Strings
+import com.example.weatherapp.utilis.notification.NotificationHelper
+import com.google.gson.Gson
 
 
 class WeatherBroadcastReceiver : BroadcastReceiver() {
@@ -24,6 +23,8 @@ class WeatherBroadcastReceiver : BroadcastReceiver() {
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val response = intent.getStringExtra(Strings.RESULT_CONST)
         val alarmType = intent.getStringExtra(Strings.ALARM_TYPE)
+        val gson = Gson()
+        val currentWeatherResponse = gson.fromJson(response, CurrentWeatherResponse::class.java)
         Log.i("TAG", "onReceive: $response")
         if (alarmType == context.getString(R.string.alert)) {
             if (Settings.canDrawOverlays(context)) {
@@ -33,34 +34,11 @@ class WeatherBroadcastReceiver : BroadcastReceiver() {
                 context.startActivity(dialogIntent)
             }
         }else{
-
-            notificationManager.notify(1, createNotification(context))
-
-
+            notificationManager.notify(1, NotificationHelper.createNotification(context,true,currentWeatherResponse))
         }
 
 
     }
-
-    private fun createNotification(context: Context): Notification {
-        val fullScreenIntent = Intent(context, MainActivity::class.java)
-        val fullScreenPendingIntent = PendingIntent.getActivity(
-            context, 0,
-            fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        return NotificationCompat.Builder(context, Strings.CHANNEL_ID)
-            .setSmallIcon(R.drawable.sun)
-            .setContentTitle("Weather Alert")
-            .setContentText("Check today's weather!")
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setDefaults(Notification.DEFAULT_ALL)
-            .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setFullScreenIntent(fullScreenPendingIntent, true)
-            .setAutoCancel(true)
-            .build()
-    }
-
 }
 
 

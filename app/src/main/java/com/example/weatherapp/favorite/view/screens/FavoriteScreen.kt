@@ -2,6 +2,7 @@ package com.example.weatherapp.favorite.view.screens
 
 import android.content.Context
 import android.location.Address
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -52,7 +53,10 @@ fun FavoriteScreen(
     onFavoriteCardClicked: (longitude: Double, latitude: Double) -> Unit,
     bottomNavigationBarViewModel: BottomNavigationBarViewModel,
     snackBarHostState: SnackbarHostState,
+    isConnected:Boolean
 ) {
+
+    Log.i("TAG", "FavoriteScreen: $isConnected")
     LaunchedEffect(Unit) {
         favoriteViewModel.selectFavorites()
         favoriteViewModel.selectAllAlarms()
@@ -103,7 +107,8 @@ fun FavoriteScreen(
             onFavoriteCardClicked,
             snackBarHostState,
             alarms,
-            coroutineScope
+            coroutineScope,
+            isConnected
         )
     }
 

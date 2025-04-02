@@ -1,12 +1,9 @@
 package com.example.weatherapp.settings.view
 
 import android.app.Activity
-import android.app.LocaleManager
 import android.content.Context
-import android.os.Build
-import android.os.LocaleList
+import android.content.Intent
 import android.util.Log
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -25,7 +22,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,17 +35,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.os.LocaleListCompat
-import androidx.room.PrimaryKey
+import com.example.weatherapp.MainActivity
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.home.view_model.HomeViewModelImpl
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
-import com.example.weatherapp.utilis.LocalizationHelper
+import com.example.weatherapp.utilis.localization.LocalizationHelper
 import com.example.weatherapp.utilis.Strings
 import com.example.weatherapp.utilis.Styles
 import com.example.weatherapp.utilis.getWeatherGradient
+import com.example.weatherapp.utilis.view.ConfirmationDialog
 import com.example.weatherapp.utilis.view.RadioButtonSingleSelection
 
 
@@ -58,6 +55,7 @@ fun SettingsScreen(
     currentWeather: CurrentWeatherResponse,
     snackBarHostState: SnackbarHostState,
     navigationBarViewModel: BottomNavigationBarViewModel,
+    onMapClicked: () -> Unit
 ) {
 
     val context = LocalContext.current
@@ -65,6 +63,29 @@ fun SettingsScreen(
         remember { mutableIntStateOf(LocalStorageDataSource.getInstance(context).getTempSymbol) }
     val windState =
         remember { mutableIntStateOf(LocalStorageDataSource.getInstance(context).getWindUnit) }
+
+    val test = LocalStorageDataSource.getInstance(context).getLocationState
+
+    val locationState =
+        remember { mutableIntStateOf(if (test == R.string.map) R.string.map else R.string.gps) }
+
+    val openAlertDialog = remember { mutableStateOf(false) }
+    val dialogTitle = remember { mutableStateOf("") }
+    val dialogText = remember { mutableStateOf("") }
+    val onConfirmation = remember { mutableStateOf({}) }
+
+    if (openAlertDialog.value) {
+        ConfirmationDialog(
+            onConfirmation = onConfirmation.value,
+            dialogText = dialogText.value,
+            dialogTitle = dialogTitle.value,
+            onDismiss = {
+                openAlertDialog.value = false
+            },
+            showRadioButton = false,
+            confirmText = R.string.confirm,
+        )
+    }
 
 
 
@@ -122,14 +143,36 @@ fun SettingsScreen(
                 stringResource(R.string.get_location_by),
                 listOf(
                     stringResource(R.string.gps),
-                    stringResource(
-                        R.string.map
-                    )
+                    stringResource(R.string.map)
                 ),
                 R.drawable.baseline_location_pin_24,
                 currentWeather.weather.firstOrNull()?.icon ?: "",
-                ""
-            ) {
+                stringResource(locationState.intValue)
+            ) { selectedOption ->
+                if (selectedOption == context.getString(R.string.map)) {
+                    openAlertDialog.value = true
+                    dialogTitle.value = context.getString(R.string.warning)
+                    dialogText.value =
+                        context.getString(R.string.you_sure_you_want_change_your_location_and_pick_from_the_map)
+                    onConfirmation.value = {
+                        onMapClicked.invoke()
+                        locationState.intValue = R.string.map
+                        LocalStorageDataSource.getInstance(context).saveLocationState(0)
+                        (context as Activity).recreate()
+
+                    }
+                } else {
+                    openAlertDialog.value = true
+                    dialogTitle.value = context.getString(R.string.warning)
+                    dialogText.value =
+                        context.getString(R.string.you_sure_you_want_the_gps_determine_your_location)
+                    onConfirmation.value = {
+                        LocalStorageDataSource.getInstance(context).saveLocationState(R.string.gps)
+                        locationState.value = R.string.gps
+                        (context as Activity).recreate()
+                    }
+                }
+
 
             }
             Spacer(modifier = Modifier.height(18.dp))
@@ -151,36 +194,34 @@ fun SettingsScreen(
                     context.getString(R.string.celsius) -> {
                         tempUnit = Strings.CELSIUS
                         tempSymbol = R.string.celsius
-                        tempState.intValue=R.string.celsius
-                        windState.intValue=R.string.meter_sec
+                        tempState.intValue = R.string.celsius
+                        windState.intValue = R.string.meter_sec
                         LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.meter_sec)
-
                     }
 
                     context.getString(R.string.Kelvin) -> {
                         tempUnit = Strings.KELVIN
                         tempSymbol = R.string.Kelvin
-                        tempState.intValue=R.string.Kelvin
-                        windState.intValue=R.string.meter_sec
+                        tempState.intValue = R.string.Kelvin
+                        windState.intValue = R.string.meter_sec
                         LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.meter_sec)
-
                     }
 
                     context.getString(R.string.fahrenheit) -> {
                         tempUnit = Strings.FAHRENHEIT
                         tempSymbol = R.string.fahrenheit
-                        tempState.intValue=R.string.fahrenheit
-                        windState.intValue=R.string.miles_hour
-                        LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.miles_hour)
-
+                        tempState.intValue = R.string.fahrenheit
+                        windState.intValue = R.string.miles_hour
+                        LocalStorageDataSource.getInstance(context)
+                            .saveWindUnit(R.string.miles_hour)
                     }
+
                     else -> {
                         tempUnit = Strings.CELSIUS
                         tempSymbol = R.string.celsius
-                        tempState.intValue=R.string.celsius
-                        windState.intValue=R.string.meter_sec
+                        tempState.intValue = R.string.celsius
+                        windState.intValue = R.string.meter_sec
                         LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.meter_sec)
-
                     }
                 }
                 saveNewTempUnit(context, tempUnit, tempSymbol, homeViewModel, currentWeather)
@@ -206,7 +247,6 @@ fun SettingsScreen(
                     tempState.intValue =
                         R.string.fahrenheit
                     windState.intValue = R.string.miles_hour
-                    Log.i("TAG", "SettingsScreen: ${tempState.intValue}")
                 } else {
                     LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.meter_sec)
                     saveNewTempUnit(
@@ -217,7 +257,6 @@ fun SettingsScreen(
                     tempState.intValue =
                         R.string.celsius
                     windState.intValue = R.string.meter_sec
-                    Log.i("TAG", "SettingsScreen: ${tempState.intValue}")
 
                 }
 
@@ -282,7 +321,6 @@ private fun CustomPreferencesCard(
             disabledContentColor = Color.White
         )
     ) {
-        Log.i("TAG", "CustomPreferencesCard: $defaultSelectedItem")
         Column(
             verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.height(120.dp)
@@ -310,6 +348,9 @@ private fun CustomPreferencesCard(
         }
     }
 }
+
+
+
 
 
 

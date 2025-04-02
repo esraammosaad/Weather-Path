@@ -1,6 +1,9 @@
 package com.example.weatherapp.favorite.view.components
 
+import android.Manifest
+import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -17,12 +20,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
+import com.example.weatherapp.MainActivity
 import com.example.weatherapp.R
 import com.example.weatherapp.data.managers.WeatherWorkManager
 import com.example.weatherapp.data.model.AlarmModel
@@ -110,11 +115,6 @@ fun DateAndTimePickerForSet(
                     { selectedItem ->
                         alarmType.value = selectedItem.ifEmpty { "Alert" }
                         alarmState.value = selectedItem
-                        if (selectedItem == context.getString(R.string.notification)) {
-
-//                    askForNotificationPermission(context)
-
-                        }
                     },
                     listOf(stringResource(R.string.alert), stringResource(R.string.notification)),
                     alarmState.value
@@ -125,18 +125,7 @@ fun DateAndTimePickerForSet(
         }
     }
 }
-//private fun askForNotificationPermission(context: Context) {
-//    if (VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) {
-//        val notificationManager = context.getSystemService(NotificationManager::class.java)
-//        if (!notificationManager.areNotificationsEnabled()) {
-//            ActivityCompat.requestPermissions(
-//                MainActivity(),
-//                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-//                10
-//            )
-//        }
-//    }
-//}
+
 
 private fun onDoneDateAndTimePickerClicked(
     selectedWeather: CurrentWeatherResponse?,

@@ -2,13 +2,18 @@ package com.example.weatherapp.home.view
 
 
 import android.location.Address
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.SnackbarHostState
@@ -18,14 +23,23 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.weatherapp.R
+import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.home.view_model.HomeViewModelImpl
+import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
+import com.example.weatherapp.utilis.Styles
+import com.example.weatherapp.utilis.getCurrentDate
+import com.example.weatherapp.utilis.getTimeFromTimestamp
 import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.CurrentDateDisplay
 import com.example.weatherapp.utilis.view.CustomText
@@ -38,6 +52,7 @@ import com.example.weatherapp.utilis.view.WeatherForecastDisplay
 import com.example.weatherapp.utilis.view.WeatherStatusDisplay
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModelImpl,
@@ -55,6 +70,7 @@ fun HomeScreen(
     val sixthDayWeatherForecast = viewModel.sixthDayList.collectAsStateWithLifecycle()
     val message = viewModel.message.observeAsState().value
     val countryName = viewModel.countryName.collectAsStateWithLifecycle().value
+    val context = LocalContext.current
 
     val listOfDays = listOf(
         currentDayWeatherForecast.value,
@@ -84,7 +100,11 @@ fun HomeScreen(
 
         is Response.Success<*> -> {
             currentWeather as Response.Success<CurrentWeatherResponse>
-            bottomNavigationBarViewModel.setCurrentWeatherTheme(currentWeather.result?.weather?.get(0)?.icon?:"")
+            bottomNavigationBarViewModel.setCurrentWeatherTheme(
+                currentWeather.result?.weather?.get(
+                    0
+                )?.icon ?: ""
+            )
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -108,6 +128,14 @@ fun HomeScreen(
 
                         CustomText(text = stringResource(R.string.today))
                         Spacer(modifier = Modifier.height(3.dp))
+                        Text(
+                            text = stringResource(R.string.last_updated) +getTimeFromTimestamp(offsetInSeconds = currentWeather.result?.timezone?:0, timestamp = currentWeather.result?.dt?:0),
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 14.sp,
+                            fontFamily = poppinsFontFamily,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.height(5.dp))
                         when (countryName) {
                             is Response.Failure -> Text(countryName.exception)
                             Response.Loading -> CircularProgressIndicator(color = Color.Black)
@@ -128,6 +156,35 @@ fun HomeScreen(
                         Spacer(modifier = Modifier.height(5.dp))
                         currentWeather.result?.let { TemperatureDisplay(it) }
                         currentWeather.result?.let { WeatherStatusDisplay(it) }
+                        Spacer(modifier = Modifier.height(5.dp))
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(end = 18.dp),
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.temperature),
+                                contentDescription = ""
+                            )
+                            Text(
+                                stringResource(
+                                    R.string.feels_like,
+                                    currentWeather.result?.main?.feels_like?:""
+                                ),
+                                style = Styles.textStyleMedium16,
+                                color = Color.White
+
+
+                            )
+                            Text(
+                                stringResource(LocalStorageDataSource.getInstance(context).getTempSymbol),
+                                style = Styles.textStyleNormal14,
+                                color = Color.White
+
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
                         WeatherForecastDisplay(
                             fiveDaysWeatherForecast,
                             currentWeather.result?.weather?.firstOrNull()?.icon ?: ""

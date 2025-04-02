@@ -7,15 +7,15 @@ import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
-import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.favorite.view.components.BottomSheetDisplay
 import com.example.weatherapp.favorite.view.components.CustomMarkerWindow
 import com.example.weatherapp.favorite.view.components.SearchableMapScreen
@@ -37,14 +37,14 @@ import java.util.Locale
 fun LocationPickScreen(
     onBackClicked: () -> Unit,
     homeViewModel: HomeViewModelImpl,
-    location: Location,
+    location: MutableState<Location>,
     isConnected: Boolean,
     bottomNavigationBarViewModel: BottomNavigationBarViewModel,
     onChooseClicked: () -> Unit,
 ) {
     val context = LocalContext.current
-
-    val markerState = rememberMarkerState(position = LatLng(location.latitude, location.longitude))
+    Log.i("TAG", "NavHostImpl: ${location.value}")
+    val markerState = rememberMarkerState(position = LatLng(location.value.latitude, location.value.longitude))
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(markerState.position, 15f)
@@ -98,7 +98,6 @@ fun LocationPickScreen(
         sixthDayForecast
     )
 
-    val coroutineScope = rememberCoroutineScope()
 
     GetLocation(markerState, homeViewModel, geocoder, isConnected)
 
@@ -119,7 +118,8 @@ fun LocationPickScreen(
             markerState,
             currentWeatherUiState,
             bottomNavigationBarViewModel,
-            countryName
+            countryName,
+            isConnected
         )
     }
     SearchableMapScreen(cameraPositionState, markerState, showBottomSheet)
@@ -130,41 +130,28 @@ fun LocationPickScreen(
         countryName,
         showBottomSheet,
         listOfDays,
+        isConnected
     ) { selectedWeather, selectedFiveDaysForecast ->
-        onChooseClicked.invoke()
-        showBottomSheet.value = false
+        LocalStorageDataSource.getInstance(context).saveLocationState(R.string.map)
         LocalStorageDataSource.getInstance(context).savePickedLong(selectedWeather.longitude)
         LocalStorageDataSource.getInstance(context).savePickedLat(selectedWeather.latitude)
-//        Log.i(
-//            "TAG",
-//            "LocationPickScreen: ${LocalStorageDataSource.getInstance(context).getPickedLat}"
-//        )
-//        Log.i(
-//            "TAG",
-//            "LocationPickScreen: ${LocalStorageDataSource.getInstance(context).getPickedLong}"
-//        )
-        location.latitude = LocalStorageDataSource.getInstance(context).getPickedLat
-        location.longitude = LocalStorageDataSource.getInstance(context).getPickedLong
-//
-//        when(countryName){
-//            is Response.Failure -> TODO()
-//            Response.Loading -> TODO()
-//            is Response.Success<*> -> {
-//                countryName as Response.Success<Address>
-//                homeViewModel.insertCurrentWeather(
-//                    selectedWeather,
-//                    countryName.result,
-//                    location
-//                )
-//
-//
-//            }
-//        }
-//
-//        homeViewModel.insertFiveDaysForecast(
-//            selectedFiveDaysForecast.list,
-//            location
-//        )
+        showBottomSheet.value = false
+        val lat = LocalStorageDataSource.getInstance(context).getPickedLat
+        val long = LocalStorageDataSource.getInstance(context).getPickedLong
+        if (lat != 0.0 && long != 0.0) {
+            homeViewModel.insertCurrentWeather(
+                currentWeather = selectedWeather,
+                latitude = LocalStorageDataSource.getInstance(context).getPickedLat,
+                longitude = LocalStorageDataSource.getInstance(context).getPickedLong,
+                countryName = Address(Locale("")),
+            )
+            homeViewModel.insertFiveDaysForecast(
+                fiveDaysWeatherForecast = selectedFiveDaysForecast.list,
+                latitude = LocalStorageDataSource.getInstance(context).getPickedLat,
+                longitude = LocalStorageDataSource.getInstance(context).getPickedLong
+            )
+        }
+        onChooseClicked.invoke()
     }
 }
 
@@ -179,6 +166,8 @@ private fun GetLocation(
     val languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode
     val tempUnit = LocalStorageDataSource.getInstance(context).getTempUnit
     LaunchedEffect(markerState.position) {
+        LocalStorageDataSource.getInstance(context).savePickedLong(markerState.position.longitude)
+        LocalStorageDataSource.getInstance(context).savePickedLat(markerState.position.latitude)
         homeViewModel.getCurrentWeather(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude,
