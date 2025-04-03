@@ -95,6 +95,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var internetConnectivityViewModel: InternetConnectivityViewModel
     var isConnected = mutableStateOf(false)
     lateinit var locationState: MutableState<Location>
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -104,9 +105,12 @@ class MainActivity : ComponentActivity() {
         internetConnectivityViewModel = internetConnectivityViewModel()
         bottomNavigationBarViewModel = BottomNavigationBarViewModel()
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            val langCode = LocalStorageDataSource.getInstance(this).getLanguageCode
+
             LocalizationHelper.updateLocale(
                 this,
-                LocalStorageDataSource.getInstance(this).getLanguageCode
+                if (langCode.length > 2) ConfigurationCompat.getLocales(Resources.getSystem().configuration)
+                    .get(0).toString().substring(0, 2) else langCode
             )
         }
 
@@ -115,8 +119,12 @@ class MainActivity : ComponentActivity() {
 
             Log.i("TAG", "onCreate: ${Locale.getDefault().language}-------------------------------")
             Log.i("TAG", "onCreate: ${Resources.getSystem().configuration.locale}lllllllllll")
-            Log.i("TAG", "onCreate: ${
-                ConfigurationCompat.getLocales(Resources.getSystem().configuration).get(0).toString().substring(0,2)}llllllllllllllllllll;;;;")
+            Log.i(
+                "TAG", "onCreate: ${
+                    ConfigurationCompat.getLocales(Resources.getSystem().configuration).get(0)
+                        .toString().substring(0, 2)
+                }llllllllllllllllllll;;;;"
+            )
 
 
             locationState =

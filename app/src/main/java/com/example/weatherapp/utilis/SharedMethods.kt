@@ -1,11 +1,13 @@
 package com.example.weatherapp.utilis
 
+import android.content.Context
 import android.icu.util.Calendar
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import com.example.weatherapp.R
+import com.example.weatherapp.data.local.LocalStorageDataSource
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.ZoneId
@@ -181,10 +183,10 @@ fun getCurrentDate(amount: Int): String {
 
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun getTimeFromTimestamp(timestamp: Int, offsetInSeconds: Int): String {
+fun getTimeFromTimestamp(timestamp: Int, offsetInSeconds: Int,context: Context): String {
     val zoneId = ZoneId.ofOffset("UTC", java.time.ZoneOffset.ofTotalSeconds(offsetInSeconds))
     val dateTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(timestamp.toLong()), zoneId)
-    val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
+    val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale(LocalStorageDataSource.getInstance(context = context).getLanguageCode))
 
     return dateTime.format(formatter)
 }

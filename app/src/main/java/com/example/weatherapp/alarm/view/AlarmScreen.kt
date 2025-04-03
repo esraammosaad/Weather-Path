@@ -97,7 +97,7 @@ fun AlarmScreen(
     val dialogTitle = remember { mutableStateOf("") }
     val dialogText = remember { mutableStateOf("") }
     val onConfirmation = remember { mutableStateOf({}) }
-    navigationBarViewModel.setCurrentWeatherTheme(currentWeather.weather.firstOrNull()?.icon?:"")
+    navigationBarViewModel.setCurrentWeatherTheme(currentWeather.weather.firstOrNull()?.icon ?: "")
     if (isDialog.value) {
         ConfirmationDialog(
             onConfirmation = {
@@ -140,7 +140,7 @@ fun AlarmScreen(
                 is Response.Success<*> -> {
                     val alarmsList = alarms as Response.Success<List<AlarmModel>>
                     items(alarmsList.result?.size ?: 0) { index ->
-                        val item =   alarmsList.result?.get(index)
+                        val item = alarmsList.result?.get(index)
                         if (showDatePicker.value) {
                             DateAndTimePickerForUpdate(
                                 showDatePicker = showDatePicker,
@@ -259,8 +259,9 @@ fun AlarmScreen(
                                         }
 
                                         Text(
-                                            text = item?.alarmType
-                                                ?: stringResource(R.string.n_a),
+                                            text = if (item?.alarmType == "Alert") stringResource(R.string.alert) else stringResource(
+                                                R.string.notification
+                                            ),
                                             style = Styles.textStyleMedium18,
                                             modifier = Modifier.padding(start = 3.dp)
                                         )
@@ -342,7 +343,8 @@ fun DateAndTimePickerForUpdate(
                             targetHour = snappedDate.hour,
                             targetMinute = snappedDate.minute,
                         )
-                        selectedAlarm.date = "${snappedDate.dayOfWeek.name} ${snappedDate.dayOfMonth} ${snappedDate.month.name} ${snappedDate.year}"
+                        selectedAlarm.date =
+                            "${snappedDate.dayOfWeek.name} ${snappedDate.dayOfMonth} ${snappedDate.month.name} ${snappedDate.year}"
                         selectedAlarm.time = "${snappedDate.hour}:${snappedDate.minute}"
                         selectedAlarm.alarmType = alarmType.value
                         favoriteViewModel.updateAlarm(selectedAlarm)
@@ -359,7 +361,7 @@ fun DateAndTimePickerForUpdate(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                stringResource(R.string.would_you_like_to_receive_weather_updates_for)+ " "+title.value +" "+ stringResource(
+                stringResource(R.string.would_you_like_to_receive_weather_updates_for) + " " + title.value + " " + stringResource(
                     R.string.via_alerts_or_notifications
                 ),
                 fontSize = 16.sp,
@@ -399,13 +401,14 @@ fun requestWorkManagerForUpdate(
     inputData.putDouble(Strings.LONG_CONST, selectedAlarm?.longitude ?: 0.0)
     inputData.putDouble(Strings.LAT_CONST, selectedAlarm?.latitude ?: 0.0)
     inputData.putInt(Strings.CODE_CONST, selectedAlarm?.locationId ?: 0)
-    val constraint = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+    val constraint = Constraints.Builder().build()
     val workRequest: WorkRequest =
         OneTimeWorkRequestBuilder<WeatherWorkManager>().setConstraints(constraint)
             .setInputData(inputData.build()).setInitialDelay(duration, TimeUnit.MILLISECONDS)
             .addTag(selectedAlarm?.locationId.toString())
             .build()
     WorkManager.getInstance(context).enqueue(workRequest)
+    //.setRequiredNetworkType(NetworkType.CONNECTED)
 }
 
 

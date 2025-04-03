@@ -133,13 +133,13 @@ fun SettingsScreen(
                     currentWeather.weather.firstOrNull()?.icon ?: "",
                     selectedLanguage
                 ) { selectedLang ->
-                    val langCode = when (selectedLang) {
+                    var langCode = when (selectedLang) {
                         context.getString(R.string.english) -> "en"
                         context.getString(R.string.arabic) -> "ar"
                         else -> getDefaultSystemLang()
                     }
                     LocalStorageDataSource.getInstance(context).saveLanguageCode(langCode)
-                    LocalizationHelper.updateLocale(context, langCode)
+                    LocalizationHelper.updateLocale(context, if(langCode.length>2) langCode.substring(0,2) else langCode)
                     (context as Activity).recreate()
 
                 }

@@ -53,7 +53,7 @@
     <string name="temperature">Temperature</string>
     <string name="wind_speed">Wind Speed</string>
     <string name="meter_sec"> " m/s"</string>
-    <string name="miles_hour"> " m/h"</string>
+    <string name="miles_hour"> " mph"</string>
     <string name="get_location_by">Get Location By</string>
     <string name="weather">Weather</string>
     <string name="favorites">Favorites</string>
@@ -102,4 +102,6 @@
     <string name="_5_day_forecast">5-DAY FORECAST</string>
     <string name="default_lang">Default</string>
     <string name="snooze">SNOOZE</string>
+    <string name="confirmCapital">CONFIRM</string>
+    <string name="location_updated_successfully">Location Updated Successfully</string>
 </resources>

@@ -54,7 +54,7 @@
     <string name="temperature">درجة الحرارة</string>
     <string name="wind_speed">سرعة الرياح</string>
     <string name="meter_sec">" م/ث"</string>
-    <string name="miles_hour">" م/س"</string>
+    <string name="miles_hour">" ميل/س"</string>
     <string name="get_location_by">تحديد الموقع عن طريق</string>
     <string name="weather">الطقس</string>
     <string name="favorites">المفضلة</string>
@@ -102,4 +102,8 @@
     <string name="more_details">مزيد من التفاصيل</string>
     <string name="_5_day_forecast">توقعات الخمسة أيام</string>
     <string name="default_lang">افتراضي</string>
+    <string name="snooze">غفوة</string>
+    <string name="confirmCapital">تأكيد</string>
+    <string name="location_updated_successfully">تم تحديث الموقع بنجاح</string>
+
 </resources>

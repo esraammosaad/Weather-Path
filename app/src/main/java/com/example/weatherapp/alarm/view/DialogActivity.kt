@@ -48,6 +48,7 @@ import com.example.weatherapp.data.repository.WeatherRepositoryImpl
 import com.example.weatherapp.favorite.view.components.requestWorkManagerForSet
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelFactory
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
+import com.example.weatherapp.home.view.LastUpdatedDisplay
 import com.example.weatherapp.ui.theme.OffWhite
 import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.ui.theme.poppinsFontFamily
@@ -97,7 +98,7 @@ class DialogActivity : ComponentActivity() {
                     finish()
                 },
                 onSnoozeClicked = {
-                    snoozeAlarm(response, favoriteViewModelImpl, this@DialogActivity)
+                    snoozeAlarm(response, favoriteViewModelImpl, this@DialogActivity,"Alert")
                     finish()
                 },
                 onOpenAppClicked = {
@@ -115,6 +116,7 @@ class DialogActivity : ComponentActivity() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun AlertScreen(
     currentWeatherResponse: CurrentWeatherResponse,
@@ -217,14 +219,15 @@ private fun AlertScreen(
                         border = BorderStroke(1.dp, getWeatherGradient())
                     ) {
                         Text(
-                            stringResource(R.string.confirm),
+                            stringResource(R.string.confirmCapital),
                             fontFamily = poppinsFontFamily,
                             fontWeight = FontWeight.Normal,
                             fontSize = 16.sp,
                         )
                     }
                 }
-
+                Spacer(modifier = Modifier.height(14.dp))
+                LastUpdatedDisplay(currentWeatherResponse,context)
             }
         }
     }
@@ -234,9 +237,10 @@ private fun AlertScreen(
 fun snoozeAlarm(
     response: CurrentWeatherResponse?,
     favoriteViewModelImpl: FavoriteViewModelImpl,
-    context: Context
+    context: Context,
+    alarmType:String
 ) {
-    val newTime = LocalTime.now().plusMinutes(10)  // Add 10 minutes
+    val newTime = LocalTime.now().plusMinutes(10)
     val formattedTime = newTime.format(DateTimeFormatter.ofPattern("HH:mm"))
     val currentDate = LocalDate.now()
     val formattedDate =
@@ -247,7 +251,7 @@ fun snoozeAlarm(
         time = formattedTime,
         countryName = response?.countryName ?: "",
         cityName = response?.cityName ?: "",
-        alarmType = "Alert",
+        alarmType = alarmType,
         longitude = response?.longitude ?: 0.0,
         latitude = response?.latitude ?: 0.0
     )

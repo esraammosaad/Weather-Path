@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.TypeConverters
 import com.example.weatherapp.data.model.Weather
 import com.example.weatherapp.data.model.current_weather.type_converters.ListOfWeatherTypeConverter
+import java.io.Serializable
 
 
 @Entity(tableName = "current_weather_table", primaryKeys = ["longitude", "latitude"])

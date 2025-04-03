@@ -23,8 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.example.weatherapp.ui.theme.PrimaryColor
 
 @Composable
-fun RadioButtonSingleSelection(onOptionClicked: (String) -> Unit, radioOptions:List<String>,
-                               defaultSelectedItem:String= radioOptions[0]) {
+fun RadioButtonSingleSelection(onOptionClicked: (String) -> Unit, radioOptions:List<String>, defaultSelectedItem:String= radioOptions[0]) {
     var (selectedOption, optionClicked) = remember { mutableStateOf(defaultSelectedItem) }
     Row(Modifier.selectableGroup()) {
         selectedOption=defaultSelectedItem

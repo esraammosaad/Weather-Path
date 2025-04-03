@@ -4,6 +4,7 @@ import android.content.Context
 import android.location.Address
 import android.location.Geocoder
 import android.util.Log
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.SnackbarHostState
@@ -44,7 +45,7 @@ fun FavoriteLazyColumn(
     val message =
         favoriteViewModel.message.collectAsStateWithLifecycle().value
     val context = LocalContext.current
-    LazyColumn(modifier = Modifier.padding(top = 16.dp, end = 16.dp, start = 16.dp)) {
+    LazyColumn(modifier = Modifier.padding(top = 16.dp, end = 16.dp, start = 16.dp).fillMaxSize()) {
         item {
             FavoriteItem(
                 selectedWeather = currentWeatherResponse,

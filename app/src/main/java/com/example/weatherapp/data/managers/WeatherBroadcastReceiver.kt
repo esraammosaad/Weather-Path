@@ -26,7 +26,7 @@ class WeatherBroadcastReceiver : BroadcastReceiver() {
         val gson = Gson()
         val currentWeatherResponse = gson.fromJson(response, CurrentWeatherResponse::class.java)
         Log.i("TAG", "onReceive: $response")
-        if (alarmType == context.getString(R.string.alert)) {
+        if (alarmType == "Alert") {
             if (Settings.canDrawOverlays(context)) {
                 val dialogIntent = Intent(context, DialogActivity::class.java).addFlags(
                     FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TOP or FLAG_ACTIVITY_REORDER_TO_FRONT

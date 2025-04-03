@@ -21,6 +21,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.example.weatherapp.R
 import com.example.weatherapp.alarm.view.AlarmScreen
 import com.example.weatherapp.data.local.WeatherDatabase
 import com.example.weatherapp.data.local.WeatherLocalDataSourceImpl
@@ -147,7 +148,8 @@ fun NavHostImpl(
                 onChooseClicked = {
                     navController.popBackStack()
                     scope.launch {
-                        snackBarHostState.showSnackbar("Location Updated Successfully")
+                        snackBarHostState.showSnackbar(context.getString(R.string.location_updated_successfully))
+
                     }
 //                    (context as Activity).recreate()
                 }

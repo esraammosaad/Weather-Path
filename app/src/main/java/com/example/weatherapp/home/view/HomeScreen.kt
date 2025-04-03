@@ -156,7 +156,7 @@ fun CustomWeatherDetails(
     ) {
         CustomText(text = stringResource(R.string.today))
         Spacer(modifier = Modifier.height(3.dp))
-        LastUpdatedDisplay(currentWeather)
+        LastUpdatedDisplay(currentWeather,context)
         Spacer(modifier = Modifier.height(3.dp))
         when (countryName) {
             is Response.Failure -> Text(countryName.exception)
@@ -219,11 +219,12 @@ fun CustomWeatherDetails(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun LastUpdatedDisplay(currentWeather: CurrentWeatherResponse) {
+fun LastUpdatedDisplay(currentWeather: CurrentWeatherResponse,context: Context) {
     Text(
         text = stringResource(R.string.last_updated) + getTimeFromTimestamp(
             offsetInSeconds = currentWeather.timezone,
-            timestamp = currentWeather.dt
+            timestamp = currentWeather.dt,
+            context =context
         ),
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,

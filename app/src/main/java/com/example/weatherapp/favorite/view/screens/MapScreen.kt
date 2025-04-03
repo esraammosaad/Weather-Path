@@ -4,6 +4,8 @@ package com.example.weatherapp.favorite.view.screens
 import android.content.Context
 import android.location.Geocoder
 import android.location.Location
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -40,6 +42,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.Locale
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MapScreen(
     favoriteViewModel: FavoriteViewModelImpl,

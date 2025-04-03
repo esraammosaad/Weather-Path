@@ -17,9 +17,7 @@ class InternetObserverImpl(context : Context) : InternetObserver {
 
     override val isConnected: Flow<Boolean>
         get() = callbackFlow {
-
             val callback = object : NetworkCallback() {
-
                 override fun onCapabilitiesChanged(
                     network: Network,
                     networkCapabilities: NetworkCapabilities

@@ -60,7 +60,10 @@ fun DateAndTimePickerForSet(
     val alarmType = remember { mutableStateOf("Alert") }
     val alarmState = remember { mutableStateOf(context.getString(R.string.alert)) }
     ModalBottomSheet(
-        onDismissRequest = {},
+        onDismissRequest = {
+            showDatePicker.value = false
+
+        },
         containerColor = OffWhite,
 
         ) {
@@ -112,13 +115,12 @@ fun DateAndTimePickerForSet(
 
                 RadioButtonSingleSelection(
                     { selectedItem ->
-                        alarmType.value = selectedItem.ifEmpty { "Alert" }
+                        alarmType.value =
+                            if (selectedItem == context.getString(R.string.notification)) "Notification" else "Alert"
                         alarmState.value = selectedItem
                     },
                     listOf(stringResource(R.string.alert), stringResource(R.string.notification)),
                     alarmState.value
-
-
                 )
             }
         }
@@ -170,11 +172,13 @@ fun requestWorkManagerForSet(
     inputData.putDouble(Strings.LONG_CONST, selectedWeather?.longitude ?: 0.0)
     inputData.putDouble(Strings.LAT_CONST, selectedWeather?.latitude ?: 0.0)
     inputData.putInt(Strings.CODE_CONST, selectedWeather?.id ?: 0)
-    val constraint = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+    val constraint = Constraints.Builder().build()
     val workRequest: WorkRequest =
-        OneTimeWorkRequestBuilder<WeatherWorkManager>().setConstraints(constraint)
+        OneTimeWorkRequestBuilder<WeatherWorkManager>()
             .setInputData(inputData.build()).setInitialDelay(duration, TimeUnit.MILLISECONDS)
             .addTag(selectedWeather?.id.toString())
             .build()
     WorkManager.getInstance(context).enqueue(workRequest)
+
+    //setRequiredNetworkType(NetworkType.CONNECTED)
 }
