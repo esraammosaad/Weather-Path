@@ -3,7 +3,9 @@ package com.example.weatherapp.utilis
 import android.content.Context
 import android.location.Address
 import android.location.Location
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHostState
@@ -21,11 +23,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.weatherapp.alarm.view.AlarmScreen
 import com.example.weatherapp.data.local.WeatherDatabase
-import com.example.weatherapp.data.local.WeatherLocalDataSource
+import com.example.weatherapp.data.local.WeatherLocalDataSourceImpl
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.remote.RetrofitFactory
-import com.example.weatherapp.data.remote.WeatherRemoteDataSource
-import com.example.weatherapp.data.repository.Repository
+import com.example.weatherapp.data.remote.WeatherRemoteDataSourceImpl
+import com.example.weatherapp.data.repository.WeatherRepositoryImpl
 import com.example.weatherapp.favorite.view.screens.FavoriteScreen
 import com.example.weatherapp.favorite.view.screens.MapScreen
 import com.example.weatherapp.favorite.view.screens.WeatherDetailsScreen
@@ -37,6 +39,7 @@ import com.example.weatherapp.home.view_model.HomeViewModelImpl
 import com.example.weatherapp.settings.view.SettingsScreen
 import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NavHostImpl(
     navController: NavHostController,
@@ -51,8 +54,6 @@ fun NavHostImpl(
     isLocationPickedScreen: MutableState<Boolean>,
     isMainScreen: MutableState<Boolean>,
 ) {
-
-    Log.i("TAG", "NavHostImpl: ${locationState.value.longitude}")
     NavHost(
         navController = navController,
         modifier = Modifier.padding(innerPadding),
@@ -175,9 +176,9 @@ fun getFavoriteViewModel(
     context: Context
 ) = ViewModelProvider(
     parentEntry, FavoriteViewModelFactory(
-        Repository.getInstance(
-            weatherRemoteDataSource = WeatherRemoteDataSource(RetrofitFactory.apiService),
-            weatherLocalDataSource = WeatherLocalDataSource(
+        WeatherRepositoryImpl.getInstance(
+            weatherRemoteDataSourceImpl = WeatherRemoteDataSourceImpl(RetrofitFactory.apiService),
+            weatherLocalDataSourceImpl = WeatherLocalDataSourceImpl(
                 WeatherDatabase.getInstance(
                     context
                 ).getDao()

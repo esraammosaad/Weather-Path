@@ -66,7 +66,6 @@ import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
 import com.example.weatherapp.utilis.Strings
 import com.example.weatherapp.utilis.Styles
-import com.example.weatherapp.utilis.calculateDelay
 import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.ConfirmationDialog
 import com.example.weatherapp.utilis.view.FailureDisplay
@@ -336,7 +335,7 @@ fun DateAndTimePickerForUpdate(
                     //clear work manager --
                     //set work manager again
                     if (selectedAlarm != null) {
-                        val duration = calculateDelay(
+                        val duration = favoriteViewModel.calculateDelay(
                             targetYear = snappedDate.year,
                             targetMonth = snappedDate.monthNumber,
                             targetDay = snappedDate.dayOfMonth,
@@ -390,7 +389,7 @@ fun DateAndTimePickerForUpdate(
 
 }
 
-private fun requestWorkManagerForUpdate(
+fun requestWorkManagerForUpdate(
     selectedAlarm: AlarmModel?,
     context: Context,
     duration: Long

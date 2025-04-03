@@ -1,6 +1,7 @@
 package com.example.weatherapp.home.view
 
 
+import android.content.Context
 import android.location.Address
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -19,7 +20,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,11 +34,11 @@ import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
+import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.home.view_model.HomeViewModelImpl
 import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
 import com.example.weatherapp.utilis.Styles
-import com.example.weatherapp.utilis.getCurrentDate
 import com.example.weatherapp.utilis.getTimeFromTimestamp
 import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.CurrentDateDisplay
@@ -68,7 +68,7 @@ fun HomeScreen(
     val fourthDayWeatherForecast = viewModel.fourthDayList.collectAsStateWithLifecycle()
     val fifthDayWeatherForecast = viewModel.fifthDayList.collectAsStateWithLifecycle()
     val sixthDayWeatherForecast = viewModel.sixthDayList.collectAsStateWithLifecycle()
-    val message = viewModel.message.observeAsState().value
+    val message = viewModel.message.collectAsStateWithLifecycle().value
     val countryName = viewModel.countryName.collectAsStateWithLifecycle().value
     val context = LocalContext.current
 
@@ -118,82 +118,14 @@ fun HomeScreen(
 
                 item {
                     currentWeather.result?.let { ImageDisplay(it) }
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-
-                    ) {
-
-                        CustomText(text = stringResource(R.string.today))
-                        Spacer(modifier = Modifier.height(3.dp))
-                        Text(
-                            text = stringResource(R.string.last_updated) +getTimeFromTimestamp(offsetInSeconds = currentWeather.result?.timezone?:0, timestamp = currentWeather.result?.dt?:0),
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 14.sp,
-                            fontFamily = poppinsFontFamily,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.height(5.dp))
-                        when (countryName) {
-                            is Response.Failure -> Text(countryName.exception)
-                            Response.Loading -> CircularProgressIndicator(color = Color.Black)
-                            is Response.Success<*> -> {
-                                countryName as Response.Success<Address>
-                                countryName.result?.let {
-                                    currentWeather.result?.let { it1 ->
-                                        LocationDisplay(
-                                            it,
-                                            it1
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(5.dp))
-                        CurrentDateDisplay()
-                        Spacer(modifier = Modifier.height(5.dp))
-                        currentWeather.result?.let { TemperatureDisplay(it) }
-                        currentWeather.result?.let { WeatherStatusDisplay(it) }
-                        Spacer(modifier = Modifier.height(5.dp))
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(end = 18.dp),
-                            horizontalArrangement = Arrangement.Center,
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.temperature),
-                                contentDescription = ""
-                            )
-                            Text(
-                                stringResource(
-                                    R.string.feels_like,
-                                    currentWeather.result?.main?.feels_like?:""
-                                ),
-                                style = Styles.textStyleMedium16,
-                                color = Color.White
-
-
-                            )
-                            Text(
-                                stringResource(LocalStorageDataSource.getInstance(context).getTempSymbol),
-                                style = Styles.textStyleNormal14,
-                                color = Color.White
-
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        WeatherForecastDisplay(
+                    currentWeather.result?.let {
+                        CustomWeatherDetails(
+                            it,
+                            countryName,
+                            context,
                             fiveDaysWeatherForecast,
-                            currentWeather.result?.weather?.firstOrNull()?.icon ?: ""
+                            listOfDays
                         )
-                        currentWeather.result?.let { MoreDetailsContainer(it) }
-                        FiveDaysWeatherForecastDisplay(
-                            fiveDaysWeatherForecast = listOfDays
-                        )
-
                     }
 
                 }
@@ -204,6 +136,100 @@ fun HomeScreen(
         }
     }
 
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun CustomWeatherDetails(
+    currentWeather: CurrentWeatherResponse,
+    countryName: Response,
+    context: Context,
+    fiveDaysWeatherForecast: Response,
+    listOfDays: List<List<WeatherItem>>
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+
+    ) {
+        CustomText(text = stringResource(R.string.today))
+        Spacer(modifier = Modifier.height(3.dp))
+        LastUpdatedDisplay(currentWeather)
+        Spacer(modifier = Modifier.height(3.dp))
+        when (countryName) {
+            is Response.Failure -> Text(countryName.exception)
+            Response.Loading -> CircularProgressIndicator(color = Color.Black)
+            is Response.Success<*> -> {
+                countryName as Response.Success<Address>
+                countryName.result?.let {
+                    LocationDisplay(
+                        it,
+                        currentWeather
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(3.dp))
+        CurrentDateDisplay()
+        Spacer(modifier = Modifier.height(3.dp))
+        TemperatureDisplay(currentWeather)
+        WeatherStatusDisplay(currentWeather)
+        Spacer(modifier = Modifier.height(5.dp))
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(end = 18.dp),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Image(
+                painter = painterResource(R.drawable.temperature),
+                contentDescription = "temp icon"
+            )
+            Text(
+                stringResource(
+                    R.string.feels_like,
+                    currentWeather.main.feels_like
+                ),
+                style = Styles.textStyleMedium16,
+                color = Color.White
+
+
+            )
+            Text(
+                stringResource(LocalStorageDataSource.getInstance(context).getTempSymbol),
+                style = Styles.textStyleNormal14,
+                color = Color.White
+
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        WeatherForecastDisplay(
+            fiveDaysWeatherForecast,
+            currentWeather.weather.firstOrNull()?.icon ?: ""
+        )
+        MoreDetailsContainer(currentWeather)
+        FiveDaysWeatherForecastDisplay(
+            fiveDaysWeatherForecast = listOfDays
+        )
+
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun LastUpdatedDisplay(currentWeather: CurrentWeatherResponse) {
+    Text(
+        text = stringResource(R.string.last_updated) + getTimeFromTimestamp(
+            offsetInSeconds = currentWeather.timezone,
+            timestamp = currentWeather.dt
+        ),
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        fontFamily = poppinsFontFamily,
+        color = Color.White
+    )
 }
 
 

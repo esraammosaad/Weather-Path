@@ -1,90 +1,42 @@
 package com.example.weatherapp.data.local
 
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Update
 import com.example.weatherapp.data.model.AlarmModel
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
 import kotlinx.coroutines.flow.Flow
 
-class WeatherLocalDataSource(private val weatherDao: WeatherDao) {
+interface WeatherLocalDataSource {
+    suspend fun insertCurrentWeather(currentWeatherResponse: CurrentWeatherResponse): Long
 
+    suspend fun insertFiveDaysWeather(fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse): Long
 
-    suspend fun insertCurrentWeather(currentWeatherResponse: CurrentWeatherResponse): Long {
+    suspend fun updateCurrentWeather(currentWeatherResponse: CurrentWeatherResponse): Int
 
-        return weatherDao.insertCurrentWeather(currentWeatherResponse)
-    }
+    suspend fun updateFiveDaysWeather(fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse): Int
 
-    suspend fun insertFiveDaysWeather(fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse): Long {
+    suspend fun deleteCurrentWeather(currentWeatherResponse: CurrentWeatherResponse): Int
 
-        return weatherDao.insertFiveDaysWeather(fiveDaysWeatherForecastResponse)
-    }
+    suspend fun deleteFiveDaysWeather(fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse): Int
 
-    suspend fun updateCurrentWeather(currentWeatherResponse: CurrentWeatherResponse): Int {
+    suspend fun selectAllFavorites(): Flow<List<CurrentWeatherResponse>>
 
-        return weatherDao.updateCurrentWeather(currentWeatherResponse)
-    }
-
-    suspend fun updateFiveDaysWeather(fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse): Int {
-
-        return weatherDao.updateFiveDaysWeather(fiveDaysWeatherForecastResponse)
-    }
-
-    suspend fun deleteCurrentWeather(currentWeatherResponse: CurrentWeatherResponse): Int {
-
-        return weatherDao.deleteCurrentWeather(currentWeatherResponse)
-    }
-
-    suspend fun deleteFiveDaysWeather(fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse): Int {
-
-        return weatherDao.deleteFiveDaysWeather(fiveDaysWeatherForecastResponse)
-    }
-
-    suspend fun selectAllFavorites(): Flow<List<CurrentWeatherResponse>> {
-
-        return weatherDao.selectAllFavorites()
-    }
-
-    suspend fun selectFiveDaysWeatherFromFavorites(): Flow<List<FiveDaysWeatherForecastResponse>> {
-
-        return weatherDao.selectFiveDaysWeatherFromFavorites()
-    }
+    suspend fun selectFiveDaysWeatherFromFavorites(): Flow<List<FiveDaysWeatherForecastResponse>>
 
     suspend fun selectFiveDaysWeather(
         longitude: Double,
         latitude: Double
-    ): Flow<FiveDaysWeatherForecastResponse> {
-
-        return weatherDao.selectFiveDaysWeather(longitude = longitude, latitude = latitude)
-    }
+    ): Flow<FiveDaysWeatherForecastResponse>
 
     suspend fun selectDayWeather(
         longitude: Double,
         latitude: Double
-    ): Flow<CurrentWeatherResponse> {
+    ): Flow<CurrentWeatherResponse>
 
-        return weatherDao.selectDayWeather(longitude = longitude, latitude = latitude)
-    }
+    suspend fun insertAlarm(alarm: AlarmModel): Long
 
-    suspend fun insertAlarm(alarm: AlarmModel): Long {
+    suspend fun deleteAlarm(locationId: Int): Int
 
-        return weatherDao.insertAlarm(alarm)
-    }
+    suspend fun selectAllAlarms(): Flow<List<AlarmModel>>
 
-    suspend fun deleteAlarm(locationId: Int): Int {
-        return weatherDao.deleteAlarm(locationId)
-    }
-
-    suspend fun selectAllAlarms(): Flow<List<AlarmModel>> {
-
-        return weatherDao.selectAllAlarms()
-    }
-
-    suspend fun updateAlarm(alarm: AlarmModel): Int {
-
-        return weatherDao.updateAlarm(alarm)
-    }
-
+    suspend fun updateAlarm(alarm: AlarmModel): Int
 }

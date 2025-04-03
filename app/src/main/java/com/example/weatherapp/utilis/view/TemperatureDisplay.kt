@@ -35,7 +35,7 @@ fun TemperatureDisplay(currentWeather: CurrentWeatherResponse) {
         Text(
             stringResource( LocalStorageDataSource.getInstance(context).getTempSymbol),
             fontWeight = FontWeight.Normal,
-            fontSize = 24.sp,
+            fontSize = 25.sp,
             fontFamily = poppinsFontFamily,
             color = Color.White
         )

@@ -1,14 +1,18 @@
 package com.example.weatherapp.alarm.view
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,11 +39,13 @@ import com.example.weatherapp.MainActivity
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.local.WeatherDatabase
-import com.example.weatherapp.data.local.WeatherLocalDataSource
+import com.example.weatherapp.data.local.WeatherLocalDataSourceImpl
+import com.example.weatherapp.data.model.AlarmModel
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.remote.RetrofitFactory
-import com.example.weatherapp.data.remote.WeatherRemoteDataSource
-import com.example.weatherapp.data.repository.Repository
+import com.example.weatherapp.data.remote.WeatherRemoteDataSourceImpl
+import com.example.weatherapp.data.repository.WeatherRepositoryImpl
+import com.example.weatherapp.favorite.view.components.requestWorkManagerForSet
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelFactory
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
 import com.example.weatherapp.ui.theme.OffWhite
@@ -49,8 +55,14 @@ import com.example.weatherapp.utilis.Strings
 import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.WeatherStatusImageDisplay
 import com.google.gson.Gson
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 class DialogActivity : ComponentActivity() {
+    private lateinit var mediaPlayer: MediaPlayer
+
+    @RequiresApi(Build.VERSION_CODES.O)
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -62,48 +74,60 @@ class DialogActivity : ComponentActivity() {
         val result = intent.getStringExtra(Strings.RESULT_CONST)
         val gson = Gson()
         val response = gson.fromJson(result, CurrentWeatherResponse::class.java)
-        val mediaPlayer = MediaPlayer.create(this@DialogActivity, R.raw.sound_track_two)
+        mediaPlayer = MediaPlayer.create(this@DialogActivity, R.raw.tropical_alarm_clock)
         mediaPlayer.start()
+        val favoriteViewModelImpl = ViewModelProvider(
+            this,
+            FavoriteViewModelFactory(
+                WeatherRepositoryImpl.getInstance(
+                    weatherRemoteDataSourceImpl = WeatherRemoteDataSourceImpl(RetrofitFactory.apiService),
+                    weatherLocalDataSourceImpl = WeatherLocalDataSourceImpl(
+                        WeatherDatabase.getInstance(
+                            this
+                        ).getDao()
+                    )
+                )
+            )
+        )[FavoriteViewModelImpl::class]
+
         setContent {
-//            val favoriteViewModelImpl  = ViewModelProvider(
-//                this,
-//                FavoriteViewModelFactory(
-//                    Repository.getInstance(
-//                        weatherRemoteDataSource = WeatherRemoteDataSource(RetrofitFactory.apiService),
-//                        weatherLocalDataSource = WeatherLocalDataSource(
-//                            WeatherDatabase.getInstance(
-//                                this
-//                            ).getDao()
-//                        )
-//                    )
-//                )
-//            )[FavoriteViewModelImpl::class]
-
-            AlertScreen(response, onConfirmClicked = {
-//                favoriteViewModelImpl.deleteAlarm(response.id)
-                finish()
-
-            }, onOpenAppClicked = {
-//                favoriteViewModelImpl.deleteAlarm(response.id)
-                finish()
-                val intent = Intent(this, MainActivity::class.java)
-                startActivity(intent)
-            })
-
-
+            AlertScreen(
+                response,
+                onConfirmClicked = {
+                    finish()
+                },
+                onSnoozeClicked = {
+                    snoozeAlarm(response, favoriteViewModelImpl, this@DialogActivity)
+                    finish()
+                },
+                onOpenAppClicked = {
+                    val intent = Intent(this, MainActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                })
         }
     }
 
+
+    override fun onStop() {
+        super.onStop()
+        mediaPlayer.stop()
+    }
 }
 
 @Composable
 private fun AlertScreen(
     currentWeatherResponse: CurrentWeatherResponse,
     onConfirmClicked: () -> Unit,
+    onSnoozeClicked: () -> Unit,
     onOpenAppClicked: () -> Unit
 ) {
     val context = LocalContext.current
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(12.dp)) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier
+        .padding(12.dp)
+        .clickable {
+            onOpenAppClicked.invoke()
+        }) {
         Box(
             modifier = Modifier
                 .background(
@@ -162,7 +186,7 @@ private fun AlertScreen(
                 Row {
                     Button(
                         onClick = {
-                            onOpenAppClicked.invoke()
+                            onSnoozeClicked.invoke()
                         }, colors = ButtonColors(
                             containerColor = PrimaryColor,
                             contentColor = Color.White,
@@ -172,7 +196,7 @@ private fun AlertScreen(
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         Text(
-                            stringResource(R.string.open_app),
+                            stringResource(R.string.snooze),
                             fontFamily = poppinsFontFamily,
                             fontWeight = FontWeight.Normal,
                             fontSize = 16.sp,
@@ -204,4 +228,33 @@ private fun AlertScreen(
             }
         }
     }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun snoozeAlarm(
+    response: CurrentWeatherResponse?,
+    favoriteViewModelImpl: FavoriteViewModelImpl,
+    context: Context
+) {
+    val newTime = LocalTime.now().plusMinutes(10)  // Add 10 minutes
+    val formattedTime = newTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+    val currentDate = LocalDate.now()
+    val formattedDate =
+        currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+    val alarm = AlarmModel(
+        locationId = response?.id ?: 0,
+        date = formattedDate,
+        time = formattedTime,
+        countryName = response?.countryName ?: "",
+        cityName = response?.cityName ?: "",
+        alarmType = "Alert",
+        longitude = response?.longitude ?: 0.0,
+        latitude = response?.latitude ?: 0.0
+    )
+    favoriteViewModelImpl.insertAlarm(alarm)
+    requestWorkManagerForSet(
+        response,
+        context,
+        10 * 60 * 1000L
+    )
 }

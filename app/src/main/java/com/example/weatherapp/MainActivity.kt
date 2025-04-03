@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -18,6 +19,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -41,19 +43,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.local.WeatherDatabase
-import com.example.weatherapp.data.local.WeatherLocalDataSource
+import com.example.weatherapp.data.local.WeatherLocalDataSourceImpl
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.data.remote.RetrofitFactory
-import com.example.weatherapp.data.remote.WeatherRemoteDataSource
-import com.example.weatherapp.data.repository.Repository
+import com.example.weatherapp.data.remote.WeatherRemoteDataSourceImpl
+import com.example.weatherapp.data.repository.WeatherRepositoryImpl
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelFactory
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
 import com.example.weatherapp.home.view.LocationPickScreen
@@ -73,8 +76,6 @@ import com.example.weatherapp.utilis.localization.LocalizationHelper
 import com.example.weatherapp.utilis.view.ConfirmationDialog
 import com.example.weatherapp.utilis.view.FailureDisplay
 import com.example.weatherapp.utilis.view.LoadingDisplay
-import com.google.accompanist.systemuicontroller.SystemUiController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -88,13 +89,13 @@ import java.util.Locale
 private const val My_LOCATION_PERMISSION_ID = 5005
 
 class MainActivity : ComponentActivity() {
-    //    lateinit var locationState: MutableState<Location>
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var bottomNavigationBarViewModel: BottomNavigationBarViewModel
     private lateinit var homeViewModel: HomeViewModelImpl
     private lateinit var internetConnectivityViewModel: InternetConnectivityViewModel
     var isConnected = mutableStateOf(false)
     lateinit var locationState: MutableState<Location>
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
@@ -111,6 +112,13 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
+
+            Log.i("TAG", "onCreate: ${Locale.getDefault().language}-------------------------------")
+            Log.i("TAG", "onCreate: ${Resources.getSystem().configuration.locale}lllllllllll")
+            Log.i("TAG", "onCreate: ${
+                ConfigurationCompat.getLocales(Resources.getSystem().configuration).get(0).toString().substring(0,2)}llllllllllllllllllll;;;;")
+
+
             locationState =
                 rememberSaveable { mutableStateOf(Location(LocationManager.GPS_PROVIDER)) }
             Log.i("TAG", "onCreate: ${locationState.value.longitude}")
@@ -251,11 +259,11 @@ class MainActivity : ComponentActivity() {
     private fun getFavoriteViewModel() = ViewModelProvider(
         this,
         FavoriteViewModelFactory(
-            Repository.getInstance(
-                weatherRemoteDataSource = WeatherRemoteDataSource(
+            WeatherRepositoryImpl.getInstance(
+                weatherRemoteDataSourceImpl = WeatherRemoteDataSourceImpl(
                     RetrofitFactory.apiService
                 ),
-                weatherLocalDataSource = WeatherLocalDataSource(
+                weatherLocalDataSourceImpl = WeatherLocalDataSourceImpl(
                     WeatherDatabase.getInstance(
                         this
                     ).getDao()
@@ -328,6 +336,7 @@ class MainActivity : ComponentActivity() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     private fun MainScreen(
         currentWeather: Response,
@@ -550,9 +559,9 @@ class MainActivity : ComponentActivity() {
     private fun homeViewModel() = ViewModelProvider(
         this,
         HomeViewModelFactory(
-            Repository.getInstance(
-                weatherRemoteDataSource = WeatherRemoteDataSource(RetrofitFactory.apiService),
-                weatherLocalDataSource = WeatherLocalDataSource(
+            WeatherRepositoryImpl.getInstance(
+                weatherRemoteDataSourceImpl = WeatherRemoteDataSourceImpl(RetrofitFactory.apiService),
+                weatherLocalDataSourceImpl = WeatherLocalDataSourceImpl(
                     WeatherDatabase.getInstance(
                         this
                     ).getDao()

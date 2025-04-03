@@ -43,16 +43,20 @@ class WeatherWorkManager(context: Context, workerParameters: WorkerParameters) :
             result.countryName = list[0].countryName?:result.sys.country
             result.cityName = list[0].locality?:result.name
         }
+        result.latitude=latitude
+        result.longitude=longitude
         WeatherDatabase.getInstance(applicationContext).getDao().selectAllAlarms().collect {
             val gson = Gson()
             val stringResult = gson.toJson(result)
             val intent = Intent(applicationContext, WeatherBroadcastReceiver::class.java)
             intent.putExtra(Strings.RESULT_CONST, stringResult)
             Log.i("TAG", "doWork: string result :  $stringResult")
+
             intent.putExtra(
                 Strings.ALARM_TYPE,
                 it.first { item -> item.locationId == result.id }.alarmType
             )
+
             val pendingIntent: PendingIntent = PendingIntent.getBroadcast(
                 applicationContext,
                 requestCode,
@@ -67,6 +71,7 @@ class WeatherWorkManager(context: Context, workerParameters: WorkerParameters) :
             )
 
             WeatherDatabase.getInstance(applicationContext).getDao().deleteAlarm(result.id)
+            Log.i("TAG", "doWork: deleted")
         }
         return Result.success()
     }

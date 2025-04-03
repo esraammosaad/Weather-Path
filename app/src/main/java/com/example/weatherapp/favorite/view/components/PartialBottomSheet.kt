@@ -1,6 +1,7 @@
 package com.example.weatherapp.favorite.view.components
 
-import android.location.Address
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,15 +33,16 @@ import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.WeatherDetails
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PartialBottomSheet(
     showBottomSheet: MutableState<Boolean>,
     selectedWeather: CurrentWeatherResponse?,
-    countryNameUiState: Address?,
+    countryNameUiState: Response,
     fiveDaysWeatherForecastResponse: Response,
     listOfDays: List<List<WeatherItem>>,
-    onAddClicked : ()->Unit
+    onAddClicked: ()->Unit
 ) {
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = false,

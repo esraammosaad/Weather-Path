@@ -11,7 +11,6 @@ import androidx.compose.ui.unit.dp
 import com.example.weatherapp.R
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.utilis.getWeatherImage
-import com.example.weatherapp.utilis.isMorning
 
 @Composable
 fun ImageDisplay(currentWeatherResponse: CurrentWeatherResponse) {
@@ -21,7 +20,7 @@ fun ImageDisplay(currentWeatherResponse: CurrentWeatherResponse) {
         ),
         contentDescription = stringResource(R.string.sun_or_moon_icon),
         modifier = Modifier
-            .size(150.dp)
-            .padding(top = 36.dp, end = 16.dp)
+            .size(140.dp)
+            .padding(top = 32.dp, end = 16.dp)
     )
 }

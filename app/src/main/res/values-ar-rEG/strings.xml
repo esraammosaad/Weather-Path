@@ -89,4 +89,17 @@
     <string name="no_internet">لا يوجد إنترنت</string>
     <string name="you_sure_you_want_change_your_location_and_pick_from_the_map">هل أنت متأكد أنك تريد تغيير موقعك واختيار موقع من الخريطة؟</string>
     <string name="you_sure_you_want_the_gps_determine_your_location">هل أنت متأكد أنك تريد أن يحدد GPS موقعك؟</string>
+    <string name="last_updated">"آخر تحديث: "</string>
+    <string name="feels_like">يشعر وكأنه : %1$s</string>
+    <string name="success">نجاح</string>
+    <string name="something_wrong_happened">حدث خطأ ما!</string>
+    <string name="current_weather_inserted_successfully">تم إدراج الطقس الحالي بنجاح</string>
+    <string name="five_days_inserted_successfully">تم إدراج توقعات الخمسة أيام بنجاح</string>
+    <string name="alarm_updated_successfully">تم تحديث المنبه بنجاح</string>
+    <string name="weather_updated_successfully">تم تحديث الطقس بنجاح</string>
+    <string name="loading">جارٍ التحميل</string>
+    <string name="_3_hourly_forecast">توقعات كل 3 ساعات</string>
+    <string name="more_details">مزيد من التفاصيل</string>
+    <string name="_5_day_forecast">توقعات الخمسة أيام</string>
+    <string name="default_lang">افتراضي</string>
 </resources>

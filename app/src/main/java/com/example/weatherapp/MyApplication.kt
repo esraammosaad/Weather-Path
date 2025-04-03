@@ -20,7 +20,7 @@ class MyApplication : Application() {
     private fun createNotificationChannel() {
         if (VERSION.SDK_INT >= VERSION_CODES.O) {
             val notificationSound =
-                Uri.parse("android.resource://${this.packageName}/raw/sound_track_two")
+                Uri.parse("android.resource://${this.packageName}/raw/tropical_alarm_clock")
 
             val attributes = AudioAttributes.Builder()
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)

@@ -1,7 +1,6 @@
 package com.example.weatherapp.utilis
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -11,9 +10,7 @@ import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -79,27 +76,24 @@ fun BottomNavigationBar(
                 icon = {
                     BadgedBox(
                         badge = {
-                            if (index == 2)
-                                Badge(
-                                    containerColor = Color.Red,
-                                    contentColor = Color.White
-                                    ) {
-                                    when(res){
-                                        is Response.Failure -> {}
-                                        Response.Loading -> {}
-                                        is Response.Success<*> -> {
-                                            res as Response.Success<List<AlarmModel>>
+                            when (res) {
+                                is Response.Failure -> {}
+                                Response.Loading -> {}
+                                is Response.Success<*> -> {
+                                    res as Response.Success<List<AlarmModel>>
+                                    if (index == 2 && (res.result?.size ?: 0) > 0)
+                                        Badge(
+                                            containerColor = Color.Red,
+                                            contentColor = Color.White
+                                        ) {
                                             Text(res.result?.size.toString())
                                         }
-                                    }
-
                                 }
+                            }
                         }
                     ) {
                         Icon(painter = painterResource(item.icon), contentDescription = "")
                     }
-
-
                 },
                 label = { Text(titleList[index]) },
                 alwaysShowLabel = false,
@@ -112,11 +106,7 @@ fun BottomNavigationBar(
                     disabledIconColor = Color.White,
                     disabledTextColor = Color.White
                 )
-
             )
-
         }
     }
-
-
 }

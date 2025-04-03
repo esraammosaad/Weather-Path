@@ -41,8 +41,8 @@ fun FavoriteLazyColumn(
     val selectedWeather = favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
     val fiveDaysForecastFavorites =
         favoriteViewModel.fiveDaysForecastFavorites.collectAsStateWithLifecycle().value
-    val deleteItemMessage =
-        favoriteViewModel.deleteFavoriteItemResult.collectAsStateWithLifecycle().value
+    val message =
+        favoriteViewModel.message.collectAsStateWithLifecycle().value
     val context = LocalContext.current
     LazyColumn(modifier = Modifier.padding(top = 16.dp, end = 16.dp, start = 16.dp)) {
         item {
@@ -61,9 +61,14 @@ fun FavoriteLazyColumn(
             Response.Loading -> item { LoadingDisplay() }
             is Response.Success<*> -> {
                 weatherFavorites as Response.Success<List<CurrentWeatherResponse>>
-                item {
-                    UpdateFavoritesFromApi(isConnected, weatherFavorites, favoriteViewModel, context)
-                }
+//                item {
+//                    UpdateFavoritesFromApi(
+//                        isConnected,
+//                        weatherFavorites,
+//                        favoriteViewModel,
+//                        context
+//                    )
+//                }
                 items(weatherFavorites.result?.size ?: 0) { index ->
                     if (currentWeatherResponse.id != weatherFavorites.result?.get(index)?.id) {
                         val item = weatherFavorites.result?.get(index)
@@ -88,7 +93,7 @@ fun FavoriteLazyColumn(
                                     alarmsList = alarms,
                                     onFavoriteCardClicked = onFavoriteCardClicked,
                                     index = index,
-                                    deleteItemMessage = deleteItemMessage,
+                                    deleteItemMessage = stringResource(message),
                                     fiveDaysForecastFavorites = fiveDaysForecastFavorites.result,
                                     coroutineScope = coroutineScope
                                 )
@@ -103,55 +108,55 @@ fun FavoriteLazyColumn(
     }
 }
 
-@Composable
-private fun UpdateFavoritesFromApi(
-    isConnected: Boolean,
-    weatherFavorites: Response.Success<List<CurrentWeatherResponse>>,
-    favoriteViewModel: FavoriteViewModelImpl,
-    context: Context
-) {
-    LaunchedEffect(Unit) {
-        Log.i(
-            "TAG",
-            "FavoriteLazyColumn: -----------------------------------------------------------"
-        )
-        if (isConnected) {
-            weatherFavorites.result?.forEach { favorite ->
-                favoriteViewModel.getSelectedWeather(
-                    latitude = favorite.latitude,
-                    longitude = favorite.longitude,
-                    isConnected = true,
-                    languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode,
-                    tempUnit = LocalStorageDataSource.getInstance(context).getTempUnit
-                )
-                favoriteViewModel.getCountryName(
-                    latitude = favorite.latitude,
-                    longitude = favorite.longitude,
-                    isConnected = true,
-                    geocoder = Geocoder(
-                        context,
-                        Locale(LocalStorageDataSource.getInstance(context).getLanguageCode)
-                    )
-                )
-
-                favoriteViewModel.selectedWeather.collect { selectedWeather ->
-                    if (selectedWeather is Response.Success<*>) {
-                        selectedWeather as Response.Success<CurrentWeatherResponse>
-                        favoriteViewModel.countryName.collect { country ->
-                            if (country is Response.Success<*>) {
-                                country as Response.Success<Address>
-                                selectedWeather.result?.let { res ->
-                                    res.cityName = country.result?.locality ?: ""
-                                    res.countryName = country.result?.countryName ?: ""
-                                    res.latitude = favorite.latitude
-                                    res.longitude = favorite.longitude
-                                    favoriteViewModel.updateSelectedWeather(res)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+//@Composable
+//private fun UpdateFavoritesFromApi(
+//    isConnected: Boolean,
+//    weatherFavorites: Response.Success<List<CurrentWeatherResponse>>,
+//    favoriteViewModel: FavoriteViewModelImpl,
+//    context: Context
+//) {
+//    LaunchedEffect(Unit) {
+//        Log.i(
+//            "TAG",
+//            "FavoriteLazyColumn: -----------------------------------------------------------"
+//        )
+//        if (isConnected) {
+//            weatherFavorites.result?.forEach { favorite ->
+//                favoriteViewModel.getSelectedWeather(
+//                    latitude = favorite.latitude,
+//                    longitude = favorite.longitude,
+//                    isConnected = true,
+//                    languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode,
+//                    tempUnit = LocalStorageDataSource.getInstance(context).getTempUnit
+//                )
+//                favoriteViewModel.getCountryName(
+//                    latitude = favorite.latitude,
+//                    longitude = favorite.longitude,
+//                    isConnected = true,
+//                    geocoder = Geocoder(
+//                        context,
+//                        Locale(LocalStorageDataSource.getInstance(context).getLanguageCode)
+//                    )
+//                )
+//
+//                favoriteViewModel.selectedWeather.collect { selectedWeather ->
+//                    if (selectedWeather is Response.Success<*>) {
+//                        selectedWeather as Response.Success<CurrentWeatherResponse>
+//                        favoriteViewModel.countryName.collect { country ->
+//                            if (country is Response.Success<*>) {
+//                                country as Response.Success<Address>
+//                                selectedWeather.result?.let { res ->
+//                                    res.cityName = country.result?.locality ?: ""
+//                                    res.countryName = country.result?.countryName ?: ""
+//                                    res.latitude = favorite.latitude
+//                                    res.longitude = favorite.longitude
+//                                    favoriteViewModel.updateSelectedWeather(res)
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}

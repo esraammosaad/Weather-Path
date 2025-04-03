@@ -1,8 +1,8 @@
 package com.example.weatherapp.favorite.view.components
 
 import android.location.Address
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -13,6 +13,7 @@ import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.google.maps.android.compose.MarkerState
 import java.math.RoundingMode
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun BottomSheetDisplay(
     currentWeatherUiState: Response,
@@ -65,17 +66,15 @@ fun BottomSheetDisplay(
                                 .toDouble()
                         )
                     }
-                    when (countryName) {
-                        is Response.Loading -> CircularProgressIndicator()
-                        is Response.Failure -> Text(countryName.exception)
-                        is Response.Success<*> -> {
+
+
                             countryName as Response.Success<Address>
                             selectedWeather?.countryName = countryName.result?.countryName ?: ""
                             selectedWeather?.cityName = countryName.result?.locality ?: ""
                             PartialBottomSheet(
                                 showBottomSheet,
                                 selectedWeather,
-                                countryName.result,
+                                countryName,
                                 fiveDaysWeatherForecast,
                                 listOfDays,
                             ) {
@@ -89,6 +88,6 @@ fun BottomSheetDisplay(
                 }
             }
         }
-    }
-}
+
+
 

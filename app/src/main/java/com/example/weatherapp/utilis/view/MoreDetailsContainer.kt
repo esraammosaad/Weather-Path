@@ -33,7 +33,7 @@ fun MoreDetailsContainer(currentWeather: CurrentWeatherResponse) {
     Column(modifier = Modifier.padding(horizontal = 12.dp)) {
 
             Text(
-                "MORE DETAILS",
+                stringResource(R.string.more_details),
                 style = Styles.textStyleSemiBold22,
                 color = Color.White
 

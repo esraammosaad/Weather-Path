@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Weather App</string>
+    <string name="app_name">Weather Path</string>
     <string name="api_key">18a5a0a6e1d672ed8bc80550e06930de</string>
     <string name="sun_icon">Sun Icon</string>
     <string name="sun_or_moon_icon">Sun Or Moon Icon</string>
@@ -90,4 +90,16 @@
     <string name="you_sure_you_want_the_gps_determine_your_location">You sure you want the GPS determine your location?</string>
     <string name="last_updated">"Last Updated: "</string>
     <string name="feels_like">Feels Like : %1$s</string>
+    <string name="success">Success</string>
+    <string name="something_wrong_happened">Something wrong happened!</string>
+    <string name="current_weather_inserted_successfully">Current Weather Inserted Successfully</string>
+    <string name="five_days_inserted_successfully">Five Days Inserted Successfully</string>
+    <string name="alarm_updated_successfully">Alarm Updated Successfully</string>
+    <string name="weather_updated_successfully">Weather Updated Successfully</string>
+    <string name="loading">loading</string>
+    <string name="_3_hourly_forecast">3-HOURLY FORECAST</string>
+    <string name="more_details">MORE DETAILS</string>
+    <string name="_5_day_forecast">5-DAY FORECAST</string>
+    <string name="default_lang">Default</string>
+    <string name="snooze">SNOOZE</string>
 </resources>

@@ -9,7 +9,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.weatherapp.R
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.utilis.Styles
@@ -23,7 +25,7 @@ fun WeatherForecastDisplay(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 24.dp)
     ) {
         Text(
-            "3-HOURLY FORECAST",
+            stringResource(R.string._3_hourly_forecast),
             style = Styles.textStyleSemiBold22,
             color = Color.White
 

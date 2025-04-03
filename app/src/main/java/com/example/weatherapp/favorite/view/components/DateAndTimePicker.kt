@@ -37,7 +37,6 @@ import com.example.weatherapp.ui.theme.OffWhite
 import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.utilis.Strings
 import com.example.weatherapp.utilis.Styles
-import com.example.weatherapp.utilis.calculateDelay
 import com.example.weatherapp.utilis.view.RadioButtonSingleSelection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -147,7 +146,7 @@ private fun onDoneDateAndTimePickerClicked(
         longitude = selectedWeather?.longitude ?: 0.0,
         latitude = selectedWeather?.latitude ?: 0.0
     )
-    val duration = calculateDelay(
+    val duration = favoriteViewModel.calculateDelay(
         targetYear = snappedDate.year,
         targetMonth = snappedDate.monthNumber,
         targetDay = snappedDate.dayOfMonth,
@@ -162,7 +161,7 @@ private fun onDoneDateAndTimePickerClicked(
     showDatePicker.value = false
 }
 
-private fun requestWorkManagerForSet(
+fun requestWorkManagerForSet(
     selectedWeather: CurrentWeatherResponse?,
     context: Context,
     duration: Long

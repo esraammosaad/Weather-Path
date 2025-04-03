@@ -2,6 +2,7 @@ package com.example.weatherapp.data.local
 
 import android.content.Context
 import com.example.weatherapp.R
+import com.example.weatherapp.settings.view.getDefaultSystemLang
 import com.example.weatherapp.utilis.Strings
 
 class LocalStorageDataSource private constructor(context: Context) {
@@ -42,7 +43,7 @@ class LocalStorageDataSource private constructor(context: Context) {
         editor.apply()
     }
     val getLanguageCode: String
-        get() = prefs.getString(Strings.LANG_CODE, "en") ?: "en"
+        get() = prefs.getString(Strings.LANG_CODE, getDefaultSystemLang()) ?: getDefaultSystemLang()
 
     fun saveTempUnit(tempUnit: String) {
         editor.putString(Strings.TEMP_UNIT, tempUnit)

@@ -41,7 +41,7 @@ fun FiveDaysWeatherForecastDisplay(fiveDaysWeatherForecast: List<List<WeatherIte
 
         item {
             Text(
-                "5-DAY FORECAST",
+                stringResource(R.string._5_day_forecast),
                 style = Styles.textStyleSemiBold22,
                 color = Color.White
 

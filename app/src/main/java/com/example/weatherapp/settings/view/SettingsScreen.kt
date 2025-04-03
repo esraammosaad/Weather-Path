@@ -2,8 +2,7 @@ package com.example.weatherapp.settings.view
 
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
-import android.util.Log
+import android.content.res.Resources
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
@@ -22,7 +22,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,7 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.weatherapp.MainActivity
+import androidx.core.os.ConfigurationCompat
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
@@ -112,155 +111,167 @@ fun SettingsScreen(
             )
         }
 
-        Column(modifier = Modifier.padding(top = 16.dp, end = 16.dp, start = 16.dp)) {
+        LazyColumn(modifier = Modifier.padding(top = 16.dp, end = 16.dp, start = 16.dp)) {
 
-            val savedLangCode = LocalStorageDataSource.getInstance(context).getLanguageCode
-            val selectedLanguage: String = if (savedLangCode == "en") {
-                context.getString(R.string.english)
-            } else {
-                context.getString(R.string.arabic)
-            }
-            CustomPreferencesCard(
-                stringResource(R.string.language),
-                listOf(stringResource(R.string.english), stringResource(R.string.arabic)),
-                R.drawable.baseline_language_24,
-                currentWeather.weather.firstOrNull()?.icon ?: "",
-                selectedLanguage
-            ) { selectedLang ->
-                val langCode: String = if (selectedLang == context.getString(R.string.english)) {
-                    "en"
-                } else {
-                    "ar"
+            item {
+                val savedLangCode = LocalStorageDataSource.getInstance(context).getLanguageCode
+                val selectedLanguage: String = when (savedLangCode) {
+                    "en" -> context.getString(R.string.english)
+                    "ar" -> context.getString(R.string.arabic)
+                    else -> context.getString(R.string.default_lang)
                 }
-                LocalStorageDataSource.getInstance(context).saveLanguageCode(langCode)
-                LocalizationHelper.updateLocale(context, langCode)
-                (context as Activity).recreate()
+                Spacer(modifier = Modifier.height(8.dp))
+                CustomPreferencesCard(
+                    stringResource(R.string.language),
+                    listOf(
+                        stringResource(R.string.default_lang),
+                        stringResource(R.string.english),
+                        stringResource(R.string.arabic)
 
-            }
-            Spacer(modifier = Modifier.height(18.dp))
-
-            CustomPreferencesCard(
-                stringResource(R.string.get_location_by),
-                listOf(
-                    stringResource(R.string.gps),
-                    stringResource(R.string.map)
-                ),
-                R.drawable.baseline_location_pin_24,
-                currentWeather.weather.firstOrNull()?.icon ?: "",
-                stringResource(locationState.intValue)
-            ) { selectedOption ->
-                if (selectedOption == context.getString(R.string.map)) {
-                    openAlertDialog.value = true
-                    dialogTitle.value = context.getString(R.string.warning)
-                    dialogText.value =
-                        context.getString(R.string.you_sure_you_want_change_your_location_and_pick_from_the_map)
-                    onConfirmation.value = {
-                        onMapClicked.invoke()
-                        locationState.intValue = R.string.map
-                        LocalStorageDataSource.getInstance(context).saveLocationState(0)
-                        (context as Activity).recreate()
-
+                    ),
+                    R.drawable.baseline_language_24,
+                    currentWeather.weather.firstOrNull()?.icon ?: "",
+                    selectedLanguage
+                ) { selectedLang ->
+                    val langCode = when (selectedLang) {
+                        context.getString(R.string.english) -> "en"
+                        context.getString(R.string.arabic) -> "ar"
+                        else -> getDefaultSystemLang()
                     }
-                } else {
-                    openAlertDialog.value = true
-                    dialogTitle.value = context.getString(R.string.warning)
-                    dialogText.value =
-                        context.getString(R.string.you_sure_you_want_the_gps_determine_your_location)
-                    onConfirmation.value = {
-                        LocalStorageDataSource.getInstance(context).saveLocationState(R.string.gps)
-                        locationState.value = R.string.gps
-                        (context as Activity).recreate()
-                    }
+                    LocalStorageDataSource.getInstance(context).saveLanguageCode(langCode)
+                    LocalizationHelper.updateLocale(context, langCode)
+                    (context as Activity).recreate()
+
                 }
+                Spacer(modifier = Modifier.height(18.dp))
 
+                CustomPreferencesCard(
+                    stringResource(R.string.get_location_by),
+                    listOf(
+                        stringResource(R.string.gps),
+                        stringResource(R.string.map)
+                    ),
+                    R.drawable.baseline_location_pin_24,
+                    currentWeather.weather.firstOrNull()?.icon ?: "",
+                    stringResource(locationState.intValue)
+                ) { selectedOption ->
+                    if (selectedOption == context.getString(R.string.map)) {
+                        openAlertDialog.value = true
+                        dialogTitle.value = context.getString(R.string.warning)
+                        dialogText.value =
+                            context.getString(R.string.you_sure_you_want_change_your_location_and_pick_from_the_map)
+                        onConfirmation.value = {
+                            onMapClicked.invoke()
+                            locationState.intValue = R.string.map
+                            LocalStorageDataSource.getInstance(context).saveLocationState(0)
+                            (context as Activity).recreate()
 
-            }
-            Spacer(modifier = Modifier.height(18.dp))
-
-            CustomPreferencesCard(
-                stringResource(R.string.temperature),
-                listOf(
-                    stringResource(R.string.celsius),
-                    stringResource(R.string.Kelvin),
-                    stringResource(R.string.fahrenheit)
-                ),
-                R.drawable.thermometer,
-                currentWeather.weather.firstOrNull()?.icon ?: "",
-                stringResource(tempState.intValue)
-            ) { selectedTempUnit ->
-                val tempUnit: String
-                val tempSymbol: Int
-                when (selectedTempUnit) {
-                    context.getString(R.string.celsius) -> {
-                        tempUnit = Strings.CELSIUS
-                        tempSymbol = R.string.celsius
-                        tempState.intValue = R.string.celsius
-                        windState.intValue = R.string.meter_sec
-                        LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.meter_sec)
+                        }
+                    } else {
+                        openAlertDialog.value = true
+                        dialogTitle.value = context.getString(R.string.warning)
+                        dialogText.value =
+                            context.getString(R.string.you_sure_you_want_the_gps_determine_your_location)
+                        onConfirmation.value = {
+                            LocalStorageDataSource.getInstance(context).saveLocationState(R.string.gps)
+                            locationState.value = R.string.gps
+                            (context as Activity).recreate()
+                        }
                     }
 
-                    context.getString(R.string.Kelvin) -> {
-                        tempUnit = Strings.KELVIN
-                        tempSymbol = R.string.Kelvin
-                        tempState.intValue = R.string.Kelvin
-                        windState.intValue = R.string.meter_sec
-                        LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.meter_sec)
-                    }
 
-                    context.getString(R.string.fahrenheit) -> {
-                        tempUnit = Strings.FAHRENHEIT
-                        tempSymbol = R.string.fahrenheit
-                        tempState.intValue = R.string.fahrenheit
+                }
+                Spacer(modifier = Modifier.height(18.dp))
+
+                CustomPreferencesCard(
+                    stringResource(R.string.temperature),
+                    listOf(
+                        stringResource(R.string.celsius),
+                        stringResource(R.string.Kelvin),
+                        stringResource(R.string.fahrenheit)
+                    ),
+                    R.drawable.thermometer,
+                    currentWeather.weather.firstOrNull()?.icon ?: "",
+                    stringResource(tempState.intValue)
+                ) { selectedTempUnit ->
+                    val tempUnit: String
+                    val tempSymbol: Int
+                    when (selectedTempUnit) {
+                        context.getString(R.string.celsius) -> {
+                            tempUnit = Strings.CELSIUS
+                            tempSymbol = R.string.celsius
+                            tempState.intValue = R.string.celsius
+                            windState.intValue = R.string.meter_sec
+                            LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.meter_sec)
+                        }
+
+                        context.getString(R.string.Kelvin) -> {
+                            tempUnit = Strings.KELVIN
+                            tempSymbol = R.string.Kelvin
+                            tempState.intValue = R.string.Kelvin
+                            windState.intValue = R.string.meter_sec
+                            LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.meter_sec)
+                        }
+
+                        context.getString(R.string.fahrenheit) -> {
+                            tempUnit = Strings.FAHRENHEIT
+                            tempSymbol = R.string.fahrenheit
+                            tempState.intValue = R.string.fahrenheit
+                            windState.intValue = R.string.miles_hour
+                            LocalStorageDataSource.getInstance(context)
+                                .saveWindUnit(R.string.miles_hour)
+                        }
+
+                        else -> {
+                            tempUnit = Strings.CELSIUS
+                            tempSymbol = R.string.celsius
+                            tempState.intValue = R.string.celsius
+                            windState.intValue = R.string.meter_sec
+                            LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.meter_sec)
+                        }
+                    }
+                    saveNewTempUnit(context, tempUnit, tempSymbol, homeViewModel, currentWeather)
+                }
+                Spacer(modifier = Modifier.height(18.dp))
+                CustomPreferencesCard(
+                    stringResource(R.string.wind_speed), listOf(
+                        stringResource(R.string.meter_sec),
+                        stringResource(
+                            R.string.miles_hour
+                        )
+                    ),
+                    R.drawable.wind,
+                    currentWeather.weather.firstOrNull()?.icon ?: "",
+                    stringResource(windState.intValue)
+                ) { selectedOption ->
+                    if (selectedOption == context.getString(R.string.miles_hour)) {
+                        LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.miles_hour)
+                        saveNewTempUnit(
+                            context, homeViewModel = homeViewModel, currentWeather = currentWeather,
+                            tempUnit = Strings.FAHRENHEIT, tempSymbol = R.string.fahrenheit
+                        )
+                        tempState.intValue =
+                            R.string.fahrenheit
                         windState.intValue = R.string.miles_hour
-                        LocalStorageDataSource.getInstance(context)
-                            .saveWindUnit(R.string.miles_hour)
-                    }
-
-                    else -> {
-                        tempUnit = Strings.CELSIUS
-                        tempSymbol = R.string.celsius
-                        tempState.intValue = R.string.celsius
-                        windState.intValue = R.string.meter_sec
+                    } else {
                         LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.meter_sec)
+                        saveNewTempUnit(
+                            context, homeViewModel = homeViewModel, currentWeather = currentWeather,
+                            tempUnit = Strings.CELSIUS, tempSymbol = R.string.celsius
+                        )
+
+                        tempState.intValue =
+                            R.string.celsius
+                        windState.intValue = R.string.meter_sec
+
                     }
-                }
-                saveNewTempUnit(context, tempUnit, tempSymbol, homeViewModel, currentWeather)
-            }
-            Spacer(modifier = Modifier.height(18.dp))
-            CustomPreferencesCard(
-                stringResource(R.string.wind_speed), listOf(
-                    stringResource(R.string.meter_sec),
-                    stringResource(
-                        R.string.miles_hour
-                    )
-                ),
-                R.drawable.wind,
-                currentWeather.weather.firstOrNull()?.icon ?: "",
-                stringResource(windState.intValue)
-            ) { selectedOption ->
-                if (selectedOption == context.getString(R.string.miles_hour)) {
-                    LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.miles_hour)
-                    saveNewTempUnit(
-                        context, homeViewModel = homeViewModel, currentWeather = currentWeather,
-                        tempUnit = Strings.FAHRENHEIT, tempSymbol = R.string.fahrenheit
-                    )
-                    tempState.intValue =
-                        R.string.fahrenheit
-                    windState.intValue = R.string.miles_hour
-                } else {
-                    LocalStorageDataSource.getInstance(context).saveWindUnit(R.string.meter_sec)
-                    saveNewTempUnit(
-                        context, homeViewModel = homeViewModel, currentWeather = currentWeather,
-                        tempUnit = Strings.CELSIUS, tempSymbol = R.string.celsius
-                    )
-
-                    tempState.intValue =
-                        R.string.celsius
-                    windState.intValue = R.string.meter_sec
 
                 }
+                Spacer(modifier = Modifier.height(20.dp))
 
             }
+
+
 
 
         }
@@ -268,6 +279,10 @@ fun SettingsScreen(
 
     }
 }
+
+fun getDefaultSystemLang() = ConfigurationCompat.getLocales(
+    Resources.getSystem().configuration
+).get(0).toString()
 
 private fun saveNewTempUnit(
     context: Context,
@@ -307,12 +322,12 @@ private fun CustomPreferencesCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(120.dp)
+            .height(130.dp)
             .background(
                 brush = getWeatherGradient(backgroundColor),
                 shape = RoundedCornerShape(25.dp)
             )
-            .padding(24.dp),
+            .padding(12.dp),
         elevation = CardDefaults.cardElevation(),
         colors = CardColors(
             containerColor = Color.Transparent,
@@ -336,7 +351,7 @@ private fun CustomPreferencesCard(
                     style = Styles.textStyleSemiBold20,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth(0.6f)
+                    modifier = Modifier.fillMaxWidth(0.65f)
                 )
 
             }

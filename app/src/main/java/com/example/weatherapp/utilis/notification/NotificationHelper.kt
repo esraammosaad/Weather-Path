@@ -24,11 +24,23 @@ class NotificationHelper {
                 context, 0,
                 fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
-            val intent = Intent(context, NotificationBroadcastReceiver::class.java)
+            val intent = Intent(context, NotificationBroadcastReceiver::class.java).apply {
+                putExtra("action",0)
+            }
             val pendingIntent = PendingIntent.getBroadcast(
                 context,
                 0,
                 intent,
+                PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val intent2 = Intent(context, NotificationBroadcastReceiver::class.java).apply {
+                putExtra("action",1)
+            }
+            val pendingIntent2 = PendingIntent.getBroadcast(
+                context,
+                0,
+                intent2,
                 PendingIntent.FLAG_IMMUTABLE
             )
             val localContext = LocalizationHelper.getLocalizedContext(context,LocalStorageDataSource.getInstance(context).getLanguageCode)
@@ -62,6 +74,7 @@ class NotificationHelper {
                 .setFullScreenIntent(fullScreenPendingIntent, true)
                 .setAutoCancel(autoCancel)
                 .addAction(0, localContext.getString(R.string.confirm), pendingIntent)
+                .addAction(0, context.getString(R.string.snooze), pendingIntent2)
                 .build()
         }
     }

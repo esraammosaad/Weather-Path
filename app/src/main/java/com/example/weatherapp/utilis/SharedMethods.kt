@@ -11,14 +11,9 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.Date
 import java.util.Locale
-
-fun isMorning(): Boolean {
-    val calendar = Calendar.getInstance()
-    val timeOfDay = calendar[Calendar.HOUR_OF_DAY]
-    return timeOfDay in 0..15
-}
 
 
 fun convertUnixToTime(unixTime: Long): String {
@@ -27,99 +22,97 @@ fun convertUnixToTime(unixTime: Long): String {
     return format.format(date)
 }
 
-
-
-fun getWeatherGradient(icon: String = "" ): Brush {
+fun getWeatherGradient(icon: String = ""): Brush {
     return when (icon) {
-        // ☀️ Clear Sky (Sunny)
         "01d" -> Brush.linearGradient(
             listOf(Color(0xFF1B2A49), Color(0xFF6A85B6), Color(0xFFBAC8E0))
-        ) // Soft navy meets crisp sky blue
+        )
+
         "01n" -> Brush.linearGradient(
             listOf(Color(0xFF0D1B2A), Color(0xFF16213E), Color(0xFF1B2A49))
-        ) // Deep navy to midnight blue
+        )
 
-        // 🌤️ Few Clouds
         "02d" -> Brush.linearGradient(
             listOf(Color(0xFF1B2A49), Color(0xFF8FA6C1), Color(0xFFBAC8E0))
-        ) // Muted blue with soft clouds
+        )
+
         "02n" -> Brush.linearGradient(
             listOf(Color(0xFF16213E), Color(0xFF1B2A49), Color(0xFF3E5481))
-        ) // Navy with a hint of cool gray
+        )
 
-        // ☁️ Scattered Clouds
         "03d" -> Brush.linearGradient(
             listOf(Color(0xFF607D8B), Color(0xFF90A4AE), Color(0xFFB0BEC5))
-        ) // Soft gray-blue tones
+        )
+
         "03n" -> Brush.linearGradient(
             listOf(Color(0xFF1B2A49), Color(0xFF263859), Color(0xFF3E5481))
-        ) // Deeper navy with cool undertones
+        )
 
-        // ☁️ Broken Clouds
         "04d" -> Brush.linearGradient(
             listOf(Color(0xFF37474F), Color(0xFF546E7A), Color(0xFF78909C))
-        ) // Heavy gray with a navy touch
+        )
+
         "04n" -> Brush.linearGradient(
             listOf(Color(0xFF1B2A49), Color(0xFF263859), Color(0xFF3A3A3A))
-        ) // Stormy navy blues
+        )
 
-        // 🌧️ Shower Rain
         "09d" -> Brush.linearGradient(
             listOf(Color(0xFF5E718D), Color(0xFF90A4AE), Color(0xFF607D8B))
-        ) // Muted rainy sky blue
+        )
+
         "09n" -> Brush.linearGradient(
             listOf(Color(0xFF1B2A49), Color(0xFF2B3A42), Color(0xFF3E3E3E))
-        ) // Dark rainstorm vibes
+        )
 
-        // 🌦️ Rain
         "10d" -> Brush.linearGradient(
             listOf(Color(0xFF5A738E), Color(0xFF809FB8), Color(0xFFB3C6E7))
-        ) // Soft rain with navy blue contrast
+        )
+
         "10n" -> Brush.linearGradient(
             listOf(Color(0xFF1B2A49), Color(0xFF2B3A42), Color(0xFF3E3E3E))
-        ) // Midnight rain tones
+        )
 
         // ⛈️ Thunderstorm
         "11d" -> Brush.linearGradient(
             listOf(Color(0xFF424242), Color(0xFF616161), Color(0xFF9E9E9E))
-        ) // Stormy gray with depth
+        )
+
         "11n" -> Brush.linearGradient(
             listOf(Color(0xFF000000), Color(0xFF1B1B1B), Color(0xFF3E3E3E))
-        ) // Dark stormy navy
+        )
 
-        // ❄️ Snow
         "13d" -> Brush.linearGradient(
             listOf(Color(0xFF5C6378), Color(0xFF778899), Color(0xFFB3C6E7))
-        ) // Icy cool blues
+        )
+
         "13n" -> Brush.linearGradient(
             listOf(Color(0xFF5C6378), Color(0xFF778899), Color(0xFFB3C6E7))
         ) // Winter navy tones
 
-        // 🌫️ Mist/Fog
         "50d" -> Brush.linearGradient(
             listOf(Color(0xFF4A4A4A), Color(0xFF696969), Color(0xFF9E9E9E))
-        ) // Soft foggy gray
+        )
+
         "50n" -> Brush.linearGradient(
             listOf(Color(0xFF4A4A4A), Color(0xFF696969), Color(0xFF9E9E9E))
-        ) // Foggy navy hues
+        )
 
-        // Default Gradient
         else -> Brush.linearGradient(
 //            listOf(Color(0xFF1B2A49), Color(0xFF6A85B6))
             listOf(Color(0xFF6A85B6), Color(0xFFBAC8E0))
 
-        ) // Default navy gradient
+        )
     }
 }
 
-fun getWeatherImage(icon: String = "" ): Int {
+fun getWeatherImage(icon: String = ""): Int {
     return when (icon) {
         // ☀️ Clear Sky (Sunny)
         "01d" -> R.drawable.sunny// Bright Blue & Yellow
         "01n" -> R.drawable.moon// Deep Dark Blue
 
         // 🌤️ Few Clouds
-        "02d" ->R.drawable.partlycloudy // Soft Blue with Sunlight
+        "02d" -> R.drawable.partlycloudy // Soft Blue with Sunlight
         "02n" -> R.drawable.cloudy_night // Cloudy Night Blue
 
         // ☁️ Scattered Clouds
@@ -128,7 +121,7 @@ fun getWeatherImage(icon: String = "" ): Int {
 
         // ☁️ Broken Clouds
         "04d" -> R.drawable.scatterd// Heavy Grayish Clouds
-        "04n" ->R.drawable.scatterd // Dark Broken Clouds
+        "04n" -> R.drawable.scatterd // Dark Broken Clouds
 
         // 🌧️ Shower Rain
         "09d" -> R.drawable.rainy_bold// Grayish Rainy Day
@@ -179,34 +172,22 @@ fun formatTime(input: String): String {
     return date?.let { outputFormat.format(it) } ?: "Invalid Date"
 }
 
-fun getCurrentDate(amount:Int): String {
+fun getCurrentDate(amount: Int): String {
     val calendar = Calendar.getInstance()
     calendar.add(Calendar.DAY_OF_YEAR, amount)
     val dateFormat = SimpleDateFormat("EEEE dd MMM yyyy", Locale.getDefault())
     return dateFormat.format(calendar.time)
 }
 
+
 @RequiresApi(Build.VERSION_CODES.O)
 fun getTimeFromTimestamp(timestamp: Int, offsetInSeconds: Int): String {
     val zoneId = ZoneId.ofOffset("UTC", java.time.ZoneOffset.ofTotalSeconds(offsetInSeconds))
     val dateTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(timestamp.toLong()), zoneId)
-    val formatter = DateTimeFormatter.ofPattern("HH:mm")
+    val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
+
     return dateTime.format(formatter)
 }
 
-fun calculateDelay(targetYear: Int, targetMonth: Int, targetDay: Int, targetHour: Int, targetMinute: Int): Long {
-    val now = java.util.Calendar.getInstance()
 
-    val targetTime = java.util.Calendar.getInstance().apply {
-        set(java.util.Calendar.YEAR, targetYear)
-        set(java.util.Calendar.MONTH, targetMonth - 1)
-        set(java.util.Calendar.DAY_OF_MONTH, targetDay)
-        set(java.util.Calendar.HOUR_OF_DAY, targetHour)
-        set(java.util.Calendar.MINUTE, targetMinute)
-        set(java.util.Calendar.SECOND, 0)
-    }
 
-    val delay = targetTime.timeInMillis - now.timeInMillis
-
-    return if (delay > 0) delay else 0L
-}

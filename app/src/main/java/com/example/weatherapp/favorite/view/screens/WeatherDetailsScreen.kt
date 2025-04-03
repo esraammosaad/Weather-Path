@@ -2,6 +2,8 @@ package com.example.weatherapp.favorite.view.screens
 
 import android.location.Address
 import android.location.Geocoder
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,6 +29,7 @@ import com.example.weatherapp.utilis.view.WeatherDetails
 import java.util.Locale
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun WeatherDetailsScreen(
     longitude: Double,
@@ -148,7 +151,7 @@ fun WeatherDetailsScreen(
                     ) {
                         item {
                             WeatherDetails(
-                                countryName = countryName.result,
+                                countryName = countryName,
                                 selectedWeather = selectedWeather.result,
                                 fiveDaysWeatherForecastUiState = selectedFiveDaysWeatherForecast,
                                 listOfDays = listOfDays
