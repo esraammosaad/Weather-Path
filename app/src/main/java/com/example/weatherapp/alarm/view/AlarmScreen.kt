@@ -36,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -49,7 +50,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.work.Constraints
 import androidx.work.Data
-import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
@@ -60,6 +60,9 @@ import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.favorite.view.screens.deleteAlarm
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
+import com.example.weatherapp.landing.view.AnimatedBackground
+import com.example.weatherapp.landing.view.AnimatedIcon
+import com.example.weatherapp.landing.view.AnimatedPreloader
 import com.example.weatherapp.ui.theme.OffWhite
 import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.ui.theme.poppinsFontFamily
@@ -139,155 +142,180 @@ fun AlarmScreen(
                 Response.Loading -> item { LoadingDisplay() }
                 is Response.Success<*> -> {
                     val alarmsList = alarms as Response.Success<List<AlarmModel>>
-                    items(alarmsList.result?.size ?: 0) { index ->
-                        val item = alarmsList.result?.get(index)
-                        if (showDatePicker.value) {
-                            DateAndTimePickerForUpdate(
-                                showDatePicker = showDatePicker,
-                                title = datePickerTitle,
-                                selectedAlarm = item,
-                                favoriteViewModel = favoriteViewModel,
-                                snackBarHostState = snackBarHostState,
-                                coroutineScope = coroutineScope
-                            )
-                        }
+                    if (alarmsList.result?.isEmpty() != false) {
 
-                        Box {
-                            Box(
-                                modifier = Modifier
-                                    .padding(bottom = 12.dp)
-                            ) {
-                                Card(
+                        item {
+                            Box {
+                                Column(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(180.dp)
-                                        .background(
-                                            brush = getWeatherGradient(
-                                                currentWeather.weather.firstOrNull()?.icon ?: ""
-                                            ),
-                                            shape = RoundedCornerShape(25.dp)
-                                        )
-                                        .padding(24.dp),
-                                    elevation = CardDefaults.cardElevation(),
-                                    colors = CardColors(
-                                        containerColor = Color.Transparent,
-                                        contentColor = Color.White,
-                                        disabledContainerColor = Color.Transparent,
-                                        disabledContentColor = Color.White
-                                    )
+                                        .padding(top = 150.dp)
+                                        .align(Alignment.Center)
                                 ) {
-                                    Column(
-                                        verticalArrangement = Arrangement.SpaceBetween,
-                                        modifier = Modifier.height(180.dp)
+                                    AnimatedIcon(R.raw.alarm)
+                                }
+                                Text(
+                                    stringResource(R.string.the_journey_s_quiet_no_weather_alarms_on_your_path),
+                                    style = Styles.textStyleSemiBold18,
+                                    textAlign = TextAlign.Center,
+                                    color = Color.White,
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .padding(top = 280.dp)
+                                )
+                            }
+                        }
+                    } else {
+                        items(alarmsList.result?.size ?: 0) { index ->
+                            val item = alarmsList.result?.get(index)
+                            if (showDatePicker.value) {
+                                DateAndTimePickerForUpdate(
+                                    showDatePicker = showDatePicker,
+                                    title = datePickerTitle,
+                                    selectedAlarm = item,
+                                    favoriteViewModel = favoriteViewModel,
+                                    snackBarHostState = snackBarHostState,
+                                    coroutineScope = coroutineScope
+                                )
+                            }
+                            Box {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(bottom = 12.dp)
+                                ) {
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(180.dp)
+                                            .background(
+                                                brush = getWeatherGradient(
+                                                    currentWeather.weather.firstOrNull()?.icon ?: ""
+                                                ),
+                                                shape = RoundedCornerShape(25.dp)
+                                            )
+                                            .padding(24.dp),
+                                        elevation = CardDefaults.cardElevation(),
+                                        colors = CardColors(
+                                            containerColor = Color.Transparent,
+                                            contentColor = Color.White,
+                                            disabledContainerColor = Color.Transparent,
+                                            disabledContentColor = Color.White
+                                        )
                                     ) {
-                                        Row(
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            modifier = Modifier.fillMaxWidth()
+                                        Column(
+                                            verticalArrangement = Arrangement.SpaceBetween,
+                                            modifier = Modifier.height(180.dp)
                                         ) {
-                                            Column {
-                                                Text(
-                                                    text = item?.cityName
-                                                        ?: stringResource(R.string.n_a),
-                                                    style = Styles.textStyleSemiBold20,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                    modifier = Modifier.fillMaxWidth(0.6f)
-                                                )
-                                                Text(
-                                                    text = item?.countryName
-                                                        ?: stringResource(R.string.n_a),
-                                                    style = Styles.textStyleNormal16
-                                                )
-                                            }
-                                        }
-                                        Spacer(modifier = Modifier.height(6.dp))
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                Image(
-                                                    painter = painterResource(R.drawable.notification),
-                                                    contentDescription = stringResource(
-                                                        R.string.notification_icon
-                                                    ),
-                                                    modifier = Modifier.size(25.dp)
-                                                )
-                                                Spacer(modifier = Modifier.width(5.dp))
-                                                Column(verticalArrangement = Arrangement.Center) {
+                                            Row(
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Column {
                                                     Text(
-                                                        item?.time
-                                                            ?: stringResource(R.string.no_alarm_set),
-                                                        fontSize = 16.sp
+                                                        text = item?.cityName
+                                                            ?: stringResource(R.string.n_a),
+                                                        style = Styles.textStyleSemiBold20,
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis,
+                                                        modifier = Modifier.fillMaxWidth(0.6f)
                                                     )
-                                                    Spacer(Modifier.height(4.dp))
                                                     Text(
-                                                        item?.date
-                                                            ?: stringResource(R.string.stay_ready),
-                                                        fontSize = 15.sp
+                                                        text = item?.countryName
+                                                            ?: stringResource(R.string.n_a),
+                                                        style = Styles.textStyleNormal16
                                                     )
                                                 }
                                             }
-                                            Switch(
-                                                checked = true,
-                                                onCheckedChange = {
-                                                    isDialog.value = true
-                                                    dialogTitle.value =
-                                                        context.resources.getString(R.string.warning)
-                                                    dialogText.value =
-                                                        context.getString(R.string.you_sure_you_want_to_reset_the_alarm)
-                                                    onConfirmation.value = {
-                                                        deleteAlarm(
-                                                            selectedAlarm = item,
-                                                            favoriteViewModel = favoriteViewModel,
-                                                            context = context,
-                                                            coroutineScope = coroutineScope,
-                                                            snackBarHostState = snackBarHostState
+                                            Spacer(modifier = Modifier.height(6.dp))
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Image(
+                                                        painter = painterResource(R.drawable.notification),
+                                                        contentDescription = stringResource(
+                                                            R.string.notification_icon
+                                                        ),
+                                                        modifier = Modifier.size(25.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(5.dp))
+                                                    Column(verticalArrangement = Arrangement.Center) {
+                                                        Text(
+                                                            item?.time
+                                                                ?: stringResource(R.string.no_alarm_set),
+                                                            fontSize = 16.sp
                                                         )
-                                                        isDialog.value = false
+                                                        Spacer(Modifier.height(4.dp))
+                                                        Text(
+                                                            item?.date
+                                                                ?: stringResource(R.string.stay_ready),
+                                                            fontSize = 15.sp
+                                                        )
                                                     }
+                                                }
+                                                Switch(
+                                                    checked = true,
+                                                    onCheckedChange = {
+                                                        isDialog.value = true
+                                                        dialogTitle.value =
+                                                            context.resources.getString(R.string.warning)
+                                                        dialogText.value =
+                                                            context.getString(R.string.you_sure_you_want_to_reset_the_alarm)
+                                                        onConfirmation.value = {
+                                                            deleteAlarm(
+                                                                selectedAlarm = item,
+                                                                favoriteViewModel = favoriteViewModel,
+                                                                context = context,
+                                                                coroutineScope = coroutineScope,
+                                                                snackBarHostState = snackBarHostState
+                                                            )
+                                                            isDialog.value = false
+                                                        }
 
-                                                },
-                                                colors = SwitchDefaults.colors(
-                                                    checkedThumbColor = PrimaryColor,
-                                                    checkedTrackColor = OffWhite,
-                                                    uncheckedThumbColor = PrimaryColor,
-                                                    uncheckedTrackColor = OffWhite,
+                                                    },
+                                                    colors = SwitchDefaults.colors(
+                                                        checkedThumbColor = PrimaryColor,
+                                                        checkedTrackColor = OffWhite,
+                                                        uncheckedThumbColor = PrimaryColor,
+                                                        uncheckedTrackColor = OffWhite,
+                                                    )
                                                 )
+                                            }
+
+                                            Text(
+                                                text = if (item?.alarmType == "Alert") stringResource(
+                                                    R.string.alert
+                                                ) else stringResource(
+                                                    R.string.notification
+                                                ),
+                                                style = Styles.textStyleMedium18,
+                                                modifier = Modifier.padding(start = 3.dp)
                                             )
                                         }
 
-                                        Text(
-                                            text = if (item?.alarmType == "Alert") stringResource(R.string.alert) else stringResource(
-                                                R.string.notification
-                                            ),
-                                            style = Styles.textStyleMedium18,
-                                            modifier = Modifier.padding(start = 3.dp)
-                                        )
                                     }
-
                                 }
-                            }
-                            Icon(
-                                painter = painterResource(R.drawable.baseline_edit_notifications_24),
-                                contentDescription = stringResource(R.string.edit_alarm_icon),
-                                tint = Color.White,
-                                modifier = Modifier
-                                    .align(alignment = Alignment.TopEnd)
-                                    .padding(top = 5.dp, end = 10.dp)
-                                    .size(26.dp)
-                                    .clickable {
-                                        showDatePicker.value = true
-                                        datePickerTitle.value =
-                                            item?.cityName ?: ""
+                                Icon(
+                                    painter = painterResource(R.drawable.baseline_edit_notifications_24),
+                                    contentDescription = stringResource(R.string.edit_alarm_icon),
+                                    tint = Color.White,
+                                    modifier = Modifier
+                                        .align(alignment = Alignment.TopEnd)
+                                        .padding(top = 5.dp, end = 10.dp)
+                                        .size(26.dp)
+                                        .clickable {
+                                            showDatePicker.value = true
+                                            datePickerTitle.value =
+                                                item?.cityName ?: ""
 
-                                    }
-                            )
+                                        }
+                                )
+
+                            }
+
 
                         }
-
-
                     }
 
 

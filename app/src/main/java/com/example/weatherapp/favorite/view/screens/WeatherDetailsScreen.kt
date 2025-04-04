@@ -3,11 +3,13 @@ package com.example.weatherapp.favorite.view.screens
 import android.location.Address
 import android.location.Geocoder
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,6 +28,7 @@ import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.FailureDisplay
 import com.example.weatherapp.utilis.view.LoadingDisplay
 import com.example.weatherapp.utilis.view.WeatherDetails
+import java.math.RoundingMode
 import java.util.Locale
 
 
@@ -36,33 +39,51 @@ fun WeatherDetailsScreen(
     latitude: Double,
     favoriteViewModel: FavoriteViewModelImpl,
     bottomNavigationBarViewModel: BottomNavigationBarViewModel,
-    isConnected : Boolean
+    isConnected: Boolean,
+    snackBarHostState: SnackbarHostState
 ) {
 
+    Log.i("TAG", "WeatherDetailsScreen: $longitude $longitude")
+
+    val long = longitude.toBigDecimal()
+        .setScale(2, RoundingMode.DOWN).toDouble()
+
+    val lat = latitude.toBigDecimal()
+        .setScale(2, RoundingMode.DOWN).toDouble()
+
+
     val context = LocalContext.current
+//    LaunchedEffect(Unit) {
+//        favoriteViewModel.message.collect {
+//            snackBarHostState.showSnackbar(context.getString(it))
+//        }
+//    }
     val languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode
     val tempUnit = LocalStorageDataSource.getInstance(context).getTempUnit
 
     LaunchedEffect(Unit) {
         favoriteViewModel.getSelectedWeather(
             longitude = longitude,
-            latitude = latitude,
+            latitude = lat,
             languageCode = languageCode,
             tempUnit = tempUnit,
             isConnected = isConnected
         )
         favoriteViewModel.getSelectedFiveDaysWeatherForecast(
             longitude = longitude,
-            latitude = latitude,
+            latitude = lat,
             languageCode = languageCode,
             tempUnit = tempUnit,
             isConnected = isConnected
         )
-        favoriteViewModel.getCountryName(
-            longitude = longitude, latitude = latitude, Geocoder(
+        val langCode = LocalStorageDataSource.getInstance(context).getLanguageCode
+        val geocoder =
+            Geocoder(
                 context,
-                Locale(LocalStorageDataSource.getInstance(context).getLanguageCode)
-            ), isConnected = isConnected
+                Locale(if (langCode.length > 2) langCode.substring(0, 2) else langCode)
+            )
+        favoriteViewModel.getCountryName(
+            longitude = long, latitude = lat, geocoder, isConnected = isConnected
         )
     }
 
@@ -118,22 +139,23 @@ fun WeatherDetailsScreen(
                         is Response.Success<*> -> {
                             selectedFiveDaysWeatherForecast as Response.Success<List<WeatherItem>>
                             selectedWeather.result?.let {
-                                it.latitude = latitude
-                                it.longitude = longitude
+                                it.latitude = lat
+                                it.longitude = long
                                 it.countryName = countryName.result?.countryName ?: ""
                                 it.cityName = countryName.result?.locality ?: ""
 
                                 selectedFiveDaysWeatherForecast.result?.let { it1 ->
                                     FiveDaysWeatherForecastResponse(
-                                        latitude = latitude,
-                                        longitude = longitude,
+                                        latitude = lat,
+                                        longitude = long,
                                         list = it1
                                     )
                                 }
                                     ?.let { it2 ->
                                         favoriteViewModel.updateWeather(
                                             currentWeatherResponse = it,
-                                            fiveDaysWeatherForecastResponse = it2
+                                            fiveDaysWeatherForecastResponse = it2,
+                                            isConnected
                                         )
                                     }
                             }
@@ -156,6 +178,7 @@ fun WeatherDetailsScreen(
                                 fiveDaysWeatherForecastUiState = selectedFiveDaysWeatherForecast,
                                 listOfDays = listOfDays
                             )
+
                         }
                     }
                 }

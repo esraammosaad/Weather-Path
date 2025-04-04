@@ -52,6 +52,11 @@ fun MapScreen(
     isConnected: Boolean
 ) {
     val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        favoriteViewModel.message.collect {
+            snackBarHostState.showSnackbar(context.getString(it))
+        }
+    }
 
     val markerState = rememberMarkerState(position = LatLng(location.latitude, location.longitude))
 
@@ -66,9 +71,10 @@ fun MapScreen(
     val properties by remember {
         mutableStateOf(MapProperties(mapType = MapType.TERRAIN))
     }
+    val langCode = LocalStorageDataSource.getInstance(context).getLanguageCode
 
     val geocoder =
-        Geocoder(context, Locale(LocalStorageDataSource.getInstance(context).getLanguageCode))
+        Geocoder(context, Locale(if (langCode.length > 2) langCode.substring(0, 2) else langCode))
 
     val currentWeatherUiState =
         favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
@@ -139,7 +145,9 @@ fun MapScreen(
         countryName,
         showBottomSheet,
         listOfDays,
-        isConnected
+        isConnected,
+        R.string.add
+
     ) { selectedWeather, selectedFiveDaysForecast ->
         onAddClicked(
             selectedWeather,

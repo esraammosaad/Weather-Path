@@ -1,9 +1,6 @@
 package com.example.weatherapp.favorite.view.components
 
-import android.Manifest
-import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -20,14 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import androidx.work.Constraints
 import androidx.work.Data
-import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
-import com.example.weatherapp.MainActivity
 import com.example.weatherapp.R
 import com.example.weatherapp.data.managers.WeatherWorkManager
 import com.example.weatherapp.data.model.AlarmModel
@@ -38,8 +32,6 @@ import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.utilis.Strings
 import com.example.weatherapp.utilis.Styles
 import com.example.weatherapp.utilis.view.RadioButtonSingleSelection
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import network.chaintech.kmp_date_time_picker.ui.datetimepicker.WheelDateTimePickerComponent.WheelDateTimePicker
 import network.chaintech.kmp_date_time_picker.utils.TimeFormat
@@ -52,9 +44,7 @@ fun DateAndTimePickerForSet(
     showDatePicker: MutableState<Boolean>,
     title: MutableState<String>,
     selectedWeather: CurrentWeatherResponse?,
-    snackBarHostState: SnackbarHostState,
     favoriteViewModel: FavoriteViewModelImpl,
-    coroutineScope: CoroutineScope
 ) {
     val context = LocalContext.current
     val alarmType = remember { mutableStateOf("Alert") }
@@ -83,8 +73,6 @@ fun DateAndTimePickerForSet(
                         snappedDate,
                         alarmType,
                         favoriteViewModel,
-                        coroutineScope,
-                        snackBarHostState,
                         context,
                         showDatePicker
                     )
@@ -133,8 +121,6 @@ private fun onDoneDateAndTimePickerClicked(
     snappedDate: LocalDateTime,
     alarmType: MutableState<String>,
     favoriteViewModel: FavoriteViewModelImpl,
-    coroutineScope: CoroutineScope,
-    snackBarHostState: SnackbarHostState,
     context: Context,
     showDatePicker: MutableState<Boolean>
 ) {
@@ -156,9 +142,6 @@ private fun onDoneDateAndTimePickerClicked(
         targetMinute = snappedDate.minute,
     )
     favoriteViewModel.insertAlarm(alarm)
-    coroutineScope.launch {
-        snackBarHostState.showSnackbar(context.getString(R.string.alarm_set_successfully))
-    }
     requestWorkManagerForSet(selectedWeather, context, duration)
     showDatePicker.value = false
 }
@@ -172,7 +155,6 @@ fun requestWorkManagerForSet(
     inputData.putDouble(Strings.LONG_CONST, selectedWeather?.longitude ?: 0.0)
     inputData.putDouble(Strings.LAT_CONST, selectedWeather?.latitude ?: 0.0)
     inputData.putInt(Strings.CODE_CONST, selectedWeather?.id ?: 0)
-    val constraint = Constraints.Builder().build()
     val workRequest: WorkRequest =
         OneTimeWorkRequestBuilder<WeatherWorkManager>()
             .setInputData(inputData.build()).setInitialDelay(duration, TimeUnit.MILLISECONDS)
@@ -180,5 +162,4 @@ fun requestWorkManagerForSet(
             .build()
     WorkManager.getInstance(context).enqueue(workRequest)
 
-    //setRequiredNetworkType(NetworkType.CONNECTED)
 }

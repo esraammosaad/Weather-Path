@@ -3,8 +3,10 @@ package com.example.weatherapp.utilis.view
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
@@ -18,6 +20,7 @@ import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.home.view.CustomWeatherDetails
+import com.example.weatherapp.utilis.getWeatherBackground
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -29,17 +32,29 @@ fun WeatherDetails(
 ) {
 
     val context = LocalContext.current
-    if (selectedWeather != null) {
-        ImageDisplay(selectedWeather)
-    }
-    if (selectedWeather != null) {
-        CustomWeatherDetails(
-            currentWeather = selectedWeather,
-            countryName = countryName,
-            context = context,
-            fiveDaysWeatherForecast = fiveDaysWeatherForecastUiState,
-            listOfDays = listOfDays
+    Box(Modifier.fillMaxSize()) {
+        BackgroundAnimation(
+            getWeatherBackground(
+                selectedWeather?.weather?.firstOrNull()?.icon ?: ""
+            )
         )
+
+
+        Column {
+            if (selectedWeather != null) {
+                ImageDisplay(selectedWeather)
+            }
+            if (selectedWeather != null) {
+
+                CustomWeatherDetails(
+                    currentWeather = selectedWeather,
+                    countryName = countryName,
+                    context = context,
+                    fiveDaysWeatherForecast = fiveDaysWeatherForecastUiState,
+                    listOfDays = listOfDays
+                )
+            }
+        }
     }
 
 //    Column(

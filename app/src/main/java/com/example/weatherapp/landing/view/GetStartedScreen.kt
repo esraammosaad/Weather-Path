@@ -37,8 +37,6 @@ import com.example.weatherapp.utilis.getWeatherGradient
 
 @Composable
 fun GetStartedScreen(onAllowPermissionClicked: () -> Unit, onGetStartedClicked: () -> Unit) {
-
-    val context = LocalContext.current
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -46,7 +44,7 @@ fun GetStartedScreen(onAllowPermissionClicked: () -> Unit, onGetStartedClicked: 
             .padding(top = 64.dp),
 
         ) {
-        AnimatedPreloader()
+        AnimatedPreloader(R.raw.animated_icon)
         Column(
             modifier = Modifier
                 .fillMaxSize()

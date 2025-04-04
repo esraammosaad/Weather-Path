@@ -6,6 +6,7 @@ import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 
 interface FavoriteViewModel {
@@ -20,7 +21,7 @@ interface FavoriteViewModel {
     var sixthDayList: StateFlow<List<WeatherItem>>
     var weatherFavorites: StateFlow<Response>
     var fiveDaysForecastFavorites: StateFlow<Response>
-    var message: StateFlow<Int>
+    var message: SharedFlow<Int>
     var alarms: StateFlow<Response>
     fun getSelectedWeather(
         latitude: Double, longitude: Double, isConnected: Boolean, languageCode: String,
@@ -42,7 +43,8 @@ interface FavoriteViewModel {
 
     fun updateWeather(
         currentWeatherResponse: CurrentWeatherResponse,
-        fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse
+        fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse,
+        isConnected: Boolean
     )
 
     fun updateSelectedWeather(
@@ -73,4 +75,6 @@ interface FavoriteViewModel {
         targetHour: Int,
         targetMinute: Int
     ): Long
+
+    fun onSearchTextChange(text: String)
 }

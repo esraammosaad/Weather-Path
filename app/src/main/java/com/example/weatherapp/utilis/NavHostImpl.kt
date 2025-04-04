@@ -52,8 +52,6 @@ fun NavHostImpl(
     bottomNavigationBarViewModel: BottomNavigationBarViewModel,
     locationState: MutableState<Location>,
     isConnected: Boolean,
-    isLocationPickedScreen: MutableState<Boolean>,
-    isMainScreen: MutableState<Boolean>,
 ) {
     NavHost(
         navController = navController,
@@ -120,7 +118,8 @@ fun NavHostImpl(
                 weatherDetailsScreen.latitude,
                 favoriteViewModel,
                 bottomNavigationBarViewModel,
-                isConnected
+                isConnected,
+                snackBarHostState
             )
         }
         composable<NavigationRoutes.SettingsScreen> {

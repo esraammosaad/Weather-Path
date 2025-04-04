@@ -37,7 +37,9 @@ import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
 import com.example.weatherapp.favorite.view.screens.deleteFavoriteItem
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
+import com.example.weatherapp.landing.view.AnimatedBackground
 import com.example.weatherapp.utilis.Styles
+import com.example.weatherapp.utilis.getWeatherBackground
 import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.ConfirmationDialog
 import com.example.weatherapp.utilis.view.WeatherStatusImageDisplay
@@ -52,7 +54,6 @@ fun FavoriteItem(
     alarmsList: Response,
     fiveDaysForecastFavorites: List<FiveDaysWeatherForecastResponse>? = null,
     index: Int = -1,
-    deleteItemMessage: String = "",
     coroutineScope: CoroutineScope,
     onFavoriteCardClicked: (longitude: Double, latitude: Double) -> Unit,
 ) {
@@ -88,8 +89,6 @@ fun FavoriteItem(
                     title = datePickerTitle,
                     selectedWeather = selectedWeather,
                     favoriteViewModel = favoriteViewModel,
-                    snackBarHostState = snackBarHostState,
-                    coroutineScope = coroutineScope
                 )
             }
             Box {
@@ -110,8 +109,7 @@ fun FavoriteItem(
                                     selectedWeather?.weather?.firstOrNull()?.icon ?: ""
                                 ),
                                 shape = RoundedCornerShape(25.dp)
-                            )
-                            .padding(24.dp),
+                            ),
                         elevation = CardDefaults.cardElevation(),
                         colors = CardColors(
                             containerColor = Color.Transparent,
@@ -120,97 +118,113 @@ fun FavoriteItem(
                             disabledContentColor = Color.White
                         )
                     ) {
-                        Column(
-                            verticalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.height(210.dp)
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Column {
-                                    Text(
-                                        text = ciName.ifEmpty { stringResource(R.string.current_location) },
-                                        style = Styles.textStyleSemiBold20,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.fillMaxWidth(0.6f)
-                                    )
-                                    Text(
-                                        text = cName,
-                                        style = Styles.textStyleNormal16
-                                    )
-                                }
-                                Row {
-                                    Text(
-                                        text = selectedWeather?.main?.temp.toString(),
-                                        style = Styles.textStyleMedium30
-                                    )
-
-                                    Text(
-                                        text =  stringResource(
-                                            LocalStorageDataSource.getInstance(context).getTempSymbol
-                                        ),
-                                        style = Styles.textStyleMedium28
-                                    )
-                                }
-                            }
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center,
-                                ) {
-                                    Text(
-                                        text = selectedWeather?.weather?.firstOrNull()?.description
-                                            ?: "",
-                                        style = Styles.textStyleMedium18
-                                    )
-                                    WeatherStatusImageDisplay(
+                        Box {
+                            Column {
+                                AnimatedBackground(
+                                    getWeatherBackground(
                                         selectedWeather?.weather?.firstOrNull()?.icon ?: ""
                                     )
-                                }
-                                Text(
-                                    text = stringResource(R.string.h) + " " + "${selectedWeather?.main?.temp_max?.toInt()}" +
-                                            stringResource(
-                                                LocalStorageDataSource.getInstance(
-                                                    context
-                                                ).getTempSymbol
-                                            ) + " " + stringResource(R.string.l) + " " +
-                                            "${selectedWeather?.main?.temp_min?.toInt()}" +
-                                            stringResource(
-                                                LocalStorageDataSource.getInstance(
-                                                    context
-                                                ).getTempSymbol
-                                            ),
-                                    style = Styles.textStyleMedium16
                                 )
-
+                                AnimatedBackground(
+                                    getWeatherBackground(
+                                        selectedWeather?.weather?.firstOrNull()?.icon ?: ""
+                                    )
+                                )
                             }
-                            Spacer(modifier = Modifier.height(18.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                            Column(
+                                verticalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier
+                                    .height(210.dp)
+                                    .padding(24.dp)
                             ) {
-                                CustomDateAndTimeOfAlarm(selectedAlarm)
-                                CustomSwitch(
-                                    selectedAlarm,
-                                    context,
-                                    isDialog,
-                                    dialogTitle,
-                                    dialogText,
-                                    onConfirmation,
-                                    showDatePicker,
-                                    datePickerTitle,
-                                    selectedWeather,
-                                    favoriteViewModel,
-                                    coroutineScope,
-                                    snackBarHostState
-                                )
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = ciName.ifEmpty { stringResource(R.string.current_location) },
+                                            style = Styles.textStyleSemiBold20,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.fillMaxWidth(0.6f)
+                                        )
+                                        Text(
+                                            text = cName,
+                                            style = Styles.textStyleNormal16
+                                        )
+                                    }
+                                    Row {
+                                        Text(
+                                            text = selectedWeather?.main?.temp.toString(),
+                                            style = Styles.textStyleMedium30
+                                        )
+
+                                        Text(
+                                            text = stringResource(
+                                                LocalStorageDataSource.getInstance(context).getTempSymbol
+                                            ),
+                                            style = Styles.textStyleMedium28
+                                        )
+                                    }
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center,
+                                    ) {
+                                        Text(
+                                            text = selectedWeather?.weather?.firstOrNull()?.description
+                                                ?: "",
+                                            style = Styles.textStyleMedium18
+                                        )
+                                        WeatherStatusImageDisplay(
+                                            selectedWeather?.weather?.firstOrNull()?.icon ?: ""
+                                        )
+                                    }
+                                    Text(
+                                        text = stringResource(R.string.h) + " " + "${selectedWeather?.main?.temp_max?.toInt()}" +
+                                                stringResource(
+                                                    LocalStorageDataSource.getInstance(
+                                                        context
+                                                    ).getTempSymbol
+                                                ) + " " + stringResource(R.string.l) + " " +
+                                                "${selectedWeather?.main?.temp_min?.toInt()}" +
+                                                stringResource(
+                                                    LocalStorageDataSource.getInstance(
+                                                        context
+                                                    ).getTempSymbol
+                                                ),
+                                        style = Styles.textStyleMedium16
+                                    )
+
+                                }
+                                Spacer(modifier = Modifier.height(18.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    CustomDateAndTimeOfAlarm(selectedAlarm)
+                                    CustomSwitch(
+                                        selectedAlarm,
+                                        context,
+                                        isDialog,
+                                        dialogTitle,
+                                        dialogText,
+                                        onConfirmation,
+                                        showDatePicker,
+                                        datePickerTitle,
+                                        selectedWeather,
+                                        favoriteViewModel,
+                                        coroutineScope,
+                                        snackBarHostState
+                                    )
+                                }
                             }
                         }
                     }
@@ -232,7 +246,6 @@ fun FavoriteItem(
                                     favoriteViewModel,
                                     coroutineScope,
                                     snackBarHostState,
-                                    deleteItemMessage,
                                     context,
                                     selectedAlarm
                                 )

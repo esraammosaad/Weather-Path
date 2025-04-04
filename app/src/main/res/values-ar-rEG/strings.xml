@@ -105,5 +105,6 @@
     <string name="snooze">غفوة</string>
     <string name="confirmCapital">تأكيد</string>
     <string name="location_updated_successfully">تم تحديث الموقع بنجاح</string>
+    <string name="the_journey_s_quiet_no_weather_alarms_on_your_path">الرحلة هادئة — لا توجد تحذيرات طقس في طريقك.</string>
 
 </resources>

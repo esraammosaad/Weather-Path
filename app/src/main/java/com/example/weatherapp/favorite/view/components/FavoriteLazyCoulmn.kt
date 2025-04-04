@@ -1,30 +1,24 @@
 package com.example.weatherapp.favorite.view.components
 
-import android.content.Context
-import android.location.Address
-import android.location.Geocoder
-import android.util.Log
+
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.weatherapp.R
-import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
 import com.example.weatherapp.utilis.view.FailureDisplay
-import com.example.weatherapp.utilis.view.LoadingDisplay
 import kotlinx.coroutines.CoroutineScope
-import java.util.Locale
 
 @Composable
 fun FavoriteLazyColumn(
@@ -36,17 +30,33 @@ fun FavoriteLazyColumn(
     snackBarHostState: SnackbarHostState,
     alarms: Response,
     coroutineScope: CoroutineScope,
-    isConnected: Boolean
-
 ) {
-    val selectedWeather = favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
-    val fiveDaysForecastFavorites =
-        favoriteViewModel.fiveDaysForecastFavorites.collectAsStateWithLifecycle().value
-    val message =
-        favoriteViewModel.message.collectAsStateWithLifecycle().value
-    val context = LocalContext.current
-    LazyColumn(modifier = Modifier.padding(top = 16.dp, end = 16.dp, start = 16.dp).fillMaxSize()) {
+
+    val fiveDaysForecastFavorites = favoriteViewModel.fiveDaysForecastFavorites.collectAsStateWithLifecycle().value
+    val favoriteList: MutableState<List<CurrentWeatherResponse>> = remember { mutableStateOf(listOf()) }
+    val searchResultList = remember { mutableStateOf(favoriteList.value) }
+    val textFieldValue = remember { mutableStateOf("") }
+
+
+    LaunchedEffect(favoriteList.value.size) {
+        searchResultList.value = favoriteList.value
+        favoriteViewModel.searchText.collect { ch ->
+            searchResultList.value = favoriteList.value.filter {
+                it.cityName.contains(ch, ignoreCase = true) || it.countryName.contains(
+                    ch,
+                    ignoreCase = true
+                )
+            }
+        }
+    }
+
+    LazyColumn(
+        modifier = Modifier
+            .padding(top = 16.dp, end = 16.dp, start = 16.dp)
+            .fillMaxSize()
+    ) {
         item {
+            CustomTextField(textFieldValue, favoriteViewModel)
             FavoriteItem(
                 selectedWeather = currentWeatherResponse,
                 cName = countryName,
@@ -59,27 +69,18 @@ fun FavoriteLazyColumn(
         }
         when (weatherFavorites) {
             is Response.Failure -> item { FailureDisplay(weatherFavorites.exception) }
-            Response.Loading -> item { LoadingDisplay() }
+            Response.Loading -> item {  }
             is Response.Success<*> -> {
                 weatherFavorites as Response.Success<List<CurrentWeatherResponse>>
-//                item {
-//                    UpdateFavoritesFromApi(
-//                        isConnected,
-//                        weatherFavorites,
-//                        favoriteViewModel,
-//                        context
-//                    )
-//                }
-                items(weatherFavorites.result?.size ?: 0) { index ->
-                    if (currentWeatherResponse.id != weatherFavorites.result?.get(index)?.id) {
-                        val item = weatherFavorites.result?.get(index)
+                favoriteList.value = weatherFavorites.result ?: listOf()
+                items(searchResultList.value.size) { index ->
+                    if (currentWeatherResponse.id != searchResultList.value[index].id) {
+                        val item = searchResultList.value[index]
                         val coName =
-                            item?.countryName?.takeIf { it.isNotEmpty() }
-                                ?: item?.sys?.country
-                                ?: stringResource(R.string.n_a)
-                        val ciName = item?.cityName?.takeIf { it.isNotEmpty() }
-                            ?: item?.name
-                            ?: stringResource(R.string.n_a)
+                            item.countryName.takeIf { it.isNotEmpty() }
+                                ?: item.sys.country
+                        val ciName = item.cityName.takeIf { it.isNotEmpty() }
+                            ?: item.name
                         when (fiveDaysForecastFavorites) {
                             is Response.Failure -> {}
                             Response.Loading -> {}
@@ -94,21 +95,20 @@ fun FavoriteLazyColumn(
                                     alarmsList = alarms,
                                     onFavoriteCardClicked = onFavoriteCardClicked,
                                     index = index,
-                                    deleteItemMessage = stringResource(message),
                                     fiveDaysForecastFavorites = fiveDaysForecastFavorites.result,
                                     coroutineScope = coroutineScope
                                 )
-
                             }
                         }
                     }
                 }
-
             }
         }
     }
 }
 
+
+//val selectedWeather = favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
 //@Composable
 //private fun UpdateFavoritesFromApi(
 //    isConnected: Boolean,

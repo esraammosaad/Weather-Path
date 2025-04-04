@@ -9,7 +9,6 @@ import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.current_weather.Main
 import com.example.weatherapp.data.model.current_weather.Sys
 import com.example.weatherapp.data.model.current_weather.Wind
-import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.data.remote.WeatherRemoteDataSource
 import com.example.weatherapp.utilis.Strings
@@ -17,6 +16,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -75,13 +75,6 @@ class WeatherRepositoryImplTest {
 
     private fun wind() = Wind(deg = 0, gust = 0.0, speed = 0.0)
 
-    private fun fiveDaysForecastResponse() = FiveDaysWeatherForecastResponse(
-        list = listOf(
-            weatherItem()
-        ),
-        latitude = latitude,
-        longitude = longitude
-    )
 
     private fun weatherItem() = WeatherItem(
         clouds = clouds(),
@@ -108,7 +101,7 @@ class WeatherRepositoryImplTest {
                 languageCode = languageCode,
                 tempUnit = tempUnit,
             )
-        } returns currentWeatherResponse()
+        } returns flowOf( currentWeatherResponse())
 
         coEvery {
             weatherRemoteDataSource.getFiveDaysWeatherForecast(
@@ -116,7 +109,7 @@ class WeatherRepositoryImplTest {
                 languageCode = languageCode,
                 tempUnit = tempUnit,
             )
-        } returns flowOf(weatherItem())
+        } returns flowOf(listOf( weatherItem()))
 
         weatherRepository = WeatherRepositoryImpl(
             weatherLocalDataSourceImpl = weatherLocalDataSource,
@@ -210,7 +203,7 @@ class WeatherRepositoryImplTest {
                 latitude = latitude,
                 languageCode = languageCode,
                 tempUnit = tempUnit
-            )
+            ).first()
 
 
         //Then
@@ -220,7 +213,7 @@ class WeatherRepositoryImplTest {
     @Test
     fun getFiveDaysWeatherForecast_weatherItems() = runTest {
         //Given
-        val values = mutableListOf<WeatherItem>()
+        val values = mutableListOf<List<WeatherItem>>()
 
 
         //When
@@ -236,7 +229,7 @@ class WeatherRepositoryImplTest {
 
 
         //Then
-        assertThat(values.first(), `is`(weatherItem()))
+        assertThat(values.first().first(), `is`(weatherItem()))
     }
 
 }

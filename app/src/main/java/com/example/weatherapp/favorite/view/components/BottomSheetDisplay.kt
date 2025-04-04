@@ -3,9 +3,14 @@ package com.example.weatherapp.favorite.view.components
 import android.location.Address
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import com.example.weatherapp.R
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
@@ -23,6 +28,7 @@ fun BottomSheetDisplay(
     showBottomSheet: MutableState<Boolean>,
     listOfDays: List<List<WeatherItem>>,
     isConnected: Boolean,
+    text:Int,
     onAddClicked: (CurrentWeatherResponse, FiveDaysWeatherForecastResponse) -> Unit
 ) {
 
@@ -33,11 +39,9 @@ fun BottomSheetDisplay(
         is Response.Loading -> {
             Loading()
         }
-
         is Response.Failure -> {
             Failure(currentWeatherUiState, isConnected)
         }
-
         is Response.Success<*> -> {
             currentWeatherUiState as Response.Success<CurrentWeatherResponse>
             LaunchedEffect(currentWeatherUiState.result) {
@@ -66,8 +70,14 @@ fun BottomSheetDisplay(
                                 .toDouble()
                         )
                     }
-
-
+                    when (countryName) {
+                        is Response.Failure -> {
+                            Text(countryName.exception)
+                        }
+                        Response.Loading -> {
+                            Text(stringResource(R.string.n_a))
+                        }
+                        is Response.Success<*> -> {
                             countryName as Response.Success<Address>
                             selectedWeather?.countryName = countryName.result?.countryName ?: ""
                             selectedWeather?.cityName = countryName.result?.locality ?: ""
@@ -77,6 +87,7 @@ fun BottomSheetDisplay(
                                 countryName,
                                 fiveDaysWeatherForecast,
                                 listOfDays,
+                                text
                             ) {
                                 if (selectedWeather != null && selectedFiveDaysForecast != null) {
                                     onAddClicked.invoke(selectedWeather, selectedFiveDaysForecast)
@@ -85,9 +96,14 @@ fun BottomSheetDisplay(
                             }
                         }
                     }
+
+
                 }
             }
         }
+    }
+}
+
 
 
 

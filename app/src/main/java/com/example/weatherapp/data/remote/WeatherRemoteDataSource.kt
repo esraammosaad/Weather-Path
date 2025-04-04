@@ -10,12 +10,12 @@ interface WeatherRemoteDataSource {
         longitude: Double,
         languageCode: String,
         tempUnit: String
-    ): CurrentWeatherResponse
+    ): Flow<CurrentWeatherResponse>
 
     suspend fun getFiveDaysWeatherForecast(
         latitude: Double,
         longitude: Double,
         languageCode: String,
         tempUnit: String
-    ): Flow<WeatherItem>
+    ): Flow<List<WeatherItem>>
 }

@@ -15,13 +15,10 @@ import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.data.repository.WeatherRepository
 import com.example.weatherapp.utilis.formatDateTime
 import com.example.weatherapp.utilis.getCurrentDate
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.math.RoundingMode
 import java.util.Locale
@@ -76,10 +73,17 @@ class HomeViewModelImpl(
                         languageCode = languageCode,
                         tempUnit = tempUnit
                     )
-                    _currentWeather.emit(Response.Success(result))
-                    _message.emit(R.string.success)
-                } catch (e: Exception) {
+                    result.catch { ex ->
+                        _currentWeather.emit(Response.Failure(ex.message.toString()))
 
+                    }.collect {
+                        _currentWeather.emit(Response.Success(it))
+                        _message.emit(R.string.success)
+
+
+                    }
+                } catch (e: Exception) {
+                    _currentWeather.emit(Response.Failure(e.message.toString()))
                     _message.emit(R.string.something_wrong_happened)
                     selectDayWeather(longitude = longitude, latitude = latitude)
                     Log.i("TAG", "getCurrentWeather: ${e.message.toString()}")
@@ -107,24 +111,19 @@ class HomeViewModelImpl(
                             languageCode = languageCode,
                             tempUnit = tempUnit
                         )
-                    _fiveDaysWeatherForecast
-                        .emit(
-                            Response.Success(
-                                result
-                                    .catch { ex ->
-                                        _message.emit(R.string.something_wrong_happened)
-                                        Log.i(
-                                            "TAG",
-                                            "getFiveDaysWeatherForecast: ${ex.message.toString()}"
-                                        )
-                                        selectFiveDaysWeather(
-                                            longitude = longitude,
-                                            latitude = latitude
-                                        )
-                                    }.toList()
-                            )
+
+                    result.catch { ex ->
+                        _fiveDaysWeatherForecast.emit(Response.Failure(ex.message.toString()))
+                        _message.emit(R.string.something_wrong_happened)
+                        selectFiveDaysWeather(
+                            longitude = longitude,
+                            latitude = latitude
                         )
-                    filterDaysList(result)
+                    }.collect {
+                        _fiveDaysWeatherForecast.emit(Response.Success(it))
+                        filterDaysList(it)
+
+                    }
                 } catch (e: Exception) {
                     _message.emit(R.string.something_wrong_happened)
                     selectFiveDaysWeather(longitude = longitude, latitude = latitude)
@@ -136,7 +135,7 @@ class HomeViewModelImpl(
         }
     }
 
-    private suspend fun filterDaysList(result: Flow<WeatherItem>) {
+    private suspend fun filterDaysList(result: List<WeatherItem>) {
         try {
             _currentDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(0) }
                 .toList())
@@ -155,7 +154,6 @@ class HomeViewModelImpl(
             _message.emit(R.string.something_wrong_happened)
         }
     }
-
 
     private fun insertCurrentWeather(currentWeatherResponse: CurrentWeatherResponse) {
         viewModelScope.launch {
@@ -252,7 +250,7 @@ class HomeViewModelImpl(
                     _fiveDaysWeatherForecast.emit(Response.Failure(ex.message.toString()))
                 }.collect {
                     _fiveDaysWeatherForecast.emit(Response.Success(it.list))
-                    filterDaysList(it.list.asFlow())
+                    filterDaysList(it.list)
                 }
             } catch (e: Exception) {
                 _fiveDaysWeatherForecast.emit(Response.Failure(e.message.toString()))

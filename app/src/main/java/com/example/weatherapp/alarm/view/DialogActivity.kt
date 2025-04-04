@@ -49,10 +49,12 @@ import com.example.weatherapp.favorite.view.components.requestWorkManagerForSet
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelFactory
 import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
 import com.example.weatherapp.home.view.LastUpdatedDisplay
+import com.example.weatherapp.landing.view.AnimatedBackground
 import com.example.weatherapp.ui.theme.OffWhite
 import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.Strings
+import com.example.weatherapp.utilis.getWeatherBackground
 import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.WeatherStatusImageDisplay
 import com.google.gson.Gson
@@ -138,97 +140,100 @@ private fun AlertScreen(
                     ), shape = RoundedCornerShape(15.dp)
                 )
                 .padding(24.dp)
-                .height(210.dp)
+                .height(215.dp)
         ) {
-            Column(Modifier.fillMaxWidth()) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        stringResource(R.string.s_weather, currentWeatherResponse.cityName),
-                        fontFamily = poppinsFontFamily,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 20.sp,
-                        color = Color.White,
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Row {
-                    Text(
-                        text = currentWeatherResponse.weather.firstOrNull()?.description
-                            ?: "",
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 24.sp,
-                        fontFamily = poppinsFontFamily,
-                        color = OffWhite
-                    )
-                    WeatherStatusImageDisplay(
-                        currentWeatherResponse.weather[0].icon
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Row {
-                    Text(
-                        stringResource(
-                            R.string.today_s_weather_in_is_with_a_temperature_of,
-                            currentWeatherResponse.cityName,
-                            currentWeatherResponse.weather.firstOrNull()?.description ?: "",
-                            currentWeatherResponse.main.temp
-                        ) + stringResource(LocalStorageDataSource.getInstance(context).getTempSymbol) + " " + stringResource(
-                            R.string.stay_prepared_and_enjoy_your_day
-                        ),
-                        fontFamily = poppinsFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 14.sp,
-                        color = Color.White
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Row {
-                    Button(
-                        onClick = {
-                            onSnoozeClicked.invoke()
-                        }, colors = ButtonColors(
-                            containerColor = PrimaryColor,
-                            contentColor = Color.White,
-                            disabledContainerColor = PrimaryColor,
-                            disabledContentColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Text(
-                            stringResource(R.string.snooze),
-                            fontFamily = poppinsFontFamily,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 16.sp,
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Button(
-                        onClick = {
-                            onConfirmClicked.invoke()
-                        },
-                        colors = ButtonColors(
-                            containerColor = OffWhite,
-                            contentColor = Color.Black,
-                            disabledContainerColor = OffWhite,
-                            disabledContentColor = Color.Black
-                        ),
-                        shape = RoundedCornerShape(10.dp),
-                        border = BorderStroke(1.dp, getWeatherGradient())
-                    ) {
-                        Text(
-                            stringResource(R.string.confirmCapital),
-                            fontFamily = poppinsFontFamily,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 16.sp,
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(14.dp))
-                LastUpdatedDisplay(currentWeatherResponse,context)
-            }
+           Box{
+               AnimatedBackground(getWeatherBackground(currentWeatherResponse.weather.firstOrNull()?.icon ?: ""))
+               Column(Modifier.fillMaxWidth()) {
+                   Column(
+                       horizontalAlignment = Alignment.CenterHorizontally,
+                       modifier = Modifier.fillMaxWidth()
+                   ) {
+                       Text(
+                           stringResource(R.string.s_weather, currentWeatherResponse.cityName),
+                           fontFamily = poppinsFontFamily,
+                           fontWeight = FontWeight.SemiBold,
+                           fontSize = 20.sp,
+                           color = Color.White,
+                       )
+                   }
+                   Spacer(modifier = Modifier.height(8.dp))
+                   Row {
+                       Text(
+                           text = currentWeatherResponse.weather.firstOrNull()?.description
+                               ?: "",
+                           fontWeight = FontWeight.Medium,
+                           fontSize = 24.sp,
+                           fontFamily = poppinsFontFamily,
+                           color = OffWhite
+                       )
+                       WeatherStatusImageDisplay(
+                           currentWeatherResponse.weather[0].icon
+                       )
+                   }
+                   Spacer(modifier = Modifier.height(8.dp))
+                   Row {
+                       Text(
+                           stringResource(
+                               R.string.today_s_weather_in_is_with_a_temperature_of,
+                               currentWeatherResponse.cityName,
+                               currentWeatherResponse.weather.firstOrNull()?.description ?: "",
+                               currentWeatherResponse.main.temp
+                           ) + stringResource(LocalStorageDataSource.getInstance(context).getTempSymbol) + " " + stringResource(
+                               R.string.stay_prepared_and_enjoy_your_day
+                           ),
+                           fontFamily = poppinsFontFamily,
+                           fontWeight = FontWeight.Normal,
+                           fontSize = 14.sp,
+                           color = Color.White
+                       )
+                   }
+                   Spacer(modifier = Modifier.height(16.dp))
+                   Row {
+                       Button(
+                           onClick = {
+                               onSnoozeClicked.invoke()
+                           }, colors = ButtonColors(
+                               containerColor = PrimaryColor,
+                               contentColor = Color.White,
+                               disabledContainerColor = PrimaryColor,
+                               disabledContentColor = Color.White
+                           ),
+                           shape = RoundedCornerShape(10.dp)
+                       ) {
+                           Text(
+                               stringResource(R.string.snooze),
+                               fontFamily = poppinsFontFamily,
+                               fontWeight = FontWeight.Normal,
+                               fontSize = 16.sp,
+                           )
+                       }
+                       Spacer(modifier = Modifier.width(12.dp))
+                       Button(
+                           onClick = {
+                               onConfirmClicked.invoke()
+                           },
+                           colors = ButtonColors(
+                               containerColor = OffWhite,
+                               contentColor = Color.Black,
+                               disabledContainerColor = OffWhite,
+                               disabledContentColor = Color.Black
+                           ),
+                           shape = RoundedCornerShape(10.dp),
+                           border = BorderStroke(1.dp, getWeatherGradient())
+                       ) {
+                           Text(
+                               stringResource(R.string.confirmCapital),
+                               fontFamily = poppinsFontFamily,
+                               fontWeight = FontWeight.Normal,
+                               fontSize = 16.sp,
+                           )
+                       }
+                   }
+                   Spacer(modifier = Modifier.height(14.dp))
+                   LastUpdatedDisplay(currentWeatherResponse,context)
+               }
+           }
         }
     }
 }

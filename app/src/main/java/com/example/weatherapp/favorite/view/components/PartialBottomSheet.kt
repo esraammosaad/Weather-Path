@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -29,7 +30,9 @@ import com.example.weatherapp.R
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
+import com.example.weatherapp.landing.view.AnimatedBackground
 import com.example.weatherapp.ui.theme.poppinsFontFamily
+import com.example.weatherapp.utilis.getWeatherBackground
 import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.WeatherDetails
 
@@ -42,7 +45,8 @@ fun PartialBottomSheet(
     countryNameUiState: Response,
     fiveDaysWeatherForecastResponse: Response,
     listOfDays: List<List<WeatherItem>>,
-    onAddClicked: ()->Unit
+    text:Int,
+    onAddClicked: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = false,
@@ -73,41 +77,51 @@ fun PartialBottomSheet(
                         ),
                 ) {
                     item {
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 32.dp, end = 18.dp, start = 18.dp)
-                        ) {
-                            Text(
-                                stringResource(R.string.cancel),
-                                fontFamily = poppinsFontFamily,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 18.sp,
-                                color = Color.White,
-                                modifier = Modifier.clickable {
-                                    showBottomSheet.value = false
-                                }
+
+                        Box {
+                            AnimatedBackground(
+                                getWeatherBackground(
+                                    selectedWeather?.weather?.firstOrNull()?.icon ?: ""
+                                )
                             )
-                            Text(
-                                stringResource(R.string.add),
-                                fontFamily = poppinsFontFamily,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 18.sp,
-                                color = Color.White,
-                                modifier = Modifier.clickable {
-                                    onAddClicked.invoke()
+                            Column {
+
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 32.dp, end = 18.dp, start = 18.dp)
+                                ) {
+                                    Text(
+                                        stringResource(R.string.cancel),
+                                        fontFamily = poppinsFontFamily,
+                                        fontWeight = FontWeight.Normal,
+                                        fontSize = 18.sp,
+                                        color = Color.White,
+                                        modifier = Modifier.clickable {
+                                            showBottomSheet.value = false
+                                        }
+                                    )
+                                    Text(
+                                        stringResource(text),
+                                        fontFamily = poppinsFontFamily,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 18.sp,
+                                        color = Color.White,
+                                        modifier = Modifier.clickable {
+                                            onAddClicked.invoke()
+                                        }
+                                    )
                                 }
-                            )
+                                WeatherDetails(
+                                    countryNameUiState,
+                                    selectedWeather,
+                                    fiveDaysWeatherForecastResponse,
+                                    listOfDays
+                                )
+
+                            }
                         }
-                    }
-                    item {
-                        WeatherDetails(
-                            countryNameUiState,
-                            selectedWeather,
-                            fiveDaysWeatherForecastResponse,
-                            listOfDays
-                        )
                     }
                 }
             }

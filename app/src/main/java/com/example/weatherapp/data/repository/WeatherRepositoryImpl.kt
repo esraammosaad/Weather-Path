@@ -37,7 +37,7 @@ class WeatherRepositoryImpl(
         longitude: Double,
         languageCode: String,
         tempUnit: String
-    ): CurrentWeatherResponse {
+    ): Flow<CurrentWeatherResponse> {
         return weatherRemoteDataSourceImpl.getCurrentWeather(
             latitude = latitude,
             longitude = longitude,
@@ -51,7 +51,7 @@ class WeatherRepositoryImpl(
         longitude: Double,
         languageCode: String,
         tempUnit: String
-    ): Flow<WeatherItem> {
+    ): Flow<List<WeatherItem>> {
         return weatherRemoteDataSourceImpl.getFiveDaysWeatherForecast(
             latitude = latitude,
             longitude = longitude,

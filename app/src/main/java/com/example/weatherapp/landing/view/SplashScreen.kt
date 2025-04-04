@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCancellationBehavior
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
@@ -50,7 +52,7 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
             .background(getWeatherGradient()),
         contentAlignment = Alignment.Center
     ) {
-        AnimatedPreloader()
+        AnimatedPreloader(R.raw.animated_icon)
         Spacer(modifier = Modifier.height(90.dp))
         AnimatedVisibility(
             modifier = Modifier.align(alignment = Alignment.Center),
@@ -83,16 +85,17 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
 
 
 @Composable
-fun AnimatedPreloader() {
+fun AnimatedPreloader(animatedImage : Int) {
     val preloaderLottieComposition by rememberLottieComposition(
         LottieCompositionSpec.RawRes(
-            R.raw.animated_icon
+            animatedImage
+
         )
     )
     val preloaderProgress by animateLottieCompositionAsState(
         preloaderLottieComposition,
         iterations = LottieConstants.IterateForever,
-        isPlaying = true
+        isPlaying = true,
     )
     LottieAnimation(
         modifier = Modifier.padding(bottom = 80.dp),
@@ -100,3 +103,37 @@ fun AnimatedPreloader() {
         progress = preloaderProgress,
     )
 }
+
+@Composable
+fun AnimatedBackground(animatedImage: Int) {
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(animatedImage))
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        iterations = LottieConstants.IterateForever,
+        isPlaying = true,
+        speed = 1f,
+        restartOnPlay = false
+    )
+        LottieAnimation(
+            composition = composition,
+            progress = progress,
+        )
+    }
+
+@Composable
+fun AnimatedIcon(animatedImage: Int) {
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(animatedImage))
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        iterations = LottieConstants.IterateForever,
+        isPlaying = true,
+        speed = 1f,
+        restartOnPlay = false
+    )
+        LottieAnimation(
+            composition = composition,
+            progress = progress,
+            modifier = Modifier.size(200.dp)
+        )
+    }
+

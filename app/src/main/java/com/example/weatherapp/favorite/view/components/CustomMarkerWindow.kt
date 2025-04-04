@@ -48,6 +48,7 @@ fun CustomMarkerWindow(
                 modifier = Modifier.size(25.dp),
                 color = Color.Black
             )
+
             is Response.Failure -> FailureText(isConnected, currentWeatherUiState)
             is Response.Success<*> -> {
                 currentWeatherUiState as Response.Success<CurrentWeatherResponse>
@@ -94,9 +95,9 @@ fun CustomMarkerWindow(
                 }
             }
         }
-
     }
 }
+
 
 @Composable
 private fun FailureText(

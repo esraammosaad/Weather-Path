@@ -8,6 +8,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,11 +37,15 @@ import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.home.view_model.HomeViewModelImpl
+import com.example.weatherapp.landing.view.AnimatedBackground
+import com.example.weatherapp.landing.view.AnimatedPreloader
 import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
 import com.example.weatherapp.utilis.Styles
 import com.example.weatherapp.utilis.getTimeFromTimestamp
+import com.example.weatherapp.utilis.getWeatherBackground
 import com.example.weatherapp.utilis.getWeatherGradient
+import com.example.weatherapp.utilis.view.BackgroundAnimation
 import com.example.weatherapp.utilis.view.CurrentDateDisplay
 import com.example.weatherapp.utilis.view.CustomText
 import com.example.weatherapp.utilis.view.FiveDaysWeatherForecastDisplay
@@ -105,6 +110,7 @@ fun HomeScreen(
                     0
                 )?.icon ?: ""
             )
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -117,15 +123,23 @@ fun HomeScreen(
             ) {
 
                 item {
-                    currentWeather.result?.let { ImageDisplay(it) }
-                    currentWeather.result?.let {
-                        CustomWeatherDetails(
-                            it,
-                            countryName,
-                            context,
-                            fiveDaysWeatherForecast,
-                            listOfDays
-                        )
+                    Box() {
+                        BackgroundAnimation(getWeatherBackground(currentWeather.result?.weather?.firstOrNull()?.icon?:""))
+
+                        Column {
+
+                            currentWeather.result?.let { ImageDisplay(it) }
+
+                            currentWeather.result?.let {
+                                CustomWeatherDetails(
+                                    it,
+                                    countryName,
+                                    context,
+                                    fiveDaysWeatherForecast,
+                                    listOfDays
+                                )
+                            }
+                        }
                     }
 
                 }
@@ -138,6 +152,8 @@ fun HomeScreen(
 
 }
 
+
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CustomWeatherDetails(
@@ -147,84 +163,89 @@ fun CustomWeatherDetails(
     fiveDaysWeatherForecast: Response,
     listOfDays: List<List<WeatherItem>>
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-
-    ) {
-        CustomText(text = stringResource(R.string.today))
-        Spacer(modifier = Modifier.height(3.dp))
-        LastUpdatedDisplay(currentWeather,context)
-        Spacer(modifier = Modifier.height(3.dp))
-        when (countryName) {
-            is Response.Failure -> Text(countryName.exception)
-            Response.Loading -> CircularProgressIndicator(color = Color.Black)
-            is Response.Success<*> -> {
-                countryName as Response.Success<Address>
-                countryName.result?.let {
-                    LocationDisplay(
-                        it,
-                        currentWeather
-                    )
-                }
-            }
-        }
-        Spacer(modifier = Modifier.height(3.dp))
-        CurrentDateDisplay()
-        Spacer(modifier = Modifier.height(3.dp))
-        TemperatureDisplay(currentWeather)
-        WeatherStatusDisplay(currentWeather)
-        Spacer(modifier = Modifier.height(5.dp))
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(end = 18.dp),
-            horizontalArrangement = Arrangement.Center,
-        ) {
-            Image(
-                painter = painterResource(R.drawable.temperature),
-                contentDescription = "temp icon"
-            )
-            Text(
-                stringResource(
-                    R.string.feels_like,
-                    currentWeather.main.feels_like
-                ),
-                style = Styles.textStyleMedium16,
-                color = Color.White
 
 
-            )
-            Text(
-                stringResource(LocalStorageDataSource.getInstance(context).getTempSymbol),
-                style = Styles.textStyleNormal14,
-                color = Color.White
 
-            )
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        WeatherForecastDisplay(
-            fiveDaysWeatherForecast,
-            currentWeather.weather.firstOrNull()?.icon ?: ""
-        )
-        MoreDetailsContainer(currentWeather)
-        FiveDaysWeatherForecastDisplay(
-            fiveDaysWeatherForecast = listOfDays
-        )
 
-    }
-}
+     Column(
+         modifier = Modifier
+             .fillMaxWidth(),
+         horizontalAlignment = Alignment.CenterHorizontally,
+         verticalArrangement = Arrangement.Center
+
+     ) {
+         CustomText(text = stringResource(R.string.today))
+         Spacer(modifier = Modifier.height(3.dp))
+         LastUpdatedDisplay(currentWeather, context)
+         Spacer(modifier = Modifier.height(3.dp))
+         when (countryName) {
+             is Response.Failure -> Text(countryName.exception)
+             Response.Loading -> CircularProgressIndicator(color = Color.Black)
+             is Response.Success<*> -> {
+                 countryName as Response.Success<Address>
+                 countryName.result?.let {
+                     LocationDisplay(
+                         it,
+                         currentWeather
+                     )
+                 }
+             }
+         }
+         Spacer(modifier = Modifier.height(3.dp))
+         CurrentDateDisplay()
+         Spacer(modifier = Modifier.height(3.dp))
+         TemperatureDisplay(currentWeather)
+         WeatherStatusDisplay(currentWeather)
+         Spacer(modifier = Modifier.height(5.dp))
+         Row(
+             Modifier
+                 .fillMaxWidth()
+                 .padding(end = 18.dp),
+             horizontalArrangement = Arrangement.Center,
+         ) {
+             Image(
+                 painter = painterResource(R.drawable.temperature),
+                 contentDescription = "temp icon"
+             )
+             Text(
+                 stringResource(
+                     R.string.feels_like,
+                     currentWeather.main.feels_like
+                 ),
+                 style = Styles.textStyleMedium16,
+                 color = Color.White
+
+
+             )
+             Text(
+                 stringResource(LocalStorageDataSource.getInstance(context).getTempSymbol),
+                 style = Styles.textStyleNormal14,
+                 color = Color.White
+
+             )
+         }
+         Spacer(modifier = Modifier.height(8.dp))
+         WeatherForecastDisplay(
+             fiveDaysWeatherForecast,
+             currentWeather.weather.firstOrNull()?.icon ?: ""
+         )
+         MoreDetailsContainer(currentWeather)
+         FiveDaysWeatherForecastDisplay(
+             fiveDaysWeatherForecast = listOfDays
+         )
+
+     }
+ }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun LastUpdatedDisplay(currentWeather: CurrentWeatherResponse,context: Context) {
+fun LastUpdatedDisplay(currentWeather: CurrentWeatherResponse, context: Context) {
     Text(
         text = stringResource(R.string.last_updated) + getTimeFromTimestamp(
             offsetInSeconds = currentWeather.timezone,
             timestamp = currentWeather.dt,
-            context =context
+            context = context
         ),
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,

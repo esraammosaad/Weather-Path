@@ -15,13 +15,11 @@ import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.data.repository.WeatherRepository
 import com.example.weatherapp.utilis.formatDateTime
 import com.example.weatherapp.utilis.getCurrentDate
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import java.math.RoundingMode
 import java.util.Locale
@@ -66,11 +64,14 @@ class FavoriteViewModelImpl(
         MutableStateFlow(Response.Loading)
     override var fiveDaysForecastFavorites = _fiveDaysForecastFavorites.asStateFlow()
 
-    private var _message: MutableStateFlow<Int> = MutableStateFlow(R.string.loading)
-    override var message = _message.asStateFlow()
+    private var _message: MutableSharedFlow<Int> = MutableSharedFlow()
+    override var message = _message.asSharedFlow()
 
     private var _alarms: MutableStateFlow<Response> = MutableStateFlow(Response.Loading)
     override var alarms = _alarms.asStateFlow()
+
+    private var _searchText: MutableSharedFlow<String> = MutableSharedFlow()
+    var searchText = _searchText.asSharedFlow()
 
     override fun getSelectedWeather(
         latitude: Double, longitude: Double, isConnected: Boolean, languageCode: String,
@@ -85,7 +86,12 @@ class FavoriteViewModelImpl(
                         languageCode = languageCode,
                         tempUnit = tempUnit
                     )
-                    _selectedWeather.emit(Response.Success(result))
+                    result.catch { ex ->
+                        _selectedWeather.emit(Response.Failure(ex.message.toString()))
+
+                    }.collect {
+                        _selectedWeather.emit(Response.Success(it))
+                    }
                 } catch (e: Exception) {
                     _selectedWeather.emit(Response.Failure(e.message.toString()))
                 }
@@ -111,16 +117,26 @@ class FavoriteViewModelImpl(
                         languageCode = languageCode,
                         tempUnit = tempUnit
                     )
-                    _selectedFiveDaysWeatherForecast.emit(
-                        Response.Success(
-                            result.catch { ex ->
-                                _selectedFiveDaysWeatherForecast.emit(Response.Failure(ex.message.toString()))
-                            }.toList()
+                    result.catch { ex ->
+                        _selectedFiveDaysWeatherForecast.emit(Response.Failure(ex.message.toString()))
+                        _message.emit(R.string.something_wrong_happened)
+                        selectFiveDaysWeather(
+                            longitude = longitude,
+                            latitude = latitude
                         )
-                    )
-                    filterDaysList(result)
+                    }.collect {
+                        _selectedFiveDaysWeatherForecast.emit(Response.Success(it))
+                        filterDaysList(it)
+
+                    }
+
                 } catch (e: Exception) {
                     _selectedFiveDaysWeatherForecast.emit(Response.Failure(e.message.toString()))
+                    _message.emit(R.string.something_wrong_happened)
+                    selectFiveDaysWeather(
+                        longitude = longitude,
+                        latitude = latitude
+                    )
                 }
             } else {
                 selectFiveDaysWeather(longitude = longitude, latitude = latitude)
@@ -128,7 +144,7 @@ class FavoriteViewModelImpl(
         }
     }
 
-    private suspend fun filterDaysList(result: Flow<WeatherItem>) {
+    private suspend fun filterDaysList(result: List<WeatherItem>) {
 
         try {
             _currentDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(0) }
@@ -144,7 +160,7 @@ class FavoriteViewModelImpl(
             _sixthDayList.emit(result.filter { formatDateTime(it.dt_txt) == getCurrentDate(5) }
                 .toList())
         } catch (e: Exception) {
-            Log.i("TAG","filterDaysList: ${e.message.toString()}")
+            Log.i("TAG", "filterDaysList: ${e.message.toString()}")
         }
     }
 
@@ -155,10 +171,11 @@ class FavoriteViewModelImpl(
         viewModelScope.launch {
             try {
                 val resultOne = weatherRepositoryImpl.insertCurrentWeather(currentWeatherResponse)
-                val resultTwo = weatherRepositoryImpl.insertFiveDaysWeather(fiveDaysWeatherForecastResponse)
+                val resultTwo =
+                    weatherRepositoryImpl.insertFiveDaysWeather(fiveDaysWeatherForecastResponse)
 
                 if (resultOne > 0L && resultTwo > 0L) {
-                    _message.emit(R.string.location_added_successfully)
+//                    _message.emit(R.string.location_added_successfully)
 
                 } else {
                     _message.emit(R.string.something_wrong_happened)
@@ -172,12 +189,15 @@ class FavoriteViewModelImpl(
 
     override fun updateWeather(
         currentWeatherResponse: CurrentWeatherResponse,
-        fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse
+        fiveDaysWeatherForecastResponse: FiveDaysWeatherForecastResponse,
+        isConnected: Boolean
     ) {
         viewModelScope.launch {
+            if(isConnected){
             try {
                 val resultOne = weatherRepositoryImpl.updateCurrentWeather(currentWeatherResponse)
-                val resultTwo = weatherRepositoryImpl.updateFiveDaysWeather(fiveDaysWeatherForecastResponse)
+                val resultTwo =
+                    weatherRepositoryImpl.updateFiveDaysWeather(fiveDaysWeatherForecastResponse)
                 if (resultOne > 0 && resultTwo > 0) {
                     _message.emit(R.string.weather_updated_successfully)
                 } else {
@@ -186,6 +206,7 @@ class FavoriteViewModelImpl(
             } catch (e: Exception) {
                 _message.emit(R.string.something_wrong_happened)
             }
+        }
         }
     }
 
@@ -234,10 +255,11 @@ class FavoriteViewModelImpl(
         viewModelScope.launch {
             try {
                 val resultOne = weatherRepositoryImpl.deleteCurrentWeather(currentWeatherResponse)
-                val resultTwo = weatherRepositoryImpl.deleteFiveDaysWeather(fiveDaysWeatherForecastResponse)
+                val resultTwo =
+                    weatherRepositoryImpl.deleteFiveDaysWeather(fiveDaysWeatherForecastResponse)
 
                 if (resultOne > 0 && resultTwo > 0) {
-                    _message.emit(R.string.location_deleted_successfully)
+//                    _message.emit(R.string.location_deleted_successfully)
                 } else {
                     _message.emit(R.string.something_wrong_happened)
 
@@ -254,7 +276,7 @@ class FavoriteViewModelImpl(
                 selectAllFavorites()
                 selectAllFiveDaysWeatherFromFavorites()
             } catch (e: Exception) {
-                Log.i("TAG","selectFavorites: ${e.message.toString()}")
+                Log.i("TAG", "selectFavorites: ${e.message.toString()}")
             }
         }
     }
@@ -322,7 +344,7 @@ class FavoriteViewModelImpl(
                     .catch { ex -> _selectedFiveDaysWeatherForecast.emit(Response.Failure(ex.message.toString())) }
                     .collect {
                         _selectedFiveDaysWeatherForecast.emit(Response.Success(it.list))
-                        filterDaysList(it.list.asFlow())
+                        filterDaysList(it.list)
                     }
             } catch (e: Exception) {
                 _selectedFiveDaysWeatherForecast.emit(Response.Failure(e.message.toString()))
@@ -390,7 +412,7 @@ class FavoriteViewModelImpl(
         }
     }
 
-   override fun calculateDelay(
+    override fun calculateDelay(
         targetYear: Int,
         targetMonth: Int,
         targetDay: Int,
@@ -411,6 +433,14 @@ class FavoriteViewModelImpl(
         val delay = targetTime.timeInMillis - now.timeInMillis
 
         return if (delay > 0) delay else 0L
+    }
+
+   override fun onSearchTextChange(text: String) {
+        viewModelScope.launch {
+            _searchText.emit(text)
+        }
+
+
     }
 
 }

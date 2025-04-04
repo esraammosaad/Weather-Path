@@ -104,4 +104,5 @@
     <string name="snooze">SNOOZE</string>
     <string name="confirmCapital">CONFIRM</string>
     <string name="location_updated_successfully">Location Updated Successfully</string>
+    <string name="the_journey_s_quiet_no_weather_alarms_on_your_path">The journey’s quiet—no weather alarms on your path.</string>
 </resources>

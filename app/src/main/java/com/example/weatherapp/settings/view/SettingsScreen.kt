@@ -62,7 +62,6 @@ fun SettingsScreen(
         remember { mutableIntStateOf(LocalStorageDataSource.getInstance(context).getTempSymbol) }
     val windState =
         remember { mutableIntStateOf(LocalStorageDataSource.getInstance(context).getWindUnit) }
-
     val test = LocalStorageDataSource.getInstance(context).getLocationState
 
     val locationState =
@@ -133,7 +132,7 @@ fun SettingsScreen(
                     currentWeather.weather.firstOrNull()?.icon ?: "",
                     selectedLanguage
                 ) { selectedLang ->
-                    var langCode = when (selectedLang) {
+                    val langCode = when (selectedLang) {
                         context.getString(R.string.english) -> "en"
                         context.getString(R.string.arabic) -> "ar"
                         else -> getDefaultSystemLang()
@@ -144,7 +143,6 @@ fun SettingsScreen(
 
                 }
                 Spacer(modifier = Modifier.height(18.dp))
-
                 CustomPreferencesCard(
                     stringResource(R.string.get_location_by),
                     listOf(

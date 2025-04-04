@@ -80,8 +80,4 @@ fun SearchableMapScreen(
             )
         }
     }
-
-    //Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-    //                CircularProgressIndicator(modifier = Modifier.size(25.dp), color = Color.Black)
-    //            }
 }

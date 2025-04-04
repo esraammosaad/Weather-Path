@@ -66,7 +66,7 @@ class HomeViewModelImplTest {
         repository = mockk(relaxed = true)
         coEvery {
             repository.getCurrentWeather(latitude, longitude, languageCode, tempUnit)
-        } returns currentWeatherResponse
+        } returns flowOf( currentWeatherResponse)
         coEvery { repository.selectDayWeather(latitude, longitude) } returns flowOf(
             currentWeatherResponse
         )
@@ -77,7 +77,7 @@ class HomeViewModelImplTest {
                 languageCode,
                 tempUnit
             )
-        } returns flowOf(weatherItem())
+        } returns flowOf(listOf( weatherItem()))
         coEvery { repository.selectFiveDaysWeather(latitude, longitude) } returns flowOf(
             fiveDaysForecastResponse()
         )

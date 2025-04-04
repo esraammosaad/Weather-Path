@@ -60,6 +60,11 @@ dependencies {
     implementation(libs.androidx.junit.ktx)
     implementation(libs.core.ktx)
 
+    testImplementation ("androidx.test:core-ktx:1.5.0")
+    testImplementation ("androidx.test.ext:junit-ktx:1.1.5")
+    testImplementation ("org.robolectric:robolectric:4.11")
+
+
     val archTestingVersion = "2.2.0"//done
     val coroutinesVersion = "1.7.3"//done
     testImplementation("junit:junit:4.13.2")//done
@@ -68,8 +73,8 @@ dependencies {
     // hamcrest
     testImplementation("org.hamcrest:hamcrest:2.2")//done
     testImplementation("org.hamcrest:hamcrest-library:2.2")//done
-    androidTestImplementation ("org.hamcrest:hamcrest:2.2")//done
-    androidTestImplementation ("org.hamcrest:hamcrest-library:1.3")//done
+    androidTestImplementation("org.hamcrest:hamcrest:2.2")//done
+    androidTestImplementation("org.hamcrest:hamcrest-library:1.3")//done
     //kotlinx-coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")//done

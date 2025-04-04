@@ -3,8 +3,14 @@ package com.example.weatherapp.home.view
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -13,7 +19,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.ImageLoader
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.favorite.view.components.BottomSheetDisplay
@@ -30,9 +39,11 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
+import java.math.RoundingMode
 import java.util.Locale
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun LocationPickScreen(
     onBackClicked: () -> Unit,
@@ -43,8 +54,9 @@ fun LocationPickScreen(
     onChooseClicked: () -> Unit,
 ) {
     val context = LocalContext.current
-    Log.i("TAG", "NavHostImpl: ${location.value}")
-    val markerState = rememberMarkerState(position = LatLng(location.value.latitude, location.value.longitude))
+
+    val markerState =
+        rememberMarkerState(position = LatLng(location.value.latitude, location.value.longitude))
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(markerState.position, 15f)
@@ -57,9 +69,9 @@ fun LocationPickScreen(
     val properties by remember {
         mutableStateOf(MapProperties(mapType = MapType.TERRAIN))
     }
-
+    val langCode = LocalStorageDataSource.getInstance(context).getLanguageCode
     val geocoder =
-        Geocoder(context, Locale(LocalStorageDataSource.getInstance(context).getLanguageCode))
+        Geocoder(context, Locale(if (langCode.length > 2) langCode.substring(0, 2) else langCode))
 
     val currentWeatherUiState =
         homeViewModel.currentWeather.collectAsStateWithLifecycle().value
@@ -122,6 +134,14 @@ fun LocationPickScreen(
             isConnected
         )
     }
+    Image(
+        painter = painterResource(R.drawable.baseline_arrow_back_ios_new_24),
+        contentDescription = "back icon",
+        modifier = Modifier
+            .padding(vertical = 42.dp, horizontal = 16.dp)
+            .size(32.dp)
+            .clickable { onBackClicked.invoke() }
+    )
     SearchableMapScreen(cameraPositionState, markerState, showBottomSheet)
     BottomSheetDisplay(
         currentWeatherUiState,
@@ -130,11 +150,14 @@ fun LocationPickScreen(
         countryName,
         showBottomSheet,
         listOfDays,
-        isConnected
+        isConnected,
+        R.string.choose
     ) { selectedWeather, selectedFiveDaysForecast ->
         LocalStorageDataSource.getInstance(context).saveLocationState(R.string.map)
-        LocalStorageDataSource.getInstance(context).savePickedLong(selectedWeather.longitude)
-        LocalStorageDataSource.getInstance(context).savePickedLat(selectedWeather.latitude)
+        LocalStorageDataSource.getInstance(context).savePickedLong(selectedWeather.longitude.toBigDecimal()
+            .setScale(2, RoundingMode.DOWN).toDouble())
+        LocalStorageDataSource.getInstance(context).savePickedLat(selectedWeather.latitude.toBigDecimal()
+            .setScale(2, RoundingMode.DOWN).toDouble())
         showBottomSheet.value = false
         val lat = LocalStorageDataSource.getInstance(context).getPickedLat
         val long = LocalStorageDataSource.getInstance(context).getPickedLong
@@ -150,6 +173,8 @@ fun LocationPickScreen(
                 latitude = LocalStorageDataSource.getInstance(context).getPickedLat,
                 longitude = LocalStorageDataSource.getInstance(context).getPickedLong
             )
+//            location.value.latitude=lat
+//            location.value.longitude=long
         }
         onChooseClicked.invoke()
     }
@@ -166,8 +191,13 @@ private fun GetLocation(
     val languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode
     val tempUnit = LocalStorageDataSource.getInstance(context).getTempUnit
     LaunchedEffect(markerState.position) {
-        LocalStorageDataSource.getInstance(context).savePickedLong(markerState.position.longitude)
-        LocalStorageDataSource.getInstance(context).savePickedLat(markerState.position.latitude)
+        val long = markerState.position.longitude.toBigDecimal()
+            .setScale(2, RoundingMode.DOWN).toDouble()
+        val lat = markerState.position.latitude.toBigDecimal()
+            .setScale(2, RoundingMode.DOWN).toDouble()
+        LocalStorageDataSource.getInstance(context).savePickedLong(long)
+        LocalStorageDataSource.getInstance(context).savePickedLat(lat)
+        Log.i("TAG", "GetLocation: $lat $long")
         homeViewModel.getCurrentWeather(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude,

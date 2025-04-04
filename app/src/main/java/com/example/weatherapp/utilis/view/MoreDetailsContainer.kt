@@ -43,7 +43,7 @@ fun MoreDetailsContainer(currentWeather: CurrentWeatherResponse) {
             Modifier
                 .background(Color.White.copy(alpha = 0.2f), shape = RoundedCornerShape(15.dp))
                 .fillMaxWidth()
-                .height(190.dp)
+                .height(210.dp)
         ) {
 
             Row(
@@ -75,8 +75,8 @@ fun MoreDetailsContainer(currentWeather: CurrentWeatherResponse) {
                 Spacer(modifier = Modifier.width(20.dp))
                 VerticalDivider(
                     modifier = Modifier
-                        .height(180.dp)
-                        .width(1.dp), color = Color.Gray.copy(alpha = 0.5f)
+                        .height(190.dp)
+                        .width(0.6.dp), color = Color.Gray.copy(alpha = 0.4f)
                 )
                 Spacer(modifier = Modifier.width(20.dp))
                 Column(modifier = Modifier.padding(start = 20.dp)) {
