@@ -47,7 +47,6 @@ fun SettingsScreen(
     homeViewModel: HomeAndSettingsSharedViewModelImpl,
     currentWeather: CurrentWeatherResponse,
     snackBarHostState: SnackbarHostState,
-    navigationBarViewModel: BottomNavigationBarViewModel,
     isConnected: Boolean,
     onMapClicked: () -> Unit
 ) {
@@ -63,7 +62,7 @@ fun SettingsScreen(
         remember { mutableIntStateOf(if (test == R.string.map) R.string.map else R.string.gps) }
 
     val openAlertDialog = remember { mutableStateOf(false) }
-    val confirmText = remember { mutableStateOf(0) }
+    val confirmText = remember { mutableIntStateOf(R.string.confirm) }
     val dialogTitle = remember { mutableStateOf("") }
     val dialogText = remember { mutableStateOf("") }
     val onConfirmation = remember { mutableStateOf({}) }
@@ -77,7 +76,7 @@ fun SettingsScreen(
                 openAlertDialog.value = false
             },
             showRadioButton = false,
-            confirmText = confirmText.value,
+            confirmText = confirmText.intValue,
         )
     }
 
@@ -159,6 +158,7 @@ fun SettingsScreen(
                             dialogTitle.value = context.getString(R.string.warning)
                             dialogText.value =
                                 context.getString(R.string.you_sure_you_want_change_your_location_and_pick_from_the_map)
+                            confirmText.value= R.string.confirm
                             onConfirmation.value = {
                                 onMapClicked.invoke()
                                 locationState.intValue = R.string.map
@@ -174,7 +174,7 @@ fun SettingsScreen(
                             onConfirmation.value = {
                                 LocalStorageDataSource.getInstance(context)
                                     .saveLocationState(R.string.gps)
-                                locationState.value = R.string.gps
+                                locationState.intValue = R.string.gps
                                 (context as Activity).recreate()
                             }
                         }

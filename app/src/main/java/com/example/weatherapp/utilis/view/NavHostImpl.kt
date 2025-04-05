@@ -128,11 +128,9 @@ fun NavHostImpl(
                 homeViewModel,
                 currentWeatherResponse,
                 snackBarHostState,
-                bottomNavigationBarViewModel,
                 isConnected
             ) {
                 navController.navigate(NavigationRoutes.LocationPickScreen)
-
             }
         }
         composable<NavigationRoutes.LocationPickScreen> {
