@@ -188,7 +188,7 @@ fun FavoriteItem(
                                         )
                                     }
                                     Text(
-                                        text = stringResource(R.string.h) + "  " + convertToArabicNumbers(selectedWeather?.main?.temp_max.toString(),context) +
+                                        text = stringResource(R.string.h) + " " + convertToArabicNumbers(selectedWeather?.main?.temp_max.toString(),context) +
                                                 stringResource(
                                                     LocalStorageDataSource.getInstance(
                                                         context

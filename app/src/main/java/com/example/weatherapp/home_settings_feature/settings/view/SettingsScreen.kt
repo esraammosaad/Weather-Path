@@ -163,7 +163,7 @@ fun SettingsScreen(
                                 onMapClicked.invoke()
                                 locationState.intValue = R.string.map
                                 LocalStorageDataSource.getInstance(context).saveLocationState(0)
-                                (context as Activity).recreate()
+//                                (context as Activity).recreate()
 
                             }
                         } else {

@@ -4,6 +4,7 @@ import android.location.Address
 import android.util.Log
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -27,7 +28,8 @@ fun LocationDisplay(countryName: Address, currentWeather: CurrentWeatherResponse
         fontSize = 28.sp,
         fontFamily = poppinsFontFamily,
         color = Color.White,
-        textAlign = TextAlign.Center
+        textAlign = TextAlign.Center,
+        modifier = Modifier.padding(horizontal = 4.dp)
 
     )
     Spacer(modifier = Modifier.height(3.dp))
@@ -38,7 +40,9 @@ fun LocationDisplay(countryName: Address, currentWeather: CurrentWeatherResponse
         fontSize = 16.sp,
         fontFamily = poppinsFontFamily,
         color = OffWhite,
-        textAlign = TextAlign.Center
+        textAlign = TextAlign.Center,
+        modifier = Modifier.padding(horizontal = 4.dp)
+
 
     )
 

@@ -1,5 +1,6 @@
 package com.example.weatherapp.utilis.view
 
+import android.app.Activity
 import android.content.Context
 import android.location.Address
 import android.location.Location
@@ -150,7 +151,7 @@ fun NavHostImpl(
                         snackBarHostState.showSnackbar(context.getString(R.string.location_updated_successfully))
 
                     }
-//                    (context as Activity).recreate()
+                    (context as Activity).recreate()
                 }
             )
         }

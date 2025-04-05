@@ -199,7 +199,7 @@ class FavoriteAndAlarmSharedViewModelImpl(
                 val resultTwo =
                     weatherRepositoryImpl.updateFiveDaysWeather(fiveDaysWeatherForecastResponse)
                 if (resultOne > 0 && resultTwo > 0) {
-                    _message.emit(R.string.weather_updated_successfully)
+//                    _message.emit(R.string.weather_updated_successfully)
                 } else {
                     _message.emit(R.string.something_wrong_happened)
                 }
@@ -217,7 +217,7 @@ class FavoriteAndAlarmSharedViewModelImpl(
             try {
                 val result = weatherRepositoryImpl.updateCurrentWeather(currentWeatherResponse)
                 if (result > 0) {
-                    _message.emit(R.string.weather_updated_successfully)
+//                    _message.emit(R.string.weather_updated_successfully)
                 } else {
                     _message.emit(R.string.something_wrong_happened)
                 }

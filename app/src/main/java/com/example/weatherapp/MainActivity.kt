@@ -77,6 +77,7 @@ import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private var  locationCallBack : LocationCallback? = null
     private lateinit var bottomNavigationBarViewModel: BottomNavigationBarViewModel
     private lateinit var homeViewModel: HomeAndSettingsSharedViewModelImpl
     private lateinit var internetConnectivityViewModel: InternetConnectivityViewModel
@@ -128,6 +129,7 @@ class MainActivity : ComponentActivity() {
                     getLocation()
                 } else {
                     loadPickedLocationFromMap()
+                    removeLocationUpdates()
                 }
                 delay(1000)
                 checkInternet(
@@ -534,7 +536,7 @@ class MainActivity : ComponentActivity() {
             setPriority(Priority.PRIORITY_LOW_POWER)
             setMinUpdateIntervalMillis(360000)
         }.build()
-        val locationCallBack = object : LocationCallback() {
+         locationCallBack = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
                 locationState.value =
@@ -556,9 +558,16 @@ class MainActivity : ComponentActivity() {
         }
         fusedLocationProviderClient.requestLocationUpdates(
             locationRequest,
-            locationCallBack,
+            locationCallBack as LocationCallback,
             Looper.myLooper()
         )
+    }
+
+    private fun removeLocationUpdates() {
+        locationCallBack?.let {
+            fusedLocationProviderClient.removeLocationUpdates(it)
+                locationCallBack = null
+        }
     }
 
 }
