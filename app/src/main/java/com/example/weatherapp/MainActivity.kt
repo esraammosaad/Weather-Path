@@ -85,7 +85,6 @@ class MainActivity : ComponentActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
-
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         super.onCreate(savedInstanceState)
         homeViewModel = homeViewModel()
@@ -188,6 +187,7 @@ class MainActivity : ComponentActivity() {
                         onConfirmation,
                         option,
                         isLocationPickScreen,
+                        confirmText
                     )
                 } else {
                     val snackBarHostState = remember { SnackbarHostState() }
@@ -326,6 +326,7 @@ class MainActivity : ComponentActivity() {
         onConfirmation: MutableState<() -> Unit>,
         option: MutableState<String>,
         isLocationPickScreen: MutableState<Boolean>,
+        confirmText: MutableState<Int>
     ) {
         AnimatedVisibility(visible = !isSeenGetStartedScreen.value) {
             GetStartedScreen(
@@ -335,7 +336,8 @@ class MainActivity : ComponentActivity() {
                         openAlertDialog,
                         dialogTitle,
                         dialogText,
-                        onConfirmation
+                        onConfirmation,
+                        confirmText
                     )
                 },
                 onGetStartedClicked = {
@@ -343,6 +345,7 @@ class MainActivity : ComponentActivity() {
                     openAlertDialog.value = true
                     if (checkLocationPermission()) {
                         if (isLocationEnabled() && isConnected.value) {
+                            confirmText.value = R.string.confirm
                             dialogTitle.value = getString(R.string.choose)
                             dialogText.value =
                                 getString(R.string.chooseMapOrGPS)
@@ -427,12 +430,14 @@ class MainActivity : ComponentActivity() {
         openAlertDialog: MutableState<Boolean>,
         dialogTitle: MutableState<String>,
         dialogText: MutableState<String>,
-        onConfirmation: MutableState<() -> Unit>
+        onConfirmation: MutableState<() -> Unit>,
+        confirmText: MutableState<Int>
     ) {
         showRadioButton.value = false
         if (checkLocationPermission()) {
             openAlertDialog.value = true
             if (isConnected.value) {
+                confirmText.value = R.string.confirm
                 if (isLocationEnabled()) {
                     dialogTitle.value = getString(R.string.confirmation)
                     dialogText.value =

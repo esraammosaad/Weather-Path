@@ -52,9 +52,11 @@ class NotificationHelper {
                 intent2,
                 PendingIntent.FLAG_IMMUTABLE
             )
+            val langCode = LocalStorageDataSource.getInstance(context).getLanguageCode
+
             val localContext = LocalizationHelper.getLocalizedContext(
                 context,
-                LocalStorageDataSource.getInstance(context).getLanguageCode
+                if (langCode.length > 2) langCode.substring(0, 2) else langCode
             )
             return NotificationCompat.Builder(context, Strings.CHANNEL_ID)
                 .setSmallIcon(R.drawable.app_icon)
