@@ -181,14 +181,14 @@ fun FavoriteItem(
                                         Text(
                                             text = selectedWeather?.weather?.firstOrNull()?.description
                                                 ?: "",
-                                            style = Styles.textStyleMedium18
+                                            style = Styles.textStyleMedium17
                                         )
                                         WeatherStatusImageDisplay(
                                             selectedWeather?.weather?.firstOrNull()?.icon ?: ""
                                         )
                                     }
                                     Text(
-                                        text = stringResource(R.string.h) + " " + convertToArabicNumbers(selectedWeather?.main?.temp_max.toString(),context) +
+                                        text = stringResource(R.string.h) + "  " + convertToArabicNumbers(selectedWeather?.main?.temp_max.toString(),context) +
                                                 stringResource(
                                                     LocalStorageDataSource.getInstance(
                                                         context
@@ -200,7 +200,7 @@ fun FavoriteItem(
                                                         context
                                                     ).getTempSymbol
                                                 ),
-                                        style = Styles.textStyleMedium16
+                                        style = Styles.textStyleMedium15
                                     )
 
                                 }

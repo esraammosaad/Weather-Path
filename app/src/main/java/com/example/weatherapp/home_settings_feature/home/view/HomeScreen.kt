@@ -94,15 +94,12 @@ fun HomeScreen(
             Text(currentWeather.exception)
 
         }
-
         Response.Loading -> Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             CircularProgressIndicator(color = Color.White)
-
         }
-
         is Response.Success<*> -> {
             currentWeather as Response.Success<CurrentWeatherResponse>
             bottomNavigationBarViewModel.setCurrentWeatherTheme(
@@ -110,7 +107,6 @@ fun HomeScreen(
                     0
                 )?.icon ?: ""
             )
-
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -129,7 +125,6 @@ fun HomeScreen(
                                 currentWeather.result?.weather?.firstOrNull()?.icon ?: ""
                             )
                         )
-
                         Column {
 
                             currentWeather.result?.let { ImageDisplay(it) }
@@ -201,12 +196,13 @@ fun CustomWeatherDetails(
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(end = 18.dp),
-            horizontalArrangement = Arrangement.Center,
+                .padding(end = 5.dp),
+            horizontalArrangement = Arrangement.Center
+            , verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
                 painter = painterResource(R.drawable.temperature),
-                contentDescription = "temp icon"
+                contentDescription = stringResource(R.string.temp_icon)
             )
             Text(
                 stringResource(

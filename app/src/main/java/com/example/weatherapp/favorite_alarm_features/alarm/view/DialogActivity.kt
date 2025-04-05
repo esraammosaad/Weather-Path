@@ -140,7 +140,7 @@ private fun AlertScreen(
                         currentWeatherResponse.weather.firstOrNull()?.icon ?: ""
                     ), shape = RoundedCornerShape(15.dp)
                 )
-                .height(260.dp)
+                .height(270.dp)
         ) {
 
             Column(Modifier.fillMaxWidth()) {

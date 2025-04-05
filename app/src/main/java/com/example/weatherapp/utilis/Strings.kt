@@ -31,6 +31,8 @@ class Strings {
         const val PICKED_LAT = "PICKED_LAT"
         const val NOTIFICATION_ACTION = "NOTIFICATION_ACTION"
         const val NOTIFICATION_RESPONSE = "NOTIFICATION_RESPONSE"
+        const val My_LOCATION_PERMISSION_ID = 5005
+
     }
 
 

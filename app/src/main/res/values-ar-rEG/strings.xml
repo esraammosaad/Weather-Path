@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">تطبيق الطقس</string>
+    <string name="app_name">مسار الطقس</string>
     <string name="api_key">18a5a0a6e1d672ed8bc80550e06930de</string>
     <string name="sun_icon">أيقونة الشمس</string>
     <string name="sun_or_moon_icon">أيقونة الشمس أو القمر</string>

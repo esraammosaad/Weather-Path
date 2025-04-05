@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
-import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
@@ -15,21 +14,17 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -40,21 +35,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.local.WeatherDatabase
 import com.example.weatherapp.data.local.WeatherLocalDataSourceImpl
-import com.example.weatherapp.data.model.Response
-import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
-import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.data.remote.RetrofitFactory
 import com.example.weatherapp.data.remote.WeatherRemoteDataSourceImpl
 import com.example.weatherapp.data.repository.WeatherRepositoryImpl
@@ -69,14 +58,13 @@ import com.example.weatherapp.ui.theme.OffWhite
 import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.utilis.view.BottomNavigationBar
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
-import com.example.weatherapp.utilis.view.NavHostImpl
+import com.example.weatherapp.landing.view.MainScreen
+import com.example.weatherapp.utilis.Strings
 import com.example.weatherapp.utilis.internet.InternetConnectivityViewModel
 import com.example.weatherapp.utilis.internet.InternetConnectivityViewModelFactory
 import com.example.weatherapp.utilis.internet.InternetObserverImpl
 import com.example.weatherapp.utilis.localization.LocalizationHelper
 import com.example.weatherapp.utilis.view.ConfirmationDialog
-import com.example.weatherapp.utilis.view.FailureDisplay
-import com.example.weatherapp.utilis.view.LoadingDisplay
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -87,7 +75,6 @@ import kotlinx.coroutines.delay
 import java.util.Locale
 
 
-private const val My_LOCATION_PERMISSION_ID = 5005
 
 class MainActivity : ComponentActivity() {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
@@ -140,7 +127,6 @@ class MainActivity : ComponentActivity() {
             val radioButtonState = remember { mutableStateOf(getString(R.string.map)) }
             LaunchedEffect(isConnected.value) {
                 if (LocalStorageDataSource.getInstance(this@MainActivity).getLocationState == R.string.gps) {
-                    Log.i("TAG", "onCreate: helooooooo")
                     getLocation()
                 } else {
                     loadPickedLocationFromMap()
@@ -237,7 +223,10 @@ class MainActivity : ComponentActivity() {
                             navController,
                             innerPadding,
                             snackBarHostState,
-                            locationState
+                            locationState,
+                            isConnected,
+                            homeViewModel,
+                            bottomNavigationBarViewModel
                         )
                     }
                 }
@@ -245,7 +234,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Composable
     private fun getFavoriteViewModel() = ViewModelProvider(
         this,
         FavoriteViewModelFactory(
@@ -279,11 +267,9 @@ class MainActivity : ComponentActivity() {
             confirmText.value = R.string.network_settings
             onConfirmation.value = {
                 startActivity(Intent(Settings.ACTION_WIFI_SETTINGS))
-
             }
 
         } else if (isConnected.value) {
-
             openAlertDialog.value = false
         }
     }
@@ -294,8 +280,6 @@ class MainActivity : ComponentActivity() {
                 LocalStorageDataSource.getInstance(this@MainActivity).getPickedLat
             val long =
                 LocalStorageDataSource.getInstance(this@MainActivity).getPickedLong
-
-            Log.i("TAG", "loadPickedLocationFromMap: $lat $long")
             val languageCode =
                 LocalStorageDataSource.getInstance(this@MainActivity).getLanguageCode
             val tempUnit =
@@ -333,138 +317,6 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    @Composable
-    private fun MainScreen(
-        currentWeather: Response,
-        isSeenGetStartedScreen: MutableState<Boolean>,
-        countryName: Response,
-        fiveDaysWeatherForecast: Response,
-        navController: NavHostController,
-        innerPadding: PaddingValues,
-        snackBarHostState: SnackbarHostState,
-        locationState: MutableState<Location>
-    ) {
-        val context = LocalContext.current
-        CheckInternet(snackBarHostState, context)
-        when (currentWeather) {
-            is Response.Loading -> LoadingDisplay()
-            is Response.Success<*> -> {
-                val currentWeatherResponse =
-                    currentWeather as Response.Success<CurrentWeatherResponse>
-                if (LocalStorageDataSource.getInstance(context).getLocationState == R.string.map) {
-                    currentWeather.result?.longitude =
-                        LocalStorageDataSource.getInstance(context).getPickedLong
-                    currentWeather.result?.latitude =
-                        LocalStorageDataSource.getInstance(context).getPickedLat
-                }
-                bottomNavigationBarViewModel.setCurrentWeatherTheme(
-                    currentWeatherResponse.result?.weather?.firstOrNull()?.icon
-                        ?: ""
-                )
-                AnimatedVisibility(visible = isSeenGetStartedScreen.value) {
-                    currentWeatherResponse.result.let {
-                        when (countryName) {
-                            is Response.Success<*> -> {
-                                val cName = countryName as Response.Success<Address>
-                                when (fiveDaysWeatherForecast) {
-                                    is Response.Failure -> {}
-                                    Response.Loading -> {}
-                                    is Response.Success<*> -> {
-                                        val fiveDaysWeatherForecastResponse =
-                                            fiveDaysWeatherForecast as Response.Success<List<WeatherItem>>
-                                        insertCurrentLocation(
-                                            it,
-                                            cName,
-                                            fiveDaysWeatherForecastResponse,
-                                            locationState
-                                        )
-                                    }
-                                }
-                                if (it != null) {
-                                    NavHostImpl(
-                                        navController = navController,
-                                        currentWeatherResponse = it,
-                                        countryName = cName.result,
-                                        innerPadding = innerPadding,
-                                        snackBarHostState = snackBarHostState,
-                                        homeViewModel = homeViewModel,
-                                        bottomNavigationBarViewModel = bottomNavigationBarViewModel,
-                                        locationState = locationState,
-                                        isConnected = isConnected.value,
-
-                                        )
-                                }
-                            }
-
-                            is Response.Failure -> FailureDisplay(
-                                if (isConnected.value)
-                                    countryName.exception
-                                else stringResource(R.string.no_internet_connection)
-                            )
-
-                            Response.Loading -> LoadingDisplay()
-                        }
-                    }
-
-
-                }
-            }
-
-            is Response.Failure -> FailureDisplay(currentWeather.exception)
-        }
-    }
-
-    private fun insertCurrentLocation(
-        it: CurrentWeatherResponse?,
-        cName: Response.Success<Address>,
-        fiveDaysWeatherForecastResponse: Response.Success<List<WeatherItem>>,
-        locationState: MutableState<Location>
-    ) {
-        if (LocalStorageDataSource.getInstance(this@MainActivity).getLocationState == R.string.gps) {
-            if (locationState.value.latitude != 0.0 && locationState.value.longitude != 0.0) {
-                homeViewModel.insertCurrentWeather(
-                    currentWeather = it,
-                    latitude = locationState.value.latitude,
-                    longitude = locationState.value.longitude,
-                    countryName = cName.result,
-                )
-                homeViewModel.insertFiveDaysForecast(
-                    fiveDaysWeatherForecast = fiveDaysWeatherForecastResponse.result,
-                    latitude = locationState.value.latitude,
-                    longitude = locationState.value.longitude
-
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun CheckInternet(
-        snackBarHostState: SnackbarHostState,
-        context: Context
-    ) {
-        LaunchedEffect(isConnected.value) {
-            if (!isConnected.value) {
-                val res = snackBarHostState.showSnackbar(
-                    context.getString(R.string.no_internet_connection),
-                    actionLabel = context.getString(R.string.network_settings),
-                    withDismissAction = true,
-                    duration = SnackbarDuration.Indefinite
-                )
-                when (res) {
-                    SnackbarResult.ActionPerformed -> {
-                        startActivity(Intent(Settings.ACTION_WIFI_SETTINGS));
-                    }
-
-                    SnackbarResult.Dismissed -> {
-                    }
-                }
-
-            }
-        }
-    }
-
     @Composable
     private fun GetStartedContent(
         isSeenGetStartedScreen: MutableState<Boolean>,
@@ -491,7 +343,7 @@ class MainActivity : ComponentActivity() {
                     showRadioButton.value = false
                     openAlertDialog.value = true
                     if (checkLocationPermission()) {
-                        if (isLocationEnabled()) {
+                        if (isLocationEnabled() && isConnected.value) {
                             dialogTitle.value = getString(R.string.choose)
                             dialogText.value =
                                 getString(R.string.chooseMapOrGPS)
@@ -507,10 +359,8 @@ class MainActivity : ComponentActivity() {
                                     isLocationPickScreen.value = true
                                     LocalStorageDataSource.getInstance(this@MainActivity)
                                         .saveLocationState(R.string.map)
-
                                 }
-                                if (isConnected.value)
-                                    getLocation()
+                                getLocation()
                                 openAlertDialog.value = false
                             }
                         } else {
@@ -519,7 +369,6 @@ class MainActivity : ComponentActivity() {
                                 dialogText,
                                 onConfirmation,
                                 openAlertDialog,
-
                                 )
                         }
                     } else {
@@ -580,7 +429,7 @@ class MainActivity : ComponentActivity() {
         onConfirmation: MutableState<() -> Unit>
     ) {
         showRadioButton.value = false
-        if (checkLocationPermission()) {
+        if (checkLocationPermission() && isConnected.value) {
             openAlertDialog.value = true
             if (isLocationEnabled()) {
                 dialogTitle.value = getString(R.string.confirmation)
@@ -636,7 +485,7 @@ class MainActivity : ComponentActivity() {
         deviceId: Int
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults, deviceId)
-        if (requestCode == My_LOCATION_PERMISSION_ID) {
+        if (requestCode == Strings.My_LOCATION_PERMISSION_ID) {
             if (grantResults.getOrNull(0) == PackageManager.PERMISSION_GRANTED) {
                 getLocation()
             }
@@ -656,9 +505,8 @@ class MainActivity : ComponentActivity() {
                 Manifest.permission.ACCESS_COARSE_LOCATION,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ),
-            My_LOCATION_PERMISSION_ID
+            Strings.My_LOCATION_PERMISSION_ID
         )
-
     }
 
     private fun checkLocationPermission(): Boolean {
@@ -688,7 +536,6 @@ class MainActivity : ComponentActivity() {
                         this@MainActivity,
                         Locale(if (langCode.length > 2) langCode.substring(0, 2) else langCode)
                     )
-
                 homeViewModel.getWeatherFromApi(
                     locationState.value,
                     geocoder,
@@ -696,9 +543,6 @@ class MainActivity : ComponentActivity() {
                     LocalStorageDataSource.getInstance(this@MainActivity).getLanguageCode,
                     LocalStorageDataSource.getInstance(this@MainActivity).getTempUnit
                 )
-
-                Log.i("TAG", "onLocationResult: ${locationState.value.longitude}")
-                Log.i("TAG", "onLocationResult: ${locationState.value.latitude}")
             }
         }
         fusedLocationProviderClient.requestLocationUpdates(
