@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.weatherapp.R
-import com.example.weatherapp.landing.view.AnimatedBackground
 
 @Composable
 fun BackgroundAnimation(weatherBackground: Int) {
@@ -16,7 +15,7 @@ fun BackgroundAnimation(weatherBackground: Int) {
             5
         }
         for (j in 0..i) {
-            AnimatedBackground(weatherBackground)
+            AnimatedPreloader(weatherBackground)
         }
     }
 }

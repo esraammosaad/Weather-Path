@@ -49,7 +49,7 @@ import com.example.weatherapp.data.remote.WeatherRemoteDataSourceImpl
 import com.example.weatherapp.data.repository.WeatherRepositoryImpl
 import com.example.weatherapp.favorite_alarm_features.view_model.FavoriteViewModelFactory
 import com.example.weatherapp.favorite_alarm_features.view_model.FavoriteAndAlarmSharedViewModelImpl
-import com.example.weatherapp.home_settings_feature.LocationPickScreen
+import com.example.weatherapp.home_settings_feature.settings.view.LocationPickScreen
 import com.example.weatherapp.home_settings_feature.view_model.HomeViewModelFactory
 import com.example.weatherapp.home_settings_feature.view_model.HomeAndSettingsSharedViewModelImpl
 import com.example.weatherapp.landing.view.GetStartedScreen

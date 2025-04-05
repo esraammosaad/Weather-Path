@@ -1,4 +1,4 @@
-package com.example.weatherapp.favorite_alarm_features.favorite.view.components
+package com.example.weatherapp.favorite_alarm_features.favorite.view
 
 import android.content.Context
 import android.content.Intent
@@ -13,7 +13,6 @@ import androidx.compose.runtime.MutableState
 import com.example.weatherapp.R
 import com.example.weatherapp.data.model.AlarmModel
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
-import com.example.weatherapp.favorite_alarm_features.favorite.view.screens.deleteAlarm
 import com.example.weatherapp.favorite_alarm_features.view_model.FavoriteAndAlarmSharedViewModelImpl
 import com.example.weatherapp.ui.theme.OffWhite
 import com.example.weatherapp.ui.theme.PrimaryColor

@@ -49,7 +49,6 @@ import com.example.weatherapp.data.repository.WeatherRepositoryImpl
 import com.example.weatherapp.favorite_alarm_features.view_model.FavoriteViewModelFactory
 import com.example.weatherapp.favorite_alarm_features.view_model.FavoriteAndAlarmSharedViewModelImpl
 import com.example.weatherapp.home_settings_feature.home.view.LastUpdatedDisplay
-import com.example.weatherapp.landing.view.AnimatedBackground
 import com.example.weatherapp.ui.theme.OffWhite
 import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.ui.theme.poppinsFontFamily
@@ -57,6 +56,7 @@ import com.example.weatherapp.utilis.Strings
 import com.example.weatherapp.utilis.convertToArabicNumbers
 import com.example.weatherapp.utilis.getWeatherBackground
 import com.example.weatherapp.utilis.getWeatherGradient
+import com.example.weatherapp.utilis.view.AnimatedPreloader
 import com.example.weatherapp.utilis.view.WeatherStatusImageDisplay
 import com.google.gson.Gson
 import java.time.LocalDate
@@ -148,18 +148,18 @@ private fun AlertScreen(
                         currentWeatherResponse.weather.firstOrNull()?.icon ?: ""
                     ) == R.raw.rain
                 ) {
-                    AnimatedBackground(
+                    AnimatedPreloader(
                         getWeatherBackground(
                             currentWeatherResponse.weather.firstOrNull()?.icon ?: ""
                         )
                     )
-                    AnimatedBackground(
+                    AnimatedPreloader(
                         getWeatherBackground(
                             currentWeatherResponse.weather.firstOrNull()?.icon ?: ""
                         )
                     )
                 } else {
-                    AnimatedBackground(
+                    AnimatedPreloader(
                         getWeatherBackground(
                             currentWeatherResponse.weather.firstOrNull()?.icon ?: ""
                         )

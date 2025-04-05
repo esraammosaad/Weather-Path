@@ -29,13 +29,13 @@ import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.remote.RetrofitFactory
 import com.example.weatherapp.data.remote.WeatherRemoteDataSourceImpl
 import com.example.weatherapp.data.repository.WeatherRepositoryImpl
-import com.example.weatherapp.favorite_alarm_features.favorite.view.screens.FavoriteScreen
-import com.example.weatherapp.favorite_alarm_features.favorite.view.screens.MapScreen
-import com.example.weatherapp.favorite_alarm_features.favorite.view.screens.WeatherDetailsScreen
+import com.example.weatherapp.favorite_alarm_features.favorite.view.FavoriteScreen
+import com.example.weatherapp.favorite_alarm_features.favorite.view.MapScreen
+import com.example.weatherapp.favorite_alarm_features.favorite.view.WeatherDetailsScreen
 import com.example.weatherapp.favorite_alarm_features.view_model.FavoriteViewModelFactory
 import com.example.weatherapp.favorite_alarm_features.view_model.FavoriteAndAlarmSharedViewModelImpl
 import com.example.weatherapp.home_settings_feature.home.view.HomeScreen
-import com.example.weatherapp.home_settings_feature.LocationPickScreen
+import com.example.weatherapp.home_settings_feature.settings.view.LocationPickScreen
 import com.example.weatherapp.home_settings_feature.view_model.HomeAndSettingsSharedViewModelImpl
 import com.example.weatherapp.home_settings_feature.settings.view.SettingsScreen
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
@@ -61,7 +61,6 @@ fun NavHostImpl(
         startDestination = NavigationRoutes.HomeScreen
 
     ) {
-
         composable<NavigationRoutes.HomeScreen> {
             HomeScreen(homeViewModel, bottomNavigationBarViewModel, snackBarHostState)
         }
@@ -89,7 +88,6 @@ fun NavHostImpl(
                     },
                     bottomNavigationBarViewModel = bottomNavigationBarViewModel,
                     snackBarHostState = snackBarHostState,
-                    isConnected = isConnected
                 )
             }
         }
@@ -106,7 +104,6 @@ fun NavHostImpl(
                 bottomNavigationBarViewModel
             )
         }
-
         composable<NavigationRoutes.WeatherDetailsScreen> { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(NavigationRoutes.FavoriteScreen)
@@ -147,11 +144,10 @@ fun NavHostImpl(
                 isConnected = isConnected,
                 onChooseClicked = {
                     navController.popBackStack()
+                    (context as Activity).recreate()
                     scope.launch {
                         snackBarHostState.showSnackbar(context.getString(R.string.location_updated_successfully))
-
                     }
-                    (context as Activity).recreate()
                 }
             )
         }

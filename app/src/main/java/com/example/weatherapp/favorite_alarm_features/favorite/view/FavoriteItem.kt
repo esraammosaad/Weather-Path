@@ -1,4 +1,4 @@
-package com.example.weatherapp.favorite_alarm_features.favorite.view.components
+package com.example.weatherapp.favorite_alarm_features.favorite.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,13 +35,12 @@ import com.example.weatherapp.data.model.AlarmModel
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
-import com.example.weatherapp.favorite_alarm_features.favorite.view.screens.deleteFavoriteItem
 import com.example.weatherapp.favorite_alarm_features.view_model.FavoriteAndAlarmSharedViewModelImpl
-import com.example.weatherapp.landing.view.AnimatedBackground
 import com.example.weatherapp.utilis.Styles
 import com.example.weatherapp.utilis.convertToArabicNumbers
 import com.example.weatherapp.utilis.getWeatherBackground
 import com.example.weatherapp.utilis.getWeatherGradient
+import com.example.weatherapp.utilis.view.AnimatedPreloader
 import com.example.weatherapp.utilis.view.ConfirmationDialog
 import com.example.weatherapp.utilis.view.WeatherStatusImageDisplay
 import kotlinx.coroutines.CoroutineScope
@@ -121,12 +120,12 @@ fun FavoriteItem(
                     ) {
                         Box {
                             Column {
-                                AnimatedBackground(
+                                AnimatedPreloader(
                                     getWeatherBackground(
                                         selectedWeather?.weather?.firstOrNull()?.icon ?: ""
                                     )
                                 )
-                                AnimatedBackground(
+                                AnimatedPreloader(
                                     getWeatherBackground(
                                         selectedWeather?.weather?.firstOrNull()?.icon ?: ""
                                     )

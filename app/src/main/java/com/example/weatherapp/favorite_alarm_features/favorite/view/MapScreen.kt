@@ -1,34 +1,43 @@
-package com.example.weatherapp.home_settings_feature
+package com.example.weatherapp.favorite_alarm_features.favorite.view
 
-import android.location.Address
+
+import android.content.Context
 import android.location.Geocoder
 import android.location.Location
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
+import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
+import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
 import com.example.weatherapp.utilis.view.BottomSheetDisplay
 import com.example.weatherapp.utilis.view.CustomMarkerWindow
 import com.example.weatherapp.utilis.view.SearchableMapScreen
-import com.example.weatherapp.home_settings_feature.view_model.HomeAndSettingsSharedViewModelImpl
+import com.example.weatherapp.favorite_alarm_features.view_model.FavoriteAndAlarmSharedViewModelImpl
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
+import com.example.weatherapp.utilis.Styles
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -38,24 +47,27 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
-import java.math.RoundingMode
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.util.Locale
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun LocationPickScreen(
-    onBackClicked: () -> Unit,
-    homeViewModel: HomeAndSettingsSharedViewModelImpl,
-    location: MutableState<Location>,
-    isConnected: Boolean,
+fun MapScreen(
+    favoriteViewModel: FavoriteAndAlarmSharedViewModelImpl,
+    location: Location,
     bottomNavigationBarViewModel: BottomNavigationBarViewModel,
-    onChooseClicked: () -> Unit,
+    snackBarHostState: SnackbarHostState,
+    isConnected: Boolean
 ) {
     val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        favoriteViewModel.message.collect {
+            snackBarHostState.showSnackbar(context.getString(it))
+        }
+    }
 
-    val markerState =
-        rememberMarkerState(position = LatLng(location.value.latitude, location.value.longitude))
+    val markerState = rememberMarkerState(position = LatLng(location.latitude, location.longitude))
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(markerState.position, 15f)
@@ -69,34 +81,35 @@ fun LocationPickScreen(
         mutableStateOf(MapProperties(mapType = MapType.TERRAIN))
     }
     val langCode = LocalStorageDataSource.getInstance(context).getLanguageCode
+
     val geocoder =
         Geocoder(context, Locale(if (langCode.length > 2) langCode.substring(0, 2) else langCode))
 
     val currentWeatherUiState =
-        homeViewModel.currentWeather.collectAsStateWithLifecycle().value
+        favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
 
     val currentDayForecast =
-        homeViewModel.currentDayList.collectAsStateWithLifecycle().value
+        favoriteViewModel.currentDayList.collectAsStateWithLifecycle().value
 
     val nextDayForecast =
-        homeViewModel.nextDayList.collectAsStateWithLifecycle().value
+        favoriteViewModel.nextDayList.collectAsStateWithLifecycle().value
 
     val thirdDayForecast =
-        homeViewModel.thirdDayList.collectAsStateWithLifecycle().value
+        favoriteViewModel.thirdDayList.collectAsStateWithLifecycle().value
 
     val fourthDayForecast =
-        homeViewModel.fourthDayList.collectAsStateWithLifecycle().value
+        favoriteViewModel.fourthDayList.collectAsStateWithLifecycle().value
 
     val fifthDayForecast =
-        homeViewModel.fifthDayList.collectAsStateWithLifecycle().value
+        favoriteViewModel.fifthDayList.collectAsStateWithLifecycle().value
 
     val sixthDayForecast =
-        homeViewModel.sixthDayList.collectAsStateWithLifecycle().value
+        favoriteViewModel.sixthDayList.collectAsStateWithLifecycle().value
 
     val fiveDaysWeatherForecast =
-        homeViewModel.fiveDaysWeatherForecast.collectAsStateWithLifecycle().value
+        favoriteViewModel.selectedFiveDaysWeatherForecast.collectAsStateWithLifecycle().value
 
-    val countryName = homeViewModel.countryName.collectAsStateWithLifecycle().value
+    val countryName = favoriteViewModel.countryName.collectAsStateWithLifecycle().value
 
     val showBottomSheet = remember { mutableStateOf(false) }
 
@@ -108,10 +121,8 @@ fun LocationPickScreen(
         fifthDayForecast,
         sixthDayForecast
     )
-
-
-    GetLocation(markerState, homeViewModel, geocoder, isConnected)
-
+    val coroutineScope = rememberCoroutineScope()
+    GetLocation(markerState, favoriteViewModel, geocoder, isConnected)
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         properties = properties,
@@ -133,14 +144,7 @@ fun LocationPickScreen(
             isConnected
         )
     }
-    Image(
-        painter = painterResource(R.drawable.baseline_arrow_back_ios_new_24),
-        contentDescription = "back icon",
-        modifier = Modifier
-            .padding(vertical = 42.dp, horizontal = 16.dp)
-            .size(32.dp)
-            .clickable { onBackClicked.invoke() }
-    )
+    NoInternetConnectionText(isConnected)
     SearchableMapScreen(cameraPositionState, markerState, showBottomSheet)
     BottomSheetDisplay(
         currentWeatherUiState,
@@ -150,39 +154,45 @@ fun LocationPickScreen(
         showBottomSheet,
         listOfDays,
         isConnected,
-        R.string.choose
+        R.string.add
+
     ) { selectedWeather, selectedFiveDaysForecast ->
-        LocalStorageDataSource.getInstance(context).saveLocationState(R.string.map)
-        LocalStorageDataSource.getInstance(context).savePickedLong(selectedWeather.longitude.toBigDecimal()
-            .setScale(2, RoundingMode.DOWN).toDouble())
-        LocalStorageDataSource.getInstance(context).savePickedLat(selectedWeather.latitude.toBigDecimal()
-            .setScale(2, RoundingMode.DOWN).toDouble())
-        showBottomSheet.value = false
-        val lat = LocalStorageDataSource.getInstance(context).getPickedLat
-        val long = LocalStorageDataSource.getInstance(context).getPickedLong
-        if (lat != 0.0 && long != 0.0) {
-            homeViewModel.insertCurrentWeather(
-                currentWeather = selectedWeather,
-                latitude = LocalStorageDataSource.getInstance(context).getPickedLat,
-                longitude = LocalStorageDataSource.getInstance(context).getPickedLong,
-                countryName = Address(Locale("")),
-            )
-            homeViewModel.insertFiveDaysForecast(
-                fiveDaysWeatherForecast = selectedFiveDaysForecast.list,
-                latitude = LocalStorageDataSource.getInstance(context).getPickedLat,
-                longitude = LocalStorageDataSource.getInstance(context).getPickedLong
-            )
-//            location.value.latitude=lat
-//            location.value.longitude=long
-        }
-        onChooseClicked.invoke()
+        onAddClicked(
+            selectedWeather,
+            selectedFiveDaysForecast,
+            favoriteViewModel,
+            showBottomSheet,
+            coroutineScope,
+            snackBarHostState,
+            context
+        )
     }
 }
 
 @Composable
+private fun NoInternetConnectionText(isConnected: Boolean) {
+    if (!isConnected) {
+        Column(
+            Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                stringResource(R.string.no_internet_connection_check_your_network_settings),
+                style = Styles.textStyleSemiBold20,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+        }
+
+    }
+}
+
+
+@Composable
 private fun GetLocation(
     markerState: MarkerState,
-    homeViewModel: HomeAndSettingsSharedViewModelImpl,
+    favoriteViewModel: FavoriteAndAlarmSharedViewModelImpl,
     geocoder: Geocoder,
     isConnected: Boolean
 ) {
@@ -190,28 +200,21 @@ private fun GetLocation(
     val languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode
     val tempUnit = LocalStorageDataSource.getInstance(context).getTempUnit
     LaunchedEffect(markerState.position) {
-        val long = markerState.position.longitude.toBigDecimal()
-            .setScale(2, RoundingMode.DOWN).toDouble()
-        val lat = markerState.position.latitude.toBigDecimal()
-            .setScale(2, RoundingMode.DOWN).toDouble()
-        LocalStorageDataSource.getInstance(context).savePickedLong(long)
-        LocalStorageDataSource.getInstance(context).savePickedLat(lat)
-        Log.i("TAG", "GetLocation: $lat $long")
-        homeViewModel.getCurrentWeather(
+        favoriteViewModel.getSelectedWeather(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude,
             isConnected = isConnected,
             languageCode = languageCode,
             tempUnit = tempUnit
         )
-        homeViewModel.getFiveDaysWeatherForecast(
+        favoriteViewModel.getSelectedFiveDaysWeatherForecast(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude,
             isConnected = isConnected,
             languageCode = languageCode,
             tempUnit = tempUnit
         )
-        homeViewModel.getCountryName(
+        favoriteViewModel.getCountryName(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude,
             geocoder = geocoder,
@@ -219,3 +222,53 @@ private fun GetLocation(
         )
     }
 }
+
+fun onAddClicked(
+    selectedWeather: CurrentWeatherResponse?,
+    selectedFiveDaysForecast: FiveDaysWeatherForecastResponse?,
+    favoriteViewModel: FavoriteAndAlarmSharedViewModelImpl,
+    showBottomSheet: MutableState<Boolean>,
+    coroutineScope: CoroutineScope,
+    snackBarHostState: SnackbarHostState,
+    context: Context
+) {
+    if (selectedWeather != null && selectedFiveDaysForecast != null)
+        favoriteViewModel.insertWeather(
+            selectedWeather,
+            selectedFiveDaysForecast
+        )
+    showBottomSheet.value = false
+    coroutineScope.launch {
+        val result = snackBarHostState.showSnackbar(
+            context.getString(R.string.location_added_successfully),
+            actionLabel = context.getString(R.string.undo),
+            withDismissAction = true,
+            duration = SnackbarDuration.Long
+        )
+        when (result) {
+            SnackbarResult.ActionPerformed -> {
+                if (selectedWeather != null && selectedFiveDaysForecast != null) {
+                    favoriteViewModel.deleteWeather(
+                        currentWeatherResponse = selectedWeather,
+                        fiveDaysWeatherForecastResponse = selectedFiveDaysForecast
+                    )
+                }
+            }
+
+            SnackbarResult.Dismissed -> {
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+

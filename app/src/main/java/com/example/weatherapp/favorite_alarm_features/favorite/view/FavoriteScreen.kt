@@ -1,4 +1,4 @@
-package com.example.weatherapp.favorite_alarm_features.favorite.view.screens
+package com.example.weatherapp.favorite_alarm_features.favorite.view
 
 import android.content.Context
 import android.location.Address
@@ -35,7 +35,6 @@ import com.example.weatherapp.R
 import com.example.weatherapp.data.model.AlarmModel
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.FiveDaysWeatherForecastResponse
-import com.example.weatherapp.favorite_alarm_features.favorite.view.components.FavoriteLazyColumn
 import com.example.weatherapp.favorite_alarm_features.view_model.FavoriteAndAlarmSharedViewModelImpl
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
 import com.example.weatherapp.utilis.Styles
@@ -53,7 +52,6 @@ fun FavoriteScreen(
     onFavoriteCardClicked: (longitude: Double, latitude: Double) -> Unit,
     bottomNavigationBarViewModel: BottomNavigationBarViewModel,
     snackBarHostState: SnackbarHostState,
-    isConnected: Boolean
 ) {
     val context = LocalContext.current
     LaunchedEffect(Unit) {
@@ -71,6 +69,7 @@ fun FavoriteScreen(
         currentWeather.weather.firstOrNull()?.icon ?: ""
     )
     val coroutineScope = rememberCoroutineScope()
+
     Column(
         modifier = Modifier
             .fillMaxSize()

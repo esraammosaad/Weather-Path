@@ -45,16 +45,15 @@ import com.example.weatherapp.R
 import com.example.weatherapp.data.model.AlarmModel
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
-import com.example.weatherapp.favorite_alarm_features.alarm.components.DateAndTimePickerForUpdate
-import com.example.weatherapp.favorite_alarm_features.favorite.view.screens.deleteAlarm
+import com.example.weatherapp.favorite_alarm_features.favorite.view.deleteAlarm
 import com.example.weatherapp.favorite_alarm_features.view_model.FavoriteAndAlarmSharedViewModelImpl
-import com.example.weatherapp.landing.view.AnimatedIcon
 import com.example.weatherapp.ui.theme.OffWhite
 import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
 import com.example.weatherapp.utilis.Styles
 import com.example.weatherapp.utilis.convertToArabicNumbers
 import com.example.weatherapp.utilis.getWeatherGradient
+import com.example.weatherapp.utilis.view.AnimatedPreloader
 import com.example.weatherapp.utilis.view.ConfirmationDialog
 import com.example.weatherapp.utilis.view.FailureDisplay
 import com.example.weatherapp.utilis.view.LoadingDisplay
@@ -132,7 +131,7 @@ fun AlarmScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.Center
                                 ) {
-                                    AnimatedIcon(R.raw.alarm)
+                                    AnimatedPreloader(R.raw.alarm,Modifier.size(200.dp))
                                 }
                                 Column(
                                     modifier = Modifier

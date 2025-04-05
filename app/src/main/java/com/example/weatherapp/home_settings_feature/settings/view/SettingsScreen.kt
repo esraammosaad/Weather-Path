@@ -22,6 +22,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -32,14 +33,13 @@ import androidx.core.os.ConfigurationCompat
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
-import com.example.weatherapp.home_settings_feature.settings.components.CustomPreferencesCard
 import com.example.weatherapp.home_settings_feature.view_model.HomeAndSettingsSharedViewModelImpl
-import com.example.weatherapp.utilis.BottomNavigationBarViewModel
 import com.example.weatherapp.utilis.localization.LocalizationHelper
 import com.example.weatherapp.utilis.Strings
 import com.example.weatherapp.utilis.Styles
 import com.example.weatherapp.utilis.getWeatherGradient
 import com.example.weatherapp.utilis.view.ConfirmationDialog
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -60,6 +60,8 @@ fun SettingsScreen(
 
     val locationState =
         remember { mutableIntStateOf(if (test == R.string.map) R.string.map else R.string.gps) }
+
+    val scope = rememberCoroutineScope()
 
     val openAlertDialog = remember { mutableStateOf(false) }
     val confirmText = remember { mutableIntStateOf(R.string.confirm) }
@@ -138,7 +140,9 @@ fun SettingsScreen(
                         if (langCode.length > 2) langCode.substring(0, 2) else langCode
                     )
                     (context as Activity).recreate()
-
+                    scope.launch {
+                        snackBarHostState.showSnackbar(context.getString(R.string.language_changed_successfully))
+                    }
                 }
                 Spacer(modifier = Modifier.height(18.dp))
                 CustomPreferencesCard(
@@ -250,6 +254,9 @@ fun SettingsScreen(
                             homeViewModel,
                             currentWeather
                         )
+                        scope.launch {
+                            snackBarHostState.showSnackbar(context.getString(R.string.temperature_unit_changed_successfully))
+                        }
                     } else {
                         openNoInternetConnectionAlert(
                             openAlertDialog,
@@ -303,6 +310,9 @@ fun SettingsScreen(
                                 R.string.celsius
                             windState.intValue = R.string.meter_sec
 
+                        }
+                        scope.launch {
+                            snackBarHostState.showSnackbar(context.getString(R.string.wind_unit_changed_successfully))
                         }
                     } else {
                         openNoInternetConnectionAlert(

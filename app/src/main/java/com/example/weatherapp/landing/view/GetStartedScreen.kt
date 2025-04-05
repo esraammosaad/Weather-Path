@@ -1,6 +1,5 @@
 package com.example.weatherapp.landing.view
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,9 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -29,11 +25,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherapp.R
-import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.ui.theme.OffWhite
 import com.example.weatherapp.ui.theme.PrimaryColor
 import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.getWeatherGradient
+import com.example.weatherapp.utilis.view.AnimatedPreloader
 
 @Composable
 fun GetStartedScreen(onAllowPermissionClicked: () -> Unit, onGetStartedClicked: () -> Unit) {
@@ -44,7 +40,7 @@ fun GetStartedScreen(onAllowPermissionClicked: () -> Unit, onGetStartedClicked: 
             .padding(top = 64.dp),
 
         ) {
-        AnimatedPreloader(R.raw.animated_icon)
+        AnimatedPreloader(R.raw.animated_icon, Modifier.padding(bottom = 80.dp))
         Column(
             modifier = Modifier
                 .fillMaxSize()

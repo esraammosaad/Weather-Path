@@ -30,7 +30,6 @@ import com.example.weatherapp.R
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
-import com.example.weatherapp.landing.view.AnimatedBackground
 import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.getWeatherBackground
 import com.example.weatherapp.utilis.getWeatherGradient
@@ -78,7 +77,7 @@ fun PartialBottomSheet(
                     item {
 
                         Box {
-                            AnimatedBackground(
+                            AnimatedPreloader(
                                 getWeatherBackground(
                                     selectedWeather?.weather?.firstOrNull()?.icon ?: ""
                                 )

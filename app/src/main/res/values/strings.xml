@@ -107,4 +107,7 @@
     <string name="the_journey_s_quiet_no_weather_alarms_on_your_path">The journey’s quiet—no weather alarms on your path.</string>
     <string name="wind_icon">wind icon</string>
     <string name="temp_icon">temp icon</string>
+    <string name="language_changed_successfully">Language Changed Successfully</string>
+    <string name="temperature_unit_changed_successfully">Temperature Unit changed successfully</string>
+    <string name="wind_unit_changed_successfully">Wind Unit changed successfully</string>
 </resources>

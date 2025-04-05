@@ -1,4 +1,4 @@
-package com.example.weatherapp.favorite_alarm_features.alarm.components
+package com.example.weatherapp.favorite_alarm_features.alarm.view
 
 import android.content.Context
 import androidx.compose.foundation.layout.Column

@@ -1,4 +1,4 @@
-package com.example.weatherapp.favorite_alarm_features.favorite.view.components
+package com.example.weatherapp.favorite_alarm_features.favorite.view
 
 
 import androidx.compose.foundation.layout.fillMaxSize
@@ -108,7 +108,6 @@ fun FavoriteLazyColumn(
 }
 
 
-//val selectedWeather = favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
 //@Composable
 //private fun UpdateFavoritesFromApi(
 //    isConnected: Boolean,

@@ -1,4 +1,4 @@
-package com.example.weatherapp.home_settings_feature.settings.components
+package com.example.weatherapp.home_settings_feature.settings.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

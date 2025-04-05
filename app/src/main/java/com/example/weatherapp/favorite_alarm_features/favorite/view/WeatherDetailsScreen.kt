@@ -1,4 +1,4 @@
-package com.example.weatherapp.favorite_alarm_features.favorite.view.screens
+package com.example.weatherapp.favorite_alarm_features.favorite.view
 
 import android.location.Address
 import android.location.Geocoder

@@ -106,5 +106,9 @@
     <string name="confirmCapital">تأكيد</string>
     <string name="location_updated_successfully">تم تحديث الموقع بنجاح</string>
     <string name="the_journey_s_quiet_no_weather_alarms_on_your_path">الرحلة هادئة — لا توجد تحذيرات طقس في طريقك.</string>
-
+    <string name="wind_icon">أيقونة الرياح</string>
+    <string name="temp_icon">أيقونة درجة الحرارة</string>
+    <string name="language_changed_successfully">تم تغيير اللغة بنجاح</string>
+    <string name="temperature_unit_changed_successfully">تم تغيير وحدة درجة الحرارة بنجاح</string>
+    <string name="wind_unit_changed_successfully">تم تغيير وحدة الرياح بنجاح</string>
 </resources>
