@@ -6,10 +6,14 @@ import android.location.Geocoder
 import android.location.Location
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -17,8 +21,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
@@ -29,6 +37,7 @@ import com.example.weatherapp.utilis.view.CustomMarkerWindow
 import com.example.weatherapp.utilis.view.SearchableMapScreen
 import com.example.weatherapp.favorite_alarm_features.view_model.FavoriteAndAlarmSharedViewModelImpl
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
+import com.example.weatherapp.utilis.Styles
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -112,9 +121,7 @@ fun MapScreen(
         fifthDayForecast,
         sixthDayForecast
     )
-
     val coroutineScope = rememberCoroutineScope()
-
     GetLocation(markerState, favoriteViewModel, geocoder, isConnected)
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
@@ -137,6 +144,7 @@ fun MapScreen(
             isConnected
         )
     }
+    NoInternetConnectionText(isConnected)
     SearchableMapScreen(cameraPositionState, markerState, showBottomSheet)
     BottomSheetDisplay(
         currentWeatherUiState,
@@ -158,6 +166,25 @@ fun MapScreen(
             snackBarHostState,
             context
         )
+    }
+}
+
+@Composable
+private fun NoInternetConnectionText(isConnected: Boolean) {
+    if (!isConnected) {
+        Column(
+            Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                stringResource(R.string.no_internet_connection_check_your_network_settings),
+                style = Styles.textStyleSemiBold20,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+        }
+
     }
 }
 

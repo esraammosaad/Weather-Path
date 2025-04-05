@@ -249,7 +249,7 @@ class MainActivity : ComponentActivity() {
         )
     )[FavoriteAndAlarmSharedViewModelImpl::class]
 
-    private fun checkInternet(
+     fun checkInternet(
         openAlertDialog: MutableState<Boolean>,
         dialogTitle: MutableState<String>,
         dialogText: MutableState<String>,

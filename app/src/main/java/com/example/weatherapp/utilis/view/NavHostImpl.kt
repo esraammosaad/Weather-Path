@@ -129,6 +129,7 @@ fun NavHostImpl(
                 currentWeatherResponse,
                 snackBarHostState,
                 bottomNavigationBarViewModel,
+                isConnected
             ) {
                 navController.navigate(NavigationRoutes.LocationPickScreen)
 

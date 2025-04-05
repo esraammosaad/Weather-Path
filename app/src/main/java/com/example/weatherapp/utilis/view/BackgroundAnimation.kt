@@ -10,19 +10,13 @@ import com.example.weatherapp.landing.view.AnimatedBackground
 @Composable
 fun BackgroundAnimation(weatherBackground: Int) {
     Column(Modifier.fillMaxSize()) {
-
         val i = if (weatherBackground == R.raw.rain) {
-            11
+            10
         } else {
-            6
+            5
         }
-
         for (j in 0..i) {
             AnimatedBackground(weatherBackground)
-
-
         }
-
-
     }
 }
