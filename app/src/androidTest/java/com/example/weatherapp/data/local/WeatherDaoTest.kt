@@ -66,7 +66,6 @@ class WeatherDaoTest {
         currentWeatherResponse = currentWeatherResponse()
         updatedCurrentWeatherResponse = updatedCurrentWeatherResponse()
 
-
     }
 
     @After

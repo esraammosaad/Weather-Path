@@ -75,7 +75,6 @@ import kotlinx.coroutines.delay
 import java.util.Locale
 
 
-
 class MainActivity : ComponentActivity() {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var bottomNavigationBarViewModel: BottomNavigationBarViewModel
@@ -364,20 +363,22 @@ class MainActivity : ComponentActivity() {
                                 openAlertDialog.value = false
                             }
                         } else {
+                            if (isConnected.value)
+                                allowPermissionDialog(
+                                    dialogTitle,
+                                    dialogText,
+                                    onConfirmation,
+                                    openAlertDialog,
+                                )
+                        }
+                    } else {
+                        if (isConnected.value)
                             allowPermissionDialog(
                                 dialogTitle,
                                 dialogText,
                                 onConfirmation,
                                 openAlertDialog,
-                                )
-                        }
-                    } else {
-                        allowPermissionDialog(
-                            dialogTitle,
-                            dialogText,
-                            onConfirmation,
-                            openAlertDialog,
-                        )
+                            )
                     }
                 }
             )
@@ -429,24 +430,27 @@ class MainActivity : ComponentActivity() {
         onConfirmation: MutableState<() -> Unit>
     ) {
         showRadioButton.value = false
-        if (checkLocationPermission() && isConnected.value) {
+        if (checkLocationPermission()) {
             openAlertDialog.value = true
-            if (isLocationEnabled()) {
-                dialogTitle.value = getString(R.string.confirmation)
-                dialogText.value =
-                    getString(R.string.your_location_already_enabled_let_s_get_started)
-                onConfirmation.value = { openAlertDialog.value = false }
-            } else {
-                dialogTitle.value = getString(R.string.warning)
-                dialogText.value =
-                    getString(R.string.you_need_enable_your_location_go_to_the_settings)
-                onConfirmation.value = {
-                    enableLocationServices()
-                    openAlertDialog.value = false
+            if (isConnected.value) {
+                if (isLocationEnabled()) {
+                    dialogTitle.value = getString(R.string.confirmation)
+                    dialogText.value =
+                        getString(R.string.your_location_already_enabled_let_s_get_started)
+                    onConfirmation.value = { openAlertDialog.value = false }
+                } else {
+                    dialogTitle.value = getString(R.string.warning)
+                    dialogText.value =
+                        getString(R.string.you_need_enable_your_location_go_to_the_settings)
+                    onConfirmation.value = {
+                        enableLocationServices()
+                        openAlertDialog.value = false
+                    }
                 }
             }
         } else {
-            requestPermission()
+            if (isConnected.value)
+                requestPermission()
         }
     }
 
