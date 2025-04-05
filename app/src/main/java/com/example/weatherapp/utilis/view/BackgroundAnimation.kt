@@ -10,25 +10,17 @@ import com.example.weatherapp.landing.view.AnimatedBackground
 @Composable
 fun BackgroundAnimation(weatherBackground: Int) {
     Column(Modifier.fillMaxSize()) {
-        if(weatherBackground == R.raw.rain){
+
+        val i = if (weatherBackground == R.raw.rain) {
+            11
+        } else {
+            6
+        }
+
+        for (j in 0..i) {
             AnimatedBackground(weatherBackground)
-            AnimatedBackground(weatherBackground)
-            AnimatedBackground(weatherBackground)
-            AnimatedBackground(weatherBackground)
-            AnimatedBackground(weatherBackground)
-            AnimatedBackground(weatherBackground)
-            AnimatedBackground(weatherBackground)
-            AnimatedBackground(weatherBackground)
-            AnimatedBackground(weatherBackground)
-            AnimatedBackground(weatherBackground)
-            AnimatedBackground(weatherBackground)
-        }else{
-            AnimatedBackground(weatherBackground)
-            AnimatedBackground(weatherBackground)
-            AnimatedBackground(weatherBackground)
-            AnimatedBackground(weatherBackground)
-            AnimatedBackground(weatherBackground)
-            AnimatedBackground(weatherBackground)
+
+
         }
 
 

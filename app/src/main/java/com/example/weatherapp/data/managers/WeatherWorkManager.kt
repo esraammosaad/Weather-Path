@@ -33,7 +33,7 @@ class WeatherWorkManager(context: Context, workerParameters: WorkerParameters) :
             RetrofitFactory.apiService.getCurrentWeather(
                 longitude = longitude,
                 latitude = latitude,
-                language = LocalStorageDataSource.getInstance(applicationContext).getLanguageCode,
+                language = LocalStorageDataSource.getInstance(applicationContext).getLanguageCode.substring(0,2),
                 unit = LocalStorageDataSource.getInstance(applicationContext).getTempUnit
             )
         } catch (e: Exception) {
@@ -47,7 +47,7 @@ class WeatherWorkManager(context: Context, workerParameters: WorkerParameters) :
         try {
             val list = Geocoder(
                 applicationContext,
-                Locale(LocalStorageDataSource.getInstance(applicationContext).getLanguageCode)
+                Locale(LocalStorageDataSource.getInstance(applicationContext).getLanguageCode.substring(0,2))
             ).getFromLocation(latitude, longitude, 1)
             if (!list.isNullOrEmpty()) {
                 result.countryName = list[0].countryName ?: result.sys.country
