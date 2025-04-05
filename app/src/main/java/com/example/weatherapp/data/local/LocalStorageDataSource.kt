@@ -2,7 +2,7 @@ package com.example.weatherapp.data.local
 
 import android.content.Context
 import com.example.weatherapp.R
-import com.example.weatherapp.settings.view.getDefaultSystemLang
+import com.example.weatherapp.home_settings_feature.settings.view.getDefaultSystemLang
 import com.example.weatherapp.utilis.Strings
 
 class LocalStorageDataSource private constructor(context: Context) {

@@ -29,6 +29,8 @@ class Strings {
         const val WIND_UNIT = "WIND_UNIT"
         const val PICKED_LONG = "PICKED_LONG"
         const val PICKED_LAT = "PICKED_LAT"
+        const val NOTIFICATION_ACTION = "NOTIFICATION_ACTION"
+        const val NOTIFICATION_RESPONSE = "NOTIFICATION_RESPONSE"
     }
 
 

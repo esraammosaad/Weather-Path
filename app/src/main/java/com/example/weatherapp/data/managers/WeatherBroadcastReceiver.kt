@@ -10,7 +10,7 @@ import android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
 import android.provider.Settings
 import android.util.Log
 import com.example.weatherapp.R
-import com.example.weatherapp.alarm.view.DialogActivity
+import com.example.weatherapp.favorite_alarm_features.alarm.view.DialogActivity
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.utilis.Strings
 import com.example.weatherapp.utilis.notification.NotificationHelper

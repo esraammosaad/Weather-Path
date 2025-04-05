@@ -1,6 +1,7 @@
 package com.example.weatherapp.utilis.view
 
 import android.location.Address
+import android.util.Log
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
@@ -17,8 +18,11 @@ import com.example.weatherapp.ui.theme.poppinsFontFamily
 
 @Composable
 fun LocationDisplay(countryName: Address, currentWeather: CurrentWeatherResponse) {
+
+    Log.i("TAG", "LocationDisplay: ${currentWeather.countryName}")
     Text(
-        countryName.locality ?: currentWeather.name,
+        if (currentWeather.cityName.isNullOrEmpty()) countryName.locality
+            ?: currentWeather.name else currentWeather.cityName,
         fontWeight = FontWeight.Bold,
         fontSize = 28.sp,
         fontFamily = poppinsFontFamily,
@@ -28,7 +32,8 @@ fun LocationDisplay(countryName: Address, currentWeather: CurrentWeatherResponse
     )
     Spacer(modifier = Modifier.height(3.dp))
     Text(
-        countryName.countryName ?: currentWeather.sys.country,
+        if (currentWeather.countryName.isNullOrEmpty()) countryName.countryName
+            ?: currentWeather.sys.country else currentWeather.countryName,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         fontFamily = poppinsFontFamily,

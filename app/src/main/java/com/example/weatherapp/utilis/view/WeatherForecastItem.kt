@@ -9,13 +9,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
+import com.example.weatherapp.utilis.convertToArabicNumbers
 import com.example.weatherapp.utilis.formatTime
 import com.example.weatherapp.utilis.getWeatherGradient
 
 @Composable
 fun WeatherForecastItem(weatherItem: WeatherItem, icon: String) {
+
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -30,7 +34,7 @@ fun WeatherForecastItem(weatherItem: WeatherItem, icon: String) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CustomText(formatTime(weatherItem.dt_txt))
+        CustomText(convertToArabicNumbers(formatTime(weatherItem.dt_txt), context))
         WeatherStatusImageDisplay(
             weatherItem.weather[0].icon
         )

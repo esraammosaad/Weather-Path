@@ -58,18 +58,18 @@ import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.data.remote.RetrofitFactory
 import com.example.weatherapp.data.remote.WeatherRemoteDataSourceImpl
 import com.example.weatherapp.data.repository.WeatherRepositoryImpl
-import com.example.weatherapp.favorite.view_model.FavoriteViewModelFactory
-import com.example.weatherapp.favorite.view_model.FavoriteViewModelImpl
-import com.example.weatherapp.home.view.LocationPickScreen
-import com.example.weatherapp.home.view_model.HomeViewModelFactory
-import com.example.weatherapp.home.view_model.HomeViewModelImpl
+import com.example.weatherapp.favorite_alarm_features.view_model.FavoriteViewModelFactory
+import com.example.weatherapp.favorite_alarm_features.view_model.FavoriteAndAlarmSharedViewModelImpl
+import com.example.weatherapp.home_settings_feature.LocationPickScreen
+import com.example.weatherapp.home_settings_feature.view_model.HomeViewModelFactory
+import com.example.weatherapp.home_settings_feature.view_model.HomeAndSettingsSharedViewModelImpl
 import com.example.weatherapp.landing.view.GetStartedScreen
 import com.example.weatherapp.landing.view.SplashScreen
 import com.example.weatherapp.ui.theme.OffWhite
 import com.example.weatherapp.ui.theme.PrimaryColor
-import com.example.weatherapp.utilis.BottomNavigationBar
+import com.example.weatherapp.utilis.view.BottomNavigationBar
 import com.example.weatherapp.utilis.BottomNavigationBarViewModel
-import com.example.weatherapp.utilis.NavHostImpl
+import com.example.weatherapp.utilis.view.NavHostImpl
 import com.example.weatherapp.utilis.internet.InternetConnectivityViewModel
 import com.example.weatherapp.utilis.internet.InternetConnectivityViewModelFactory
 import com.example.weatherapp.utilis.internet.InternetObserverImpl
@@ -92,7 +92,7 @@ private const val My_LOCATION_PERMISSION_ID = 5005
 class MainActivity : ComponentActivity() {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var bottomNavigationBarViewModel: BottomNavigationBarViewModel
-    private lateinit var homeViewModel: HomeViewModelImpl
+    private lateinit var homeViewModel: HomeAndSettingsSharedViewModelImpl
     private lateinit var internetConnectivityViewModel: InternetConnectivityViewModel
     var isConnected = mutableStateOf(false)
     lateinit var locationState: MutableState<Location>
@@ -260,7 +260,7 @@ class MainActivity : ComponentActivity() {
                 )
             )
         )
-    )[FavoriteViewModelImpl::class]
+    )[FavoriteAndAlarmSharedViewModelImpl::class]
 
     private fun checkInternet(
         openAlertDialog: MutableState<Boolean>,
@@ -562,7 +562,7 @@ class MainActivity : ComponentActivity() {
                 )
             )
         )
-    )[HomeViewModelImpl::class]
+    )[HomeAndSettingsSharedViewModelImpl::class]
 
     private fun internetConnectivityViewModel() = ViewModelProvider(
         this@MainActivity, InternetConnectivityViewModelFactory(

@@ -26,6 +26,7 @@ import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.Strings
+import com.example.weatherapp.utilis.convertToArabicNumbers
 import com.example.weatherapp.utilis.formatTime
 
 @Composable
@@ -39,7 +40,7 @@ fun DayWeatherItem(weatherItem: WeatherItem) {
         Column(
             modifier = Modifier
                 .padding(end = 10.dp)
-                .size(60.dp)
+                .size(70.dp)
                 .border(
                     width = 1.dp,
                     brush = Brush.linearGradient(
@@ -60,14 +61,13 @@ fun DayWeatherItem(weatherItem: WeatherItem) {
             )
             Row {
                 Text(
-                    text = "${weatherItem.main.temp_min.toInt()}",
+                    text =
+                        convertToArabicNumbers( weatherItem.main.temp.toString(),context),
                     fontSize = 14.sp,
                     color = Color.White,
                     fontFamily = poppinsFontFamily,
                     fontWeight = FontWeight.Medium
                 )
-                Spacer(modifier = Modifier.width(2.dp))
-
                 Text(
                     text = stringResource(LocalStorageDataSource.getInstance(context).getTempSymbol),
                     fontSize = 12.sp,
@@ -80,7 +80,7 @@ fun DayWeatherItem(weatherItem: WeatherItem) {
         }
         Spacer(modifier = Modifier.height(5.dp))
         Text(
-            text = formatTime(weatherItem.dt_txt),
+            text = convertToArabicNumbers( formatTime(weatherItem.dt_txt),context),
             fontWeight = FontWeight.SemiBold,
             fontSize = 15.sp,
             fontFamily = poppinsFontFamily,

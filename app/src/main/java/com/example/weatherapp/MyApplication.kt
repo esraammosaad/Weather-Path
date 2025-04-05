@@ -16,7 +16,6 @@ class MyApplication : Application() {
         createNotificationChannel()
     }
 
-
     private fun createNotificationChannel() {
         if (VERSION.SDK_INT >= VERSION_CODES.O) {
             val notificationSound =

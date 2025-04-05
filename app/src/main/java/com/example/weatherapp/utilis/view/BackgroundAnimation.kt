@@ -21,6 +21,7 @@ fun BackgroundAnimation(weatherBackground: Int) {
             AnimatedBackground(weatherBackground)
             AnimatedBackground(weatherBackground)
             AnimatedBackground(weatherBackground)
+            AnimatedBackground(weatherBackground)
         }else{
             AnimatedBackground(weatherBackground)
             AnimatedBackground(weatherBackground)

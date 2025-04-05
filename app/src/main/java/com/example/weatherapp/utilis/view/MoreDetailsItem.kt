@@ -10,7 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.weatherapp.R
 
 @Composable
 fun MoreDetailsItem(icon: Int, textOne: String, textTwo: String) {
@@ -18,7 +20,7 @@ fun MoreDetailsItem(icon: Int, textOne: String, textTwo: String) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        Image(painter = painterResource(icon), contentDescription = "wind icon")
+        Image(painter = painterResource(icon), contentDescription = stringResource(R.string.wind_icon))
         Spacer(modifier = Modifier.width(8.dp))
         Column(
             verticalArrangement = Arrangement.Center

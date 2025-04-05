@@ -26,6 +26,7 @@ import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.Strings
 import com.example.weatherapp.utilis.Styles
+import com.example.weatherapp.utilis.convertToArabicNumbers
 import com.example.weatherapp.utilis.secondFormatDateTime
 
 @Composable
@@ -91,7 +92,7 @@ fun FiveDaysWeatherForecastDisplay(fiveDaysWeatherForecast: List<List<WeatherIte
                     ) {
 
                         Text(
-                            text = "${fiveDaysWeatherForecast[dayIndex]?.get(0)?.main?.temp_max?.toInt()}",
+                            text = convertToArabicNumbers( fiveDaysWeatherForecast[dayIndex]?.get(0)?.main?.temp_max?.toString()?:"",context),
                             fontSize = 20.sp,
                             color = Color.White,
                             fontFamily = poppinsFontFamily,
@@ -107,14 +108,13 @@ fun FiveDaysWeatherForecastDisplay(fiveDaysWeatherForecast: List<List<WeatherIte
                         )
                         Row {
                             Text(
-                                text = "${fiveDaysWeatherForecast[dayIndex]?.get(0)?.main?.temp_min?.toInt()}",
+                                text = convertToArabicNumbers(fiveDaysWeatherForecast[dayIndex]?.get(0)?.main?.temp_min?.toString()?:"",context),
                                 fontSize = 16.sp,
                                 color = Color.White.copy(alpha = 0.5f),
                                 fontFamily = poppinsFontFamily,
                                 fontWeight = FontWeight.Medium
                             )
                             Spacer(modifier = Modifier.width(2.dp))
-
                             Text(
                                 text = stringResource(LocalStorageDataSource.getInstance(context).getTempSymbol),
                                 fontSize = 14.sp,
@@ -129,16 +129,12 @@ fun FiveDaysWeatherForecastDisplay(fiveDaysWeatherForecast: List<List<WeatherIte
 
 
                 }
-
                 Spacer(modifier = Modifier.height(8.dp))
-
                 LazyRow(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 16.dp)
                 ) {
-
-
                     items(fiveDaysWeatherForecast[dayIndex]?.size ?: 0) { index ->
                         fiveDaysWeatherForecast[dayIndex]?.get(index)?.let { DayWeatherItem(it) }
                     }

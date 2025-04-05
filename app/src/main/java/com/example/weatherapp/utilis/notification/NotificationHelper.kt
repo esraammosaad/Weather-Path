@@ -13,6 +13,7 @@ import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.utilis.localization.LocalizationHelper
 import com.example.weatherapp.utilis.Strings
+import com.example.weatherapp.utilis.convertToArabicNumbers
 import com.example.weatherapp.utilis.getTimeFromTimestamp
 import com.google.gson.Gson
 
@@ -30,7 +31,7 @@ class NotificationHelper {
                 fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             val intent = Intent(context, NotificationBroadcastReceiver::class.java).apply {
-                putExtra("action", 0)
+                putExtra(Strings.NOTIFICATION_ACTION, 0)
             }
             val pendingIntent = PendingIntent.getBroadcast(
                 context,
@@ -40,10 +41,10 @@ class NotificationHelper {
             )
 
             val intent2 = Intent(context, NotificationBroadcastReceiver::class.java).apply {
-                putExtra("action", 1)
+                putExtra(Strings.NOTIFICATION_ACTION, 1)
                 val gson = Gson()
                 val stringResponse = gson.toJson(currentWeatherResponse)
-                putExtra("response", stringResponse)
+                putExtra(Strings.NOTIFICATION_RESPONSE, stringResponse)
             }
             val pendingIntent2 = PendingIntent.getBroadcast(
                 context,
@@ -70,7 +71,10 @@ class NotificationHelper {
                                 R.string.today_s_weather_in_is_with_a_temperature_of,
                                 currentWeatherResponse.cityName,
                                 currentWeatherResponse.weather.firstOrNull()?.description ?: "",
-                                currentWeatherResponse.main.temp.toString()
+                                convertToArabicNumbers(
+                                    currentWeatherResponse.main.temp.toString(),
+                                    context
+                                )
                             )
                                     + localContext.getString(
                                 LocalStorageDataSource.getInstance(
@@ -80,10 +84,12 @@ class NotificationHelper {
                                     + " "
                                     + localContext.getString(
                                 R.string.stay_prepared_and_enjoy_your_day
-                            ) + "\n\n" + localContext.getString(R.string.last_updated) + getTimeFromTimestamp(
-                                offsetInSeconds = currentWeatherResponse.timezone,
-                                timestamp = currentWeatherResponse.dt, context = context
+                            ) + "\n\n" + localContext.getString(R.string.last_updated) + convertToArabicNumbers(
+                                getTimeFromTimestamp(
+                                    offsetInSeconds = currentWeatherResponse.timezone,
+                                    timestamp = currentWeatherResponse.dt, context = context
 
+                                ), context
                             )
 
                         )

@@ -1,6 +1,7 @@
 package com.example.weatherapp.utilis.view
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +20,7 @@ import com.example.weatherapp.R
 import com.example.weatherapp.data.model.Response
 import com.example.weatherapp.data.model.current_weather.CurrentWeatherResponse
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
-import com.example.weatherapp.home.view.CustomWeatherDetails
+import com.example.weatherapp.home_settings_feature.home.view.CustomWeatherDetails
 import com.example.weatherapp.utilis.getWeatherBackground
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -45,7 +46,6 @@ fun WeatherDetails(
                 ImageDisplay(selectedWeather)
             }
             if (selectedWeather != null) {
-
                 CustomWeatherDetails(
                     currentWeather = selectedWeather,
                     countryName = countryName,

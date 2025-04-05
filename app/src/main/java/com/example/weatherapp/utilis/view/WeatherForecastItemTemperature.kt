@@ -16,13 +16,14 @@ import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.five_days_weather_forecast.WeatherItem
 import com.example.weatherapp.ui.theme.poppinsFontFamily
 import com.example.weatherapp.utilis.Strings
+import com.example.weatherapp.utilis.convertToArabicNumbers
 
 @Composable
 fun WeatherForecastItemTemperature(weatherItem: WeatherItem) {
     val context = LocalContext.current
     Row {
         Text(
-            weatherItem.main.temp.toString(),
+            convertToArabicNumbers( weatherItem.main.temp.toString(),context),
             fontWeight = FontWeight.SemiBold,
             fontSize = 16.sp,
             fontFamily = poppinsFontFamily,

@@ -65,7 +65,7 @@
         </activity>
 
         <activity
-            android:name=".alarm.view.DialogActivity"
+            android:name=".favorite_alarm_features.alarm.view.DialogActivity"
             android:excludeFromRecents="true"
             android:exported="true"
             android:launchMode="singleInstance"

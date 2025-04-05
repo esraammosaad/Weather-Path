@@ -73,7 +73,6 @@ fun getWeatherGradient(icon: String = ""): Brush {
             listOf(Color(0xFF1B2A49), Color(0xFF2B3A42), Color(0xFF3E3E3E))
         )
 
-        // ⛈️ Thunderstorm
         "11d" -> Brush.linearGradient(
             listOf(Color(0xFF424242), Color(0xFF616161), Color(0xFF9E9E9E))
         )
@@ -88,7 +87,7 @@ fun getWeatherGradient(icon: String = ""): Brush {
 
         "13n" -> Brush.linearGradient(
             listOf(Color(0xFF5C6378), Color(0xFF778899), Color(0xFFB3C6E7))
-        ) // Winter navy tones
+        )
 
         "50d" -> Brush.linearGradient(
             listOf(Color(0xFF4A4A4A), Color(0xFF696969), Color(0xFF9E9E9E))
@@ -108,86 +107,66 @@ fun getWeatherGradient(icon: String = ""): Brush {
 
 fun getWeatherImage(icon: String = ""): Int {
     return when (icon) {
-        // ☀️ Clear Sky (Sunny)
-        "01d" -> R.drawable.sunny// Bright Blue & Yellow
-        "01n" -> R.drawable.moon// Deep Dark Blue
+        "01d" -> R.drawable.sunny
+        "01n" -> R.drawable.moon
 
-        // 🌤️ Few Clouds
-        "02d" -> R.drawable.partlycloudy // Soft Blue with Sunlight
-        "02n" -> R.drawable.cloudy_night // Cloudy Night Blue
+        "02d" -> R.drawable.partlycloudy
+        "02n" -> R.drawable.cloudy_night
 
-        // ☁️ Scattered Clouds
-        "03d" -> R.drawable.scatterd// Grayish-Blue Cloudy Sky
-        "03n" -> R.drawable.scatterd// Darker Cloudy Night
+        "03d" -> R.drawable.scatterd
+        "03n" -> R.drawable.scatterd
 
-        // ☁️ Broken Clouds
-        "04d" -> R.drawable.scatterd// Heavy Grayish Clouds
-        "04n" -> R.drawable.scatterd // Dark Broken Clouds
+        "04d" -> R.drawable.scatterd
+        "04n" -> R.drawable.scatterd
 
-        // 🌧️ Shower Rain
-        "09d" -> R.drawable.rainy_bold// Grayish Rainy Day
-        "09n" -> R.drawable.rainy_bold // Dark Rainy Night
+        "09d" -> R.drawable.rainy_bold
+        "09n" -> R.drawable.rainy_bold
 
-        // 🌦️ Rain
-        "10d" -> R.drawable.rainy_bold // Light Blue Rain
-        "10n" -> R.drawable.rainy_bold // Midnight Rain
+        "10d" -> R.drawable.rainy_bold
+        "10n" -> R.drawable.rainy_bold
 
-        // ⚡ Thunderstorm
-        "11d" -> R.drawable.rainthunder// Stormy Gray
-        "11n" -> R.drawable.rainthunder_bold // Dark Storm Night
+        "11d" -> R.drawable.rainthunder
+        "11n" -> R.drawable.rainthunder_bold
 
-        // ❄️ Snow
-        "13d" -> R.drawable.snow // White & Ice Blue
-        "13n" -> R.drawable.snow // Cool Gray Night
+        "13d" -> R.drawable.snow
+        "13n" -> R.drawable.snow
 
-        // 🌫️ Mist/Fog
-        "50d" -> R.drawable.scatterd// Light Gray Mist
-        "50n" -> R.drawable.scatterd// Dark Mist
+        "50d" -> R.drawable.scatterd
+        "50n" -> R.drawable.scatterd
 
-        // Default Gradient
         else -> R.drawable.cloud
     }
 }
 
 fun getWeatherBackground(icon: String = ""): Int {
     return when (icon) {
-        // ☀️ Clear Sky (Sunny)
-        "01d" -> R.raw.stars// Bright Blue & Yellow
-        "01n" -> R.raw.stars// Deep Dark Blue
+        "01d" -> R.raw.stars
+        "01n" -> R.raw.stars
 
-        // 🌤️ Few Clouds
-        "02d" -> R.raw.clouds // Soft Blue with Sunlight
-        "02n" -> R.raw.clouds // Cloudy Night Blue
+        "02d" -> R.raw.stars
+        "02n" -> R.raw.stars
 
-        // ☁️ Scattered Clouds
-        "03d" -> R.raw.clouds// Grayish-Blue Cloudy Sky
-        "03n" -> R.raw.clouds// Darker Cloudy Night
+        "03d" -> R.raw.stars
+        "03n" -> R.raw.stars
 
-        // ☁️ Broken Clouds
-        "04d" -> R.raw.clouds// Heavy Grayish Clouds
-        "04n" -> R.raw.clouds // Dark Broken Clouds
+        "04d" -> R.raw.clouds
+        "04n" -> R.raw.clouds
 
-        // 🌧️ Shower Rain
-        "09d" -> R.raw.rain// Grayish Rainy Day
-        "09n" -> R.raw.rain // Dark Rainy Night
+        "09d" -> R.raw.rain
+        "09n" -> R.raw.rain
 
-        // 🌦️ Rain
-        "10d" -> R.raw.rain // Light Blue Rain
-        "10n" -> R.raw.rain // Midnight Rain
+        "10d" -> R.raw.rain
+        "10n" -> R.raw.rain
 
-        // ⚡ Thunderstorm
-        "11d" -> R.raw.clouds// Stormy Gray
-        "11n" -> R.raw.clouds // Dark Storm Night
+        "11d" -> R.raw.clouds
+        "11n" -> R.raw.clouds
 
-        // ❄️ Snow
-        "13d" -> R.raw.stars // White & Ice Blue
-        "13n" -> R.raw.stars // Cool Gray Night
+        "13d" -> R.raw.snow
+        "13n" -> R.raw.snow
 
-        // 🌫️ Mist/Fog
-        "50d" -> R.raw.clouds// Light Gray Mist
-        "50n" -> R.raw.clouds// Dark Mist
+        "50d" -> R.raw.clouds
+        "50n" -> R.raw.clouds
 
-        // Default Gradient
         else -> R.raw.stars
     }
 }
@@ -225,12 +204,33 @@ fun getCurrentDate(amount: Int): String {
 
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun getTimeFromTimestamp(timestamp: Int, offsetInSeconds: Int,context: Context): String {
+fun getTimeFromTimestamp(timestamp: Int, offsetInSeconds: Int, context: Context): String {
     val zoneId = ZoneId.ofOffset("UTC", java.time.ZoneOffset.ofTotalSeconds(offsetInSeconds))
     val dateTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(timestamp.toLong()), zoneId)
-    val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale(LocalStorageDataSource.getInstance(context = context).getLanguageCode))
+    val formatter = DateTimeFormatter.ofPattern(
+        "hh:mm a",
+        Locale(LocalStorageDataSource.getInstance(context = context).getLanguageCode)
+    )
 
     return dateTime.format(formatter)
+}
+
+fun convertToArabicNumbers(input: String, context: Context): String {
+    val arabicDigits = mapOf(
+        '0' to '٠',
+        '1' to '١',
+        '2' to '٢',
+        '3' to '٣',
+        '4' to '٤',
+        '5' to '٥',
+        '6' to '٦',
+        '7' to '٧',
+        '8' to '٨',
+        '9' to '٩'
+    )
+    return if (LocalStorageDataSource.getInstance(context).getLanguageCode.contains("ar")) input.map {
+        arabicDigits[it] ?: it
+    }.joinToString("") else input
 }
 
 

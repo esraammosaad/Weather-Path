@@ -9,7 +9,6 @@ import java.util.Locale
 
 object LocalizationHelper {
 
-
     fun updateLocale(context: Context, languageCode: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.getSystemService(LocaleManager::class.java).applicationLocales =

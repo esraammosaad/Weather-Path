@@ -123,6 +123,7 @@ fun AnimatedBackground(animatedImage: Int) {
 @Composable
 fun AnimatedIcon(animatedImage: Int) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(animatedImage))
+
     val progress by animateLottieCompositionAsState(
         composition = composition,
         iterations = LottieConstants.IterateForever,

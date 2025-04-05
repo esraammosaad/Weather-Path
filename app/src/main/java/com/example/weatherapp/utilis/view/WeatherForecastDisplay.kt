@@ -50,7 +50,6 @@ fun WeatherForecastDisplay(
                     fiveDaysWeatherForecast as Response.Success<List<WeatherItem>>
                     fiveDaysWeatherForecast.result?.let {
 
-
                         items(it.size) { index: Int ->
                             WeatherForecastItem(it[index], icon)
                         }
