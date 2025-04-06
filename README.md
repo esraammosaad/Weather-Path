@@ -40,3 +40,9 @@
 - Unit Testing
 - WorkManager (background weather updates)
 -AlarmManager, BroadcastReceiver, Notifications (customized weather alerts)
+
+## Demo
+
+https://github.com/user-attachments/assets/f1266561-2f89-4680-b729-c26ec56b5c8f
+
+
