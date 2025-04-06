@@ -1,7 +1,7 @@
 package com.example.weatherapp.data.repository
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.example.weatherapp.FakeWeatherLocalDataSource
+import com.example.weatherapp.data.local.FakeWeatherLocalDataSource
 import com.example.weatherapp.data.local.WeatherLocalDataSource
 import com.example.weatherapp.data.model.current_weather.Clouds
 import com.example.weatherapp.data.model.current_weather.Coord

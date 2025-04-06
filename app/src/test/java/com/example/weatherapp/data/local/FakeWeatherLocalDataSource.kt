@@ -1,6 +1,5 @@
-package com.example.weatherapp
+package com.example.weatherapp.data.local
 
-import com.example.weatherapp.data.local.WeatherLocalDataSource
 import com.example.weatherapp.data.model.AlarmModel
 import com.example.weatherapp.data.model.current_weather.Clouds
 import com.example.weatherapp.data.model.current_weather.Coord
