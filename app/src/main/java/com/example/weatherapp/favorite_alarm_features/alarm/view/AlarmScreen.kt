@@ -1,5 +1,6 @@
 package com.example.weatherapp.favorite_alarm_features.alarm.view
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -154,11 +155,12 @@ fun AlarmScreen(
                     } else {
                         items(alarmsList.result?.size ?: 0) { index ->
                             val item = alarmsList.result?.get(index)
+                            val selectedItem = remember {  mutableStateOf(0)}
                             if (showDatePicker.value) {
                                 DateAndTimePickerForUpdate(
                                     showDatePicker = showDatePicker,
                                     title = datePickerTitle,
-                                    selectedAlarm = item,
+                                    selectedAlarm = alarmsList.result?.get(selectedItem.value),
                                     favoriteViewModel = favoriteViewModel,
                                     snackBarHostState = snackBarHostState,
                                     coroutineScope = coroutineScope
@@ -298,6 +300,8 @@ fun AlarmScreen(
                                         .padding(top = 5.dp, end = 10.dp)
                                         .size(26.dp)
                                         .clickable {
+                                            Log.i("TAG", "AlarmScreen: ${selectedItem.value} , $index")
+                                            selectedItem.value = index
                                             showDatePicker.value = true
                                             datePickerTitle.value =
                                                 item?.cityName ?: ""

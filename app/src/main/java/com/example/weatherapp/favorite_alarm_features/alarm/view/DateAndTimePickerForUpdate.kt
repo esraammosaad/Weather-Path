@@ -48,7 +48,7 @@ fun DateAndTimePickerForUpdate(
     val alarmType = remember { mutableStateOf("Alert") }
     val alarmState = remember { mutableStateOf(context.getString(R.string.alert)) }
     ModalBottomSheet(
-        onDismissRequest = {},
+        onDismissRequest = {showDatePicker.value=false},
         containerColor = OffWhite,
     ) {
         Column {
