@@ -1,5 +1,6 @@
 package com.example.weatherapp.favorite_alarm_features.favorite.view
 
+import android.content.res.Resources
 import android.location.Address
 import android.location.Geocoder
 import android.os.Build
@@ -16,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.weatherapp.data.local.LocalStorageDataSource
 import com.example.weatherapp.data.model.Response
@@ -66,7 +68,8 @@ fun WeatherDetailsScreen(
         favoriteViewModel.getSelectedWeather(
             longitude = long,
             latitude = lat,
-            languageCode = languageCode,
+            languageCode =  if (languageCode.length > 2) ConfigurationCompat.getLocales(Resources.getSystem().configuration)
+                .get(0).toString().substring(0, 2) else languageCode,
             tempUnit = tempUnit,
             isConnected = isConnected
         )
@@ -77,11 +80,11 @@ fun WeatherDetailsScreen(
             tempUnit = tempUnit,
             isConnected = isConnected
         )
-        val langCode = LocalStorageDataSource.getInstance(context).getLanguageCode
         val geocoder =
             Geocoder(
                 context,
-                Locale(if (langCode.length > 2) langCode.substring(0, 2) else langCode)
+                Locale( if (languageCode.length > 2) ConfigurationCompat.getLocales(Resources.getSystem().configuration)
+                    .get(0).toString().substring(0, 2) else languageCode)
             )
         favoriteViewModel.getCountryName(
             longitude = long, latitude = lat, geocoder, isConnected = isConnected

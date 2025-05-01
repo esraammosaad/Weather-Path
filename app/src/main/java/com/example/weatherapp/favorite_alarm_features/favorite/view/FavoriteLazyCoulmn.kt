@@ -32,8 +32,10 @@ fun FavoriteLazyColumn(
     coroutineScope: CoroutineScope,
 ) {
 
-    val fiveDaysForecastFavorites = favoriteViewModel.fiveDaysForecastFavorites.collectAsStateWithLifecycle().value
-    val favoriteList: MutableState<List<CurrentWeatherResponse>> = remember { mutableStateOf(listOf()) }
+    val fiveDaysForecastFavorites =
+        favoriteViewModel.fiveDaysForecastFavorites.collectAsStateWithLifecycle().value
+    val favoriteList: MutableState<List<CurrentWeatherResponse>> =
+        remember { mutableStateOf(listOf()) }
     val searchResultList = remember { mutableStateOf(favoriteList.value) }
     val textFieldValue = remember { mutableStateOf("") }
 
@@ -48,8 +50,8 @@ fun FavoriteLazyColumn(
                 )
             }
         }
-    }
 
+    }
     LazyColumn(
         modifier = Modifier
             .padding(top = 16.dp, end = 16.dp, start = 16.dp)
@@ -69,7 +71,7 @@ fun FavoriteLazyColumn(
         }
         when (weatherFavorites) {
             is Response.Failure -> item { FailureDisplay(weatherFavorites.exception) }
-            Response.Loading -> item {  }
+            Response.Loading -> item { }
             is Response.Success<*> -> {
                 weatherFavorites as Response.Success<List<CurrentWeatherResponse>>
                 favoriteList.value = weatherFavorites.result ?: listOf()

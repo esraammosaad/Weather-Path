@@ -1,11 +1,13 @@
 package com.example.weatherapp.utilis
 
 import android.content.Context
+import android.content.res.Resources
 import android.icu.util.Calendar
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.core.os.ConfigurationCompat
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
 import java.text.SimpleDateFormat
@@ -228,7 +230,12 @@ fun convertToArabicNumbers(input: String, context: Context): String {
         '8' to '٨',
         '9' to '٩'
     )
-    return if (LocalStorageDataSource.getInstance(context).getLanguageCode.contains("ar")) input.map {
+    return if (ConfigurationCompat.getLocales(Resources.getSystem().configuration)
+            .get(0).toString()
+            .contains("ar") || LocalStorageDataSource.getInstance(context).getLanguageCode.contains(
+            "ar"
+        )
+    ) input.map {
         arabicDigits[it] ?: it
     }.joinToString("") else input
 }

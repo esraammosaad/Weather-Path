@@ -369,18 +369,21 @@ private fun saveNewTempUnit(
 ) {
     LocalStorageDataSource.getInstance(context).saveTempUnit(tempUnit)
     LocalStorageDataSource.getInstance(context).saveTempSymbol(tempSymbol)
+    val langCode = LocalStorageDataSource.getInstance(context).getLanguageCode
     homeViewModel.getCurrentWeather(
         latitude = currentWeather.latitude,
         longitude = currentWeather.longitude,
         tempUnit = tempUnit,
-        languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode,
+        languageCode =  if (langCode.length > 2) ConfigurationCompat.getLocales(Resources.getSystem().configuration)
+            .get(0).toString().substring(0, 2) else langCode,
         isConnected = true
     )
     homeViewModel.getFiveDaysWeatherForecast(
         latitude = currentWeather.latitude,
         longitude = currentWeather.longitude,
         tempUnit = tempUnit,
-        languageCode = LocalStorageDataSource.getInstance(context).getLanguageCode,
+        languageCode =  if (langCode.length > 2) ConfigurationCompat.getLocales(Resources.getSystem().configuration)
+            .get(0).toString().substring(0, 2) else langCode,
         isConnected = true
     )
 }

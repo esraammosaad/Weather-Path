@@ -77,7 +77,7 @@ import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-    private var  locationCallBack : LocationCallback? = null
+    private var locationCallBack: LocationCallback? = null
     private lateinit var bottomNavigationBarViewModel: BottomNavigationBarViewModel
     private lateinit var homeViewModel: HomeAndSettingsSharedViewModelImpl
     private lateinit var internetConnectivityViewModel: InternetConnectivityViewModel
@@ -251,7 +251,7 @@ class MainActivity : ComponentActivity() {
         )
     )[FavoriteAndAlarmSharedViewModelImpl::class]
 
-     fun checkInternet(
+    private fun checkInternet(
         openAlertDialog: MutableState<Boolean>,
         dialogTitle: MutableState<String>,
         dialogText: MutableState<String>,
@@ -282,7 +282,10 @@ class MainActivity : ComponentActivity() {
             val long =
                 LocalStorageDataSource.getInstance(this@MainActivity).getPickedLong
             val languageCode =
-                LocalStorageDataSource.getInstance(this@MainActivity).getLanguageCode
+                LocalStorageDataSource.getInstance(this@MainActivity).getLanguageCode.substring(
+                    0,
+                    2
+                )
             val tempUnit =
                 LocalStorageDataSource.getInstance(this@MainActivity).getTempUnit
             homeViewModel.getCurrentWeather(
@@ -306,10 +309,7 @@ class MainActivity : ComponentActivity() {
                 geocoder = Geocoder(
                     this@MainActivity,
                     Locale(
-                        if (languageCode.length > 2) languageCode.substring(
-                            0,
-                            2
-                        ) else languageCode
+                        languageCode
                     )
                 ),
             )
@@ -343,50 +343,74 @@ class MainActivity : ComponentActivity() {
                     )
                 },
                 onGetStartedClicked = {
-                    showRadioButton.value = false
-                    openAlertDialog.value = true
-                    if (checkLocationPermission()) {
-                        if (isLocationEnabled() && isConnected.value) {
-                            confirmText.value = R.string.confirm
-                            dialogTitle.value = getString(R.string.choose)
-                            dialogText.value =
-                                getString(R.string.chooseMapOrGPS)
-                            showRadioButton.value = true
-                            onConfirmation.value = {
-                                if (option.value == this@MainActivity.getString(R.string.gps)) {
-                                    isSeenGetStartedScreen.value = true
-                                    LocalStorageDataSource.getInstance(this@MainActivity)
-                                        .saveGetStartedStateState()
-                                    LocalStorageDataSource.getInstance(this@MainActivity)
-                                        .saveLocationState(R.string.gps)
-                                } else {
-                                    isLocationPickScreen.value = true
-                                    LocalStorageDataSource.getInstance(this@MainActivity)
-                                        .saveLocationState(R.string.map)
-                                }
-                                getLocation()
-                                openAlertDialog.value = false
-                            }
-                        } else {
-                            if (isConnected.value)
-                                allowPermissionDialog(
-                                    dialogTitle,
-                                    dialogText,
-                                    onConfirmation,
-                                    openAlertDialog,
-                                )
-                        }
-                    } else {
-                        if (isConnected.value)
-                            allowPermissionDialog(
-                                dialogTitle,
-                                dialogText,
-                                onConfirmation,
-                                openAlertDialog,
-                            )
-                    }
+                    onGetStartedClick(
+                        showRadioButton,
+                        openAlertDialog,
+                        confirmText,
+                        dialogTitle,
+                        dialogText,
+                        onConfirmation,
+                        option,
+                        isSeenGetStartedScreen,
+                        isLocationPickScreen
+                    )
                 }
             )
+        }
+    }
+
+    private fun onGetStartedClick(
+        showRadioButton: MutableState<Boolean>,
+        openAlertDialog: MutableState<Boolean>,
+        confirmText: MutableState<Int>,
+        dialogTitle: MutableState<String>,
+        dialogText: MutableState<String>,
+        onConfirmation: MutableState<() -> Unit>,
+        option: MutableState<String>,
+        isSeenGetStartedScreen: MutableState<Boolean>,
+        isLocationPickScreen: MutableState<Boolean>
+    ) {
+        showRadioButton.value = false
+        openAlertDialog.value = true
+        if (checkLocationPermission()) {
+            if (isLocationEnabled() && isConnected.value) {
+                confirmText.value = R.string.confirm
+                dialogTitle.value = getString(R.string.choose)
+                dialogText.value =
+                    getString(R.string.chooseMapOrGPS)
+                showRadioButton.value = true
+                onConfirmation.value = {
+                    if (option.value == this@MainActivity.getString(R.string.gps)) {
+                        isSeenGetStartedScreen.value = true
+                        LocalStorageDataSource.getInstance(this@MainActivity)
+                            .saveGetStartedStateState()
+                        LocalStorageDataSource.getInstance(this@MainActivity)
+                            .saveLocationState(R.string.gps)
+                    } else {
+                        isLocationPickScreen.value = true
+                        LocalStorageDataSource.getInstance(this@MainActivity)
+                            .saveLocationState(R.string.map)
+                    }
+                    getLocation()
+                    openAlertDialog.value = false
+                }
+            } else {
+                if (isConnected.value)
+                    allowPermissionDialog(
+                        dialogTitle,
+                        dialogText,
+                        onConfirmation,
+                        openAlertDialog,
+                    )
+            }
+        } else {
+            if (isConnected.value)
+                allowPermissionDialog(
+                    dialogTitle,
+                    dialogText,
+                    onConfirmation,
+                    openAlertDialog,
+                )
         }
     }
 
@@ -536,22 +560,27 @@ class MainActivity : ComponentActivity() {
             setPriority(Priority.PRIORITY_LOW_POWER)
             setMinUpdateIntervalMillis(360000)
         }.build()
-         locationCallBack = object : LocationCallback() {
+        locationCallBack = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
                 locationState.value =
                     locationResult.lastLocation ?: Location(LocationManager.GPS_PROVIDER)
-                val langCode = LocalStorageDataSource.getInstance(this@MainActivity).getLanguageCode
+                val langCode =
+                    LocalStorageDataSource.getInstance(this@MainActivity).getLanguageCode
                 val geocoder =
                     Geocoder(
                         this@MainActivity,
-                        Locale(if (langCode.length > 2) langCode.substring(0, 2) else langCode)
+                        Locale(
+                            if (langCode.length > 2) ConfigurationCompat.getLocales(Resources.getSystem().configuration)
+                                .get(0).toString().substring(0, 2) else langCode
+                        )
                     )
                 homeViewModel.getWeatherFromApi(
                     locationState.value,
                     geocoder,
                     isConnected.value,
-                    LocalStorageDataSource.getInstance(this@MainActivity).getLanguageCode,
+                    if (langCode.length > 2) ConfigurationCompat.getLocales(Resources.getSystem().configuration)
+                        .get(0).toString().substring(0, 2) else langCode,
                     LocalStorageDataSource.getInstance(this@MainActivity).getTempUnit
                 )
             }
@@ -566,7 +595,7 @@ class MainActivity : ComponentActivity() {
     private fun removeLocationUpdates() {
         locationCallBack?.let {
             fusedLocationProviderClient.removeLocationUpdates(it)
-                locationCallBack = null
+            locationCallBack = null
         }
     }
 

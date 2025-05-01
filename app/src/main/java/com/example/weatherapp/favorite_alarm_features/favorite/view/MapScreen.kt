@@ -2,6 +2,7 @@ package com.example.weatherapp.favorite_alarm_features.favorite.view
 
 
 import android.content.Context
+import android.content.res.Resources
 import android.location.Geocoder
 import android.location.Location
 import android.os.Build
@@ -27,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
@@ -83,7 +85,8 @@ fun MapScreen(
     val langCode = LocalStorageDataSource.getInstance(context).getLanguageCode
 
     val geocoder =
-        Geocoder(context, Locale(if (langCode.length > 2) langCode.substring(0, 2) else langCode))
+        Geocoder(context, Locale( if (langCode.length > 2) ConfigurationCompat.getLocales(Resources.getSystem().configuration)
+            .get(0).toString().substring(0, 2) else langCode))
 
     val currentWeatherUiState =
         favoriteViewModel.selectedWeather.collectAsStateWithLifecycle().value
@@ -204,14 +207,16 @@ private fun GetLocation(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude,
             isConnected = isConnected,
-            languageCode = languageCode,
+            languageCode =  if (languageCode.length > 2) ConfigurationCompat.getLocales(Resources.getSystem().configuration)
+                .get(0).toString().substring(0, 2) else languageCode,
             tempUnit = tempUnit
         )
         favoriteViewModel.getSelectedFiveDaysWeatherForecast(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude,
             isConnected = isConnected,
-            languageCode = languageCode,
+            languageCode =  if (languageCode.length > 2) ConfigurationCompat.getLocales(Resources.getSystem().configuration)
+                .get(0).toString().substring(0, 2) else languageCode,
             tempUnit = tempUnit
         )
         favoriteViewModel.getCountryName(

@@ -1,5 +1,6 @@
 package com.example.weatherapp.home_settings_feature.settings.view
 
+import android.content.res.Resources
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalStorageDataSource
@@ -201,14 +203,16 @@ private fun GetLocation(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude,
             isConnected = isConnected,
-            languageCode = languageCode,
+            languageCode =  if (languageCode.length > 2) ConfigurationCompat.getLocales(Resources.getSystem().configuration)
+                .get(0).toString().substring(0, 2) else languageCode,
             tempUnit = tempUnit
         )
         homeViewModel.getFiveDaysWeatherForecast(
             longitude = markerState.position.longitude,
             latitude = markerState.position.latitude,
             isConnected = isConnected,
-            languageCode = languageCode,
+            languageCode =  if (languageCode.length > 2) ConfigurationCompat.getLocales(Resources.getSystem().configuration)
+                .get(0).toString().substring(0, 2) else languageCode,
             tempUnit = tempUnit
         )
         homeViewModel.getCountryName(

@@ -72,14 +72,17 @@ fun MainScreen(
                                 is Response.Success<*> -> {
                                     val fiveDaysWeatherForecastResponse =
                                         fiveDaysWeatherForecast as Response.Success<List<WeatherItem>>
-                                    insertCurrentLocation(
-                                        it,
-                                        cName,
-                                        fiveDaysWeatherForecastResponse,
-                                        locationState,
-                                        context,
-                                        homeViewModel
-                                    )
+
+                                    if (isConnected.value) {
+                                        insertCurrentLocation(
+                                            it,
+                                            cName,
+                                            fiveDaysWeatherForecastResponse,
+                                            locationState,
+                                            context,
+                                            homeViewModel
+                                        )
+                                    }
                                 }
                             }
                             if (it != null) {
